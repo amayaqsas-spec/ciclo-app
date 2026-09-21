@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Módulo de Inicio con Servicio del Día y Cronómetro
+// HOME.JS - Módulo de Inicio con botón Festivo
 // ============================================
 
 const Home = {
@@ -13,6 +13,38 @@ const Home = {
         return `${year}-${month}-${day}`;
     },
 
+    // ✅ Verificar si hoy está marcado como festivo
+    esHoyFestivo() {
+        const festivoData = DB.get('diaFestivo', null);
+        if (!festivoData) return false;
+        
+        const hoy = this.getFechaLocal(new Date());
+        return festivoData.fecha === hoy && festivoData.esFestivo === true;
+    },
+
+    // ✅ Marcar/desmarcar hoy como festivo
+    toggleFestivo() {
+        const hoy = this.getFechaLocal(new Date());
+        const festivoData = DB.get('diaFestivo', null);
+        
+        let nuevoEstado = false;
+        
+        if (festivoData && festivoData.fecha === hoy) {
+            // Si ya está marcado, desmarcar
+            nuevoEstado = !festivoData.esFestivo;
+        }
+        
+        DB.set('diaFestivo', {
+            fecha: hoy,
+            esFestivo: nuevoEstado
+        });
+        
+        // Recargar la vista para aplicar cambios
+        Views.load('home');
+        
+        App.showToast(nuevoEstado ? '🎉 Día marcado como festivo' : '✅ Día laboral normal');
+    },
+
     render() {
         const defaultName = Auth.currentUser ? Auth.getUserName(Auth.currentUser) : 'Usuario';
         const name = DB.get('userName', defaultName);
@@ -21,6 +53,8 @@ const Home = {
         let semanaActual = null;
         let datoDiaActual = null;
         let infoServicio = null;
+        let tipoDiaActual = '';
+        let esFestivo = this.esHoyFestivo();
 
         if (roles.length > 0) {
             const rol = roles.sort((a, b) => b.createdAt - a.createdAt)[0];
@@ -31,25 +65,28 @@ const Home = {
             
             if (semanaActual) {
                 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                const diaNombre = diasSemana[hoy.getDay()];
+                const diaIdx = hoy.getDay();
+                const diaNombre = diasSemana[diaIdx];
                 const dia = semanaActual.dias.find(d => d.dia === diaNombre);
                 
                 if (dia && dia.dato) {
-                    datoDiaActual = dia.dato;
-                    const servicios = DB.load('servicios');
-                    const servicio = servicios.find(s => s.nombre === datoDiaActual);
-                    
-                    if (servicio) {
-                        const lineas = DB.load('lineas');
-                        const terminales = DB.load('terminales');
-                        const semanas = DB.load('semanas');
-                        infoServicio = {
-                            servicio,
-                            linea: lineas.find(l => l.id === servicio.lineaId),
-                            terminal: terminales.find(t => t.id === servicio.terminalId),
-                            semana: semanas.find(s => s.id === servicio.semanaId)
-                        };
+                    // ✅ Determinar tipo de día
+                    tipoDiaActual = 'Laboral';
+                    if (diaIdx === 0) {
+                        tipoDiaActual = 'Domingo/Festivos';
+                    } else if (diaIdx === 6) {
+                        tipoDiaActual = 'Sábado';
                     }
+                    
+                    // ✅ Si está marcado como festivo, usar Domingo/Festivos
+                    if (esFestivo) {
+                        tipoDiaActual = 'Domingo/Festivos';
+                    }
+
+                    datoDiaActual = dia.dato;
+                    
+                    // ✅ Buscar servicio según tipo de día
+                    infoServicio = this.buscarServicioPorTipo(rol, tipoDiaActual, datoDiaActual);
                 }
             }
         }
@@ -73,9 +110,9 @@ const Home = {
                                 <span>Semana ${semanaActual.numeroSemana}</span>
                             </div>
                             ${datoDiaActual ? `
-                                <div class="badge-item">
-                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                    <span>Estamos de ${datoDiaActual}</span>
+                                <div class="badge-item ${esFestivo ? 'badge-festivo' : ''}">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    <span>${tipoDiaActual} - Servicio ${datoDiaActual}</span>
                                 </div>
                             ` : ''}
                         </div>
@@ -102,21 +139,21 @@ const Home = {
                     </div>
                 ` : ''}
 
-                ${infoServicio ? this.renderServicioDia(infoServicio) : ''}
+                ${infoServicio ? this.renderServicioDia(infoServicio, esFestivo) : ''}
 
                 ${!infoServicio ? `
                     <div class="aviso-empty" style="margin-top:20px;">
                         <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
-                        <p>No hay servicio registrado para hoy</p>
+                        <p>No hay servicio registrado para hoy (${tipoDiaActual || 'Sin tipo'})</p>
                     </div>
                 ` : ''}
             </div>
         `;
     },
 
-    renderServicioDia(info) {
+    renderServicioDia(info, esFestivo) {
         const { servicio, linea, terminal, semana } = info;
         const trenes = servicio.trenes || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
@@ -139,8 +176,8 @@ const Home = {
                     <span class="hsd-value">${terminal ? terminal.nombre : 'N/A'}</span>
                 </div>
                 <div class="hsd-info-row">
-                    <span class="hsd-label">Semana:</span>
-                    <span class="hsd-value">${semana ? semana.tipo : 'N/A'}</span>
+                    <span class="hsd-label">Tipo de Día:</span>
+                    <span class="hsd-value">${semana ? semana.tipo : 'N/A'} ${esFestivo ? '🎉' : ''}</span>
                 </div>
 
                 <div class="hsd-servicio-nombre">Servicio #${servicio.nombre}</div>
@@ -203,13 +240,62 @@ const Home = {
                         Agregar Atraso en Línea
                     </button>
                 </div>
+
+                <!-- ✅ BOTÓN MARCAR FESTIVO -->
+                <button class="btn-festivo ${esFestivo ? 'btn-festivo-activo' : ''}" id="btnToggleFestivo">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;">
+                        ${esFestivo 
+                            ? '<path d="M20 6L9 17l-5-5"/><circle cx="12" cy="12" r="10"/>' 
+                            : '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>'}
+                    </svg>
+                    <span>${esFestivo ? 'Día Festivo (clic para quitar)' : 'Marcar como Festivo'}</span>
+                </button>
             </div>
         `;
     },
 
+    buscarServicioPorTipo(rol, tipoDia, numeroServicio) {
+        if (!numeroServicio) return null;
+        
+        const servicios = DB.load('servicios');
+        const semanas = DB.load('semanas');
+        
+        const semanaTipo = semanas.find(s => 
+            s.lineaId === rol.lineaId && 
+            s.tipo === tipoDia
+        );
+        
+        if (!semanaTipo) return null;
+        
+        const servicio = servicios.find(s => 
+            s.nombre === numeroServicio && 
+            s.lineaId === rol.lineaId && 
+            s.semanaId === semanaTipo.id
+        );
+        
+        if (servicio) {
+            const lineas = DB.load('lineas');
+            const terminales = DB.load('terminales');
+            const semanas = DB.load('semanas');
+            return {
+                servicio,
+                linea: lineas.find(l => l.id === servicio.lineaId),
+                terminal: terminales.find(t => t.id === servicio.terminalId),
+                semana: semanas.find(s => s.id === servicio.semanaId)
+            };
+        }
+        
+        return null;
+    },
+
     init() {
-        // ✅ RESETear atraso a 0 al entrar al módulo
         this.minutosAtraso = 0;
+
+        // ✅ Evento del botón festivo
+        const btnFestivo = document.getElementById('btnToggleFestivo');
+        if (btnFestivo) {
+            btnFestivo.addEventListener('click', () => this.toggleFestivo());
+        }
 
         const servicioEl = document.querySelector('.home-servicio-dia');
         if (servicioEl) {
@@ -226,17 +312,22 @@ const Home = {
                     const dia = semanaActual.dias.find(d => d.dia === diaNombre);
                     
                     if (dia && dia.dato) {
-                        const servicios = DB.load('servicios');
-                        const servicio = servicios.find(s => s.nombre === dia.dato);
+                        let tipoDia = 'Laboral';
+                        if (hoy.getDay() === 0) tipoDia = 'Domingo/Festivos';
+                        else if (hoy.getDay() === 6) tipoDia = 'Sábado';
                         
-                        if (servicio) {
-                            // ✅ NO leer minutosAtraso del servicio, siempre empezar en 0
+                        const esFestivo = this.esHoyFestivo();
+                        if (esFestivo) tipoDia = 'Domingo/Festivos';
+
+                        const servicio = this.buscarServicioPorTipo(rol, tipoDia, dia.dato);
+                        
+                        if (servicio && servicio.servicio) {
                             this.minutosAtraso = 0;
-                            this.iniciarReloj(servicio);
+                            this.iniciarReloj(servicio.servicio);
                             
                             const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
                             if (btnAtraso) {
-                                btnAtraso.addEventListener('click', () => this.agregarAtraso(servicio));
+                                btnAtraso.addEventListener('click', () => this.agregarAtraso(servicio.servicio));
                             }
                         }
                     }
@@ -245,7 +336,6 @@ const Home = {
         }
     },
 
-    // ✅ Método onLeave para resetear atraso al cambiar de módulo
     onLeave() {
         if (this.relojInterval) {
             clearInterval(this.relojInterval);
@@ -321,30 +411,18 @@ const Home = {
 
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
 
-        // ✅ NO guardar en localStorage, solo en memoria
         App.showToast(`+${minutosNum} min de atraso agregados (temporal)`);
         this.iniciarReloj(servicio);
         
-        // ✅ Mostrar badge de atraso solo si hay atraso
-        this.actualizarBadgeAtraso();
-    },
-
-    actualizarBadgeAtraso() {
         const container = document.getElementById('hsdRelojContainer');
-        if (!container) return;
-
-        // Remover badge existente si hay
-        const badgeExistente = container.querySelector('.hsd-atraso-badge');
-        if (badgeExistente) {
-            badgeExistente.remove();
-        }
-
-        // Agregar badge solo si hay atraso
-        if (this.minutosAtraso > 0) {
-            const newBadge = document.createElement('div');
-            newBadge.className = 'hsd-atraso-badge';
-            newBadge.textContent = `+${this.minutosAtraso} min atraso`;
-            container.appendChild(newBadge);
+        if (container) {
+            let badge = container.querySelector('.hsd-atraso-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'hsd-atraso-badge';
+                container.appendChild(badge);
+            }
+            badge.textContent = `+${this.minutosAtraso} min atraso`;
         }
     }
 };

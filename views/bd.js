@@ -15,7 +15,6 @@ const BD = {
                     Base de Datos
                 </h2>
 
-                <!-- CAMBIAR NOMBRE DE USUARIO -->
                 <div class="bd-section">
                     <h3 class="bd-section-title">👤 Perfil de Usuario</h3>
                     <div class="bd-card">
@@ -38,7 +37,6 @@ const BD = {
                 </div>
 
                 <div class="bd-acciones">
-                    <!-- EXPORTAR -->
                     <div class="bd-card bd-card-export">
                         <div class="bd-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -54,7 +52,6 @@ const BD = {
                         <button class="bd-btn bd-btn-export" id="btnExportar">Exportar</button>
                     </div>
 
-                    <!-- IMPORTAR -->
                     <div class="bd-card bd-card-import">
                         <div class="bd-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -71,7 +68,6 @@ const BD = {
                         <input type="file" id="inputFileImport" accept=".json" style="display:none;">
                     </div>
 
-                    <!-- RESETEAR -->
                     <div class="bd-card bd-card-reset">
                         <div class="bd-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -98,17 +94,12 @@ const BD = {
     },
 
     init() {
-        // Guardar nombre de usuario
         document.getElementById('btnGuardarNombre').addEventListener('click', () => {
             const nuevoNombre = document.getElementById('inputUserName').value.trim();
             if (nuevoNombre) {
                 DB.set('userName', nuevoNombre);
-                App.showToast('✅ Nombre actualizado. El saludo cambiará inmediatamente.');
-                
-                // Actualizar el nombre en el menú lateral también
+                App.showToast('✅ Nombre actualizado.');
                 document.getElementById('menuUserName').textContent = nuevoNombre;
-                
-                // Si estamos en el home, recargar para ver el cambio
                 if (Views.current === 'home') {
                     setTimeout(() => Views.load('home'), 500);
                 }
@@ -129,11 +120,7 @@ const BD = {
         const modal = App.showModal(`
             <h3> Exportar Base de Datos</h3>
             <p style="color:var(--text-soft);font-size:13px;margin-bottom:16px;line-height:1.5;">
-                Se generará un archivo <strong>JSON</strong> con todos los datos de tu aplicación 
-                (líneas, terminales, semanas, reservas, servicios, roles, notas, tiempo extra, espejos, etc.).
-            </p>
-            <p style="color:var(--text-light);font-size:11px;margin-bottom:16px;">
-                💡 Este archivo sirve como copia de seguridad.
+                Se generará un archivo <strong>JSON</strong> con todos los datos de tu aplicación.
             </p>
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelExport">Cancelar</button>
@@ -211,8 +198,8 @@ const BD = {
                     <strong>Archivo detectado:</strong>
                 </p>
                 <p style="font-size:11px;color:var(--text-soft);">
-                    📦 ${totalRegistros} secciones de datos<br>
-                     Exportado: ${datos._meta?.fechaExportacion ? new Date(datos._meta.fechaExportacion).toLocaleString() : 'Desconocido'}
+                     ${totalRegistros} secciones de datos<br>
+                    📅 Exportado: ${datos._meta?.fechaExportacion ? new Date(datos._meta.fechaExportacion).toLocaleString() : 'Desconocido'}
                 </p>
             </div>
             <p style="color:#ff9800;font-size:12px;font-weight:600;margin-bottom:14px;">
@@ -237,41 +224,38 @@ const BD = {
         Object.keys(datos).forEach(key => {
             if (!this.clavesSistema.includes(key) && key !== '_meta') {
                 try {
-                    localStorage.setItem(key, JSON.stringify(datos[key]));
+                    const valor = datos[key];
+                    const valorStr = typeof valor === 'string' ? valor : JSON.stringify(valor);
+                    localStorage.setItem(key, valorStr);
                     contador++;
+                    console.log(`✅ Importado: ${key}`);
                 } catch (e) {
-                    console.error(`Error al importar ${key}:`, e);
+                    console.error(`❌ Error al importar ${key}:`, e);
                 }
             }
         });
 
         App.showToast(`✅ ${contador} secciones importadas correctamente`);
         
+        // ✅ Recargar la página para que se apliquen los cambios
         setTimeout(() => {
-            Views.load('bd');
-        }, 500);
+            location.reload();
+        }, 1000);
     },
 
     resetear() {
         const modal = App.showModal(`
-            <h3>🗑️ Resetear Aplicación</h3>
+            <h3>️ Resetear Aplicación</h3>
             <div style="background:rgba(220,53,69,0.1);border:1px solid rgba(220,53,69,0.3);padding:12px;border-radius:var(--radius-xs);margin-bottom:14px;">
                 <p style="color:#dc3545;font-size:12px;font-weight:600;margin-bottom:8px;">
                     🚨 ACCIÓN IRREVERSIBLE
                 </p>
                 <p style="color:var(--text-soft);font-size:12px;line-height:1.5;">
-                    Se eliminarán <strong>TODOS</strong> los datos de la aplicación:
+                    Se eliminarán <strong>TODOS</strong> los datos de la aplicación.
                 </p>
-                <ul style="color:var(--text-soft);font-size:11px;margin:8px 0 0 18px;line-height:1.6;">
-                    <li>Líneas, Terminales, Semanas</li>
-                    <li>Reservas y Servicios</li>
-                    <li>Roles y horarios</li>
-                    <li>Notas y Tiempo Extra</li>
-                    <li>Espejos y Documentos</li>
-                </ul>
             </div>
             <p style="font-size:12px;color:var(--text);margin-bottom:10px;">
-                Para confirmar, escribe <strong style="color:#dc3545;">BORRAR</strong> en el campo:
+                Para confirmar, escribe <strong style="color:#dc3545;">BORRAR</strong>:
             </p>
             <div class="input-group">
                 <input type="text" id="inputConfirmReset" placeholder="Escribe BORRAR" style="text-transform:uppercase;">
@@ -312,8 +296,8 @@ const BD = {
         App.showToast('🗑️ Aplicación reseteada completamente');
         
         setTimeout(() => {
-            Views.load('bd');
-        }, 500);
+            location.reload();
+        }, 1000);
     },
 
     mostrarEstadisticas() {
@@ -321,7 +305,7 @@ const BD = {
         const secciones = [
             { key: 'lineas', label: 'Líneas' },
             { key: 'terminales', label: 'Terminales' },
-            { key: 'semanas', label: 'Semanas' },
+            { key: 'semanas', label: 'Días' },
             { key: 'reservas', label: 'Reservas' },
             { key: 'servicios', label: 'Servicios' },
             { key: 'roles', label: 'Roles' },
