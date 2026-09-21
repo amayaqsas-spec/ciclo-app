@@ -24,28 +24,52 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+    <!-- ✅ INICIALIZACIÓN INMEDIATA DE FIREBASE -->
+    <script>
+        // Verificar que Firebase SDK cargó
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK no cargó');
+        } else {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
+                authDomain: "ciclo-db5c9.firebaseapp.com",
+                projectId: "ciclo-db5c9",
+                storageBucket: "ciclo-db5c9.firebasestorage.app",
+                messagingSenderId: "384309494842",
+                appId: "1:384309494842:web:b5c113c35877a431462103"
+            };
+
+            // Inicializar si no existe
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase inicializado correctamente');
+            }
+            
+            // Hacer disponible globalmente
+            window.firebase = firebase;
+        }
+    </script>
+
     <!-- Script de splash INMEDIATO -->
     <script>
         (function() {
             function initSplash() {
                 console.log('🎬 Iniciando splash...');
-                
                 setTimeout(function() {
                     console.log('⏳ Ocultando splash (2s)');
                     var splash = document.getElementById('splashScreen');
                     if (splash) splash.classList.add('hide');
                     
                     setTimeout(function() {
-                        console.log('🌊 Activando wave (2.1s)');
+                        console.log(' Activando wave (2.1s)');
                         var wave = document.getElementById('wave');
                         if (wave) wave.classList.add('active');
                         
                         setTimeout(function() {
-                            console.log('📱 Mostrando auth (2.6s)');
+                            console.log(' Mostrando auth (2.6s)');
                             var auth = document.getElementById('authContainer');
                             if (auth) {
                                 auth.classList.add('show');
-                                // Renderizar login
                                 if (window.Auth && Auth.renderLogin) {
                                     Auth.renderLogin();
                                 }
@@ -63,11 +87,9 @@
                 }, 2000);
             }
 
-            // Ejecutar cuando DOM esté listo
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initSplash);
             } else {
-                // DOM ya está listo
                 setTimeout(initSplash, 100);
             }
         })();
@@ -141,7 +163,7 @@
     <!-- app.js como módulo -->
     <script type="module" src="app.js"></script>
 
-    <!-- ✅ Registrar Service Worker para PWA -->
+    <!-- Registrar Service Worker para PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

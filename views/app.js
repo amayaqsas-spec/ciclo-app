@@ -37,7 +37,7 @@ const AppInfo = {
                             </div>
                         </div>
                         <div class="benefit-item">
-                            <div class="benefit-icon">💾</div>
+                            <div class="benefit-icon"></div>
                             <div class="benefit-text">
                                 <strong>Respaldo Seguro</strong>
                                 <p>Exporta e importa tus datos cuando lo necesites</p>
@@ -80,7 +80,7 @@ const AppInfo = {
 
                 <!-- DISEÑO -->
                 <div class="app-section app-credits">
-                    <h3 class="app-section-title">🎨 Diseño, colores y ambiente gráfico</h3>
+                    <h3 class="app-section-title"> Diseño, colores y ambiente gráfico</h3>
                     <div class="credit-item">
                         <div class="credit-logo">
                             <img src="./assets/lo1.png" alt="Logo Diseño" class="app-logo">
@@ -97,7 +97,7 @@ const AppInfo = {
 
                 <!-- PROGRAMACIÓN -->
                 <div class="app-section app-credits">
-                    <h3 class="app-section-title">💻 Programación, Lógica Relacional "A"</h3>
+                    <h3 class="app-section-title"> Programación, Lógica Relacional "A"</h3>
                     <div class="credit-item">
                         <div class="credit-logo">
                             <img src="./assets/mi.png" alt="Logo Programación" class="app-logo">
@@ -114,14 +114,14 @@ const AppInfo = {
 
                 <!-- REDES SOCIALES -->
                 <div class="app-section app-social">
-                    <h3 class="app-section-title">🌟 Conoce nuestra creatividad</h3>
+                    <h3 class="app-section-title"> Conocenos</h3>
                     <a href="https://www.tiktok.com/@susanaramirezcastro?_r=1&_t=ZS-99r2n8u0iRR" 
                        target="_blank" 
                        class="social-link social-tiktok">
                         <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;">
                             <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
                         </svg>
-                        <span>@susanaramirezcastro</span>
+                        <span>+QDetalles</span>
                         <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;margin-left:auto;">
                             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                             <polyline points="15 3 21 3 21 9"/>
@@ -132,7 +132,7 @@ const AppInfo = {
 
                 <!-- CONTACTO -->
                 <div class="app-section app-contact">
-                    <h3 class="app-section-title">📧 Contacto</h3>
+                    <h3 class="app-section-title"> Contacto</h3>
                     <a href="mailto:amayaqsas@gmail.com" class="contact-email">
                         <svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:var(--primary);fill:none;stroke-width:2;">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -145,7 +145,7 @@ const AppInfo = {
                 <!-- VERSIÓN -->
                 <div class="app-version">
                     <p style="font-size:11px;color:var(--text-light);text-align:center;">
-                        CICLO v1.0 • Desarrollado por amayasily
+                        CICLO v1.0 • Desarrollado con ❤️
                     </p>
                 </div>
             </div>
@@ -153,7 +153,6 @@ const AppInfo = {
     },
 
     init() {
-        // No necesita inicialización especial
         console.log(' Módulo App Info cargado');
     }
 };

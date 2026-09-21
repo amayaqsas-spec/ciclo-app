@@ -2,26 +2,8 @@
 // APP.JS - Orquestador Principal
 // ============================================
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
-    authDomain: "ciclo-db5c9.firebaseapp.com",
-    projectId: "ciclo-db5c9",
-    storageBucket: "ciclo-db5c9.firebasestorage.app",
-    messagingSenderId: "384309494842",
-    appId: "1:384309494842:web:b5c113c35877a431462103"
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-    console.log('✅ Firebase inicializado');
-}
-
-window.firebase = firebase;
-
-// Función auxiliar para obtener el nombre de la app
-function getAppNombre() {
-    return DB.get('appNombre', 'CICLO');
-}
+// ✅ Obtener Firebase de forma segura desde window
+const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
 
 // ============================================
 // TEMAS
@@ -102,10 +84,6 @@ const Views = {
         const nav = document.getElementById('sideMenuNav');
         let html = '<div class="nav-section-title">Principal</div>';
 
-        // Calcular documentos no leídos para el badge
-        const avisos = DB.load('avisos');
-        const noLeidos = avisos.filter(a => a.leido === false).length;
-
         this.menuItems.forEach(item => {
             if (item.id === 'apariencia') {
                 html += '<div class="nav-section-title">Configuración</div>';
@@ -126,16 +104,10 @@ const Views = {
                 `;
             } else {
                 const activeClass = item.id === this.current ? 'active' : '';
-                // ✅ AGREGAR BADGE DE NOTIFICACIÓN SI ES DOCUMENTOS Y HAY NO LEÍDOS
-                const badgeHtml = (item.id === 'avisos' && noLeidos > 0) 
-                    ? `<span class="nav-badge">${noLeidos > 9 ? '9+' : noLeidos}</span>` 
-                    : '';
-
                 html += `
                     <div class="nav-item ${activeClass}" data-view="${item.id}">
                         <svg viewBox="0 0 24 24">${item.icon}</svg>
                         <span>${item.label}</span>
-                        ${badgeHtml}
                     </div>
                 `;
             }
@@ -255,6 +227,7 @@ const Views = {
             const t = themes[key];
             const colors = [t['--bg'], t['--bg-soft'], t['--primary'], t['--accent']];
             const isSelected = key === savedTheme ? 'selected' : '';
+            
             return `
                 <div class="theme-card ${isSelected}" data-theme="${key}">
                     <div class="theme-preview">
@@ -276,7 +249,9 @@ const Views = {
                 </h2>
                 <div class="theme-section">
                     <h3>Paleta de colores</h3>
-                    <div class="theme-grid">${themeCards}</div>
+                    <div class="theme-grid">
+                        ${themeCards}
+                    </div>
                 </div>
             </div>
         `;
@@ -285,23 +260,40 @@ const Views = {
     initApariencia() {
         const savedTheme = DB.get('theme', 'lavender');
         this.applyTheme(savedTheme, false);
-        document.querySelectorAll('.theme-card').forEach((card) => {
+
+        const themeCards = document.querySelectorAll('.theme-card');
+
+        themeCards.forEach((card) => {
+            const themeName = card.getAttribute('data-theme');
+            
             card.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.applyTheme(card.getAttribute('data-theme'), true);
+                this.applyTheme(themeName, true);
             });
         });
     },
 
     applyTheme(themeName, save = true) {
         const theme = themes[themeName];
-        if (!theme) return;
+        
+        if (!theme) {
+            console.error('❌ Tema no encontrado:', themeName);
+            return;
+        }
+
         const root = document.documentElement;
-        Object.entries(theme).forEach(([prop, val]) => root.style.setProperty(prop, val));
+        
+        Object.entries(theme).forEach(([prop, val]) => {
+            root.style.setProperty(prop, val);
+        });
+
         document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
         const selectedCard = document.querySelector(`.theme-card[data-theme="${themeName}"]`);
-        if (selectedCard) selectedCard.classList.add('selected');
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+
         if (save) {
             DB.set('theme', themeName);
             App.showToast(`Tema ${themeNames[themeName]} aplicado ✓`);
@@ -315,36 +307,50 @@ const Views = {
 const App = {
     init() {
         console.log('🚀 App.init() llamado');
-        if (!firebase.apps.length) {
-            console.error('❌ Firebase no está inicializado');
+
+        if (!firebase || !firebase.apps || !firebase.apps.length) {
+            console.error('❌ Firebase no está inicializado. Revisa index.html');
             return;
         }
 
         const auth = firebase.auth();
+
         auth.onAuthStateChanged(user => {
+            console.log('🔐 Auth state changed:', user ? user.email : 'null');
+
             if (user) {
                 Auth.currentUser = user;
-                Auth.isAdmin = user.email === ADMIN_EMAIL;
+                Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
+
                 const authContainer = document.getElementById('authContainer');
                 const mainApp = document.getElementById('mainApp');
+
                 if (authContainer) authContainer.classList.remove('show');
-                setTimeout(() => { if (mainApp) mainApp.classList.add('show'); }, 300);
+
+                setTimeout(() => {
+                    if (mainApp) mainApp.classList.add('show');
+                }, 300);
 
                 const name = Auth.getUserName(user);
                 document.getElementById('menuUserName').textContent = name;
                 document.getElementById('menuUserEmail').textContent = user.email;
 
                 const temaGuardado = DB.get('theme', 'lavender');
-                if (temaGuardado && themes[temaGuardado]) Views.applyTheme(temaGuardado, false);
+                if (temaGuardado && themes[temaGuardado]) {
+                    Views.applyTheme(temaGuardado, false);
+                }
 
                 Views.renderMenu();
                 Views.load('home');
             } else {
                 Auth.currentUser = null;
                 Auth.isAdmin = false;
+
                 const mainApp = document.getElementById('mainApp');
                 const authContainer = document.getElementById('authContainer');
+
                 if (mainApp) mainApp.classList.remove('show');
+
                 setTimeout(() => {
                     if (authContainer) {
                         authContainer.classList.add('show');
@@ -354,9 +360,13 @@ const App = {
             }
         });
 
-        document.getElementById('menuBtn').addEventListener('click', () => this.toggleMenu());
-        document.getElementById('menuOverlay').addEventListener('click', () => this.toggleMenu());
-        document.getElementById('btnLogout').addEventListener('click', async () => {
+        const menuBtn = document.getElementById('menuBtn');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const btnLogout = document.getElementById('btnLogout');
+
+        if (menuBtn) menuBtn.addEventListener('click', () => this.toggleMenu());
+        if (menuOverlay) menuOverlay.addEventListener('click', () => this.toggleMenu());
+        if (btnLogout) btnLogout.addEventListener('click', async () => {
             this.toggleMenu();
             await Auth.logout();
         });
@@ -367,8 +377,10 @@ const App = {
     },
 
     toggleMenu() {
-        document.getElementById('sideMenu').classList.toggle('active');
-        document.getElementById('menuOverlay').classList.toggle('active');
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        if (sideMenu) sideMenu.classList.toggle('active');
+        if (menuOverlay) menuOverlay.classList.toggle('active');
     },
 
     showToast(msg) {
@@ -385,13 +397,18 @@ const App = {
         overlay.className = 'modal-overlay show';
         overlay.innerHTML = `<div class="modal">${html}</div>`;
         document.body.appendChild(overlay);
-        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.remove();
+        });
         return overlay;
     }
 };
 
 window.App = App;
 
+// ============================================
+// INICIALIZACIÓN
+// ============================================
 function startApp() {
     console.log('✅ DOM listo, iniciando app...');
     App.init();
@@ -402,3 +419,5 @@ if (document.readyState === 'loading') {
 } else {
     startApp();
 }
+
+console.log('📜 app.js cargado correctamente');
