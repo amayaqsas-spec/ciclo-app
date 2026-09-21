@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#9B7FD4">
+    <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
+    <title>CICLO</title>
+    
+    <!-- PWA Manifest e Iconos -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png">
+    
+    <!-- Meta tags para iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CICLO">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <!-- Script de splash INMEDIATO -->
+    <script>
+        (function() {
+            function initSplash() {
+                console.log('🎬 Iniciando splash...');
+                
+                setTimeout(function() {
+                    console.log('⏳ Ocultando splash (2s)');
+                    var splash = document.getElementById('splashScreen');
+                    if (splash) splash.classList.add('hide');
+                    
+                    setTimeout(function() {
+                        console.log('🌊 Activando wave (2.1s)');
+                        var wave = document.getElementById('wave');
+                        if (wave) wave.classList.add('active');
+                        
+                        setTimeout(function() {
+                            console.log('📱 Mostrando auth (2.6s)');
+                            var auth = document.getElementById('authContainer');
+                            if (auth) {
+                                auth.classList.add('show');
+                                // Renderizar login
+                                if (window.Auth && Auth.renderLogin) {
+                                    Auth.renderLogin();
+                                }
+                            }
+                            
+                            setTimeout(function() {
+                                console.log('✅ Wave completada (3.2s)');
+                                if (wave) wave.classList.remove('active');
+                            }, 600);
+                            
+                        }, 500);
+                        
+                    }, 100);
+                    
+                }, 2000);
+            }
+
+            // Ejecutar cuando DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSplash);
+            } else {
+                // DOM ya está listo
+                setTimeout(initSplash, 100);
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splashScreen">
+        <div class="splash-logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                <polyline points="21 3 21 9 15 9"/>
+            </svg>
+        </div>
+        <div class="splash-title">CICLO</div>
+        <div class="splash-subtitle">Gestión inteligente</div>
+    </div>
+
+    <!-- WAVE TRANSITION -->
+    <div class="wave-container">
+        <div class="wave" id="wave">
+            <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path class="wave-bg" d="M0,0 L1440,0 L1440,450 C1200,550 960,350 720,500 C480,650 240,400 0,550 Z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- AUTH CONTAINER -->
+    <div id="authContainer"></div>
+
+    <!-- MAIN APP -->
+    <div id="mainApp">
+        <header class="app-header">
+            <div class="header-left">
+                <button class="menu-btn" id="menuBtn">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <span class="header-title">CICLO</span>
+            </div>
+        </header>
+
+        <div class="app-content" id="viewContainer"></div>
+
+        <!-- SIDE MENU -->
+        <div class="side-menu-overlay" id="menuOverlay"></div>
+        <nav class="side-menu" id="sideMenu">
+            <div class="side-menu-header">
+                <div class="user-avatar">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div class="user-name" id="menuUserName">Usuario</div>
+                <div class="user-email" id="menuUserEmail">usuario@correo.com</div>
+            </div>
+            <div class="side-menu-nav" id="sideMenuNav"></div>
+            <div class="side-menu-footer">
+                <button class="btn-logout" id="btnLogout">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Cerrar Sesión
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts base -->
+    <script src="db.js"></script>
+    <script src="auth.js"></script>
+    <!-- app.js como módulo -->
+    <script type="module" src="app.js"></script>
+
+    <!-- ✅ Registrar Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
