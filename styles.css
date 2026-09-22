@@ -6497,3 +6497,298 @@ html, body {
         border-radius: 16px;
     }
 }
+/* ============================================
+   MÓDULO MI ROL - VISTA FINAL MEJORADA
+   ============================================ */
+
+.rol-dia-calendario {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    min-height: 75px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s;
+    position: relative;
+    border: 1px solid var(--bg-soft);
+}
+
+/* ✅ DÍA ACTUAL RESALTADO EN NARANJA (igual que Paso 2) */
+.rol-dia-calendario.dia-hoy {
+    background: linear-gradient(135deg, #FF9800, #F57C00) !important;
+    color: white !important;
+    box-shadow: 0 3px 12px rgba(255, 152, 0, 0.5) !important;
+    transform: scale(1.05);
+    z-index: 10;
+    border: 2px solid #FF9800 !important;
+}
+
+/* ✅ DÍAS DE DESCANSO - Mejor visibles */
+.rol-dia-calendario.dia-descanso {
+    background: var(--bg-soft) !important;
+    opacity: 1 !important;
+    border: 2px dashed var(--primary-soft) !important;
+}
+
+.rol-dia-calendario.dia-descanso .rol-dia-nombre-corto {
+    color: var(--text-soft);
+    font-weight: 800;
+}
+
+.rol-dia-calendario.dia-descanso .rol-dia-numero {
+    color: var(--text-soft);
+    font-weight: 800;
+}
+
+.rol-dia-calendario.dia-hoy .rol-dia-nombre-corto {
+    color: white !important;
+    font-weight: 900;
+}
+
+.rol-dia-numero {
+    font-size: 11px !important;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+}
+
+.rol-dia-calendario.dia-hoy .rol-dia-numero {
+    color: white !important;
+    font-size: 11px !important;
+    font-weight: 900;
+}
+
+.rol-dia-servicio {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: auto;
+    padding: 3px 2px;
+    background: var(--bg-soft);
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rol-dia-calendario.dia-hoy .rol-dia-servicio {
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    font-weight: 900;
+}
+
+.rol-descanso-badge {
+    font-size: 18px;
+    margin-top: auto;
+    opacity: 1;
+}
+/* ============================================
+   CAMPANITA DE NOTIFICACIONES EN HOME
+   ============================================ */
+
+.campanita-notificacion {
+    position: relative;
+    cursor: pointer;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(155, 127, 212, 0.4);
+    transition: all 0.3s;
+    animation: campanitaPulse 2s ease-in-out infinite;
+}
+
+.campanita-notificacion:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(155, 127, 212, 0.6);
+}
+
+.campanita-notificacion:active {
+    transform: scale(0.95);
+}
+
+.campanita-notificacion svg {
+    stroke: white;
+}
+
+.campanita-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--surface);
+    box-shadow: 0 2px 6px rgba(255, 68, 68, 0.5);
+}
+
+@keyframes campanitaPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Badge en el menú lateral */
+.nav-badge {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: #ff4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 2px 6px rgba(255, 68, 68, 0.4);
+}
+
+.nav-item {
+    position: relative;
+}
+
+/* Documento nuevo (no leído) */
+.item-card.aviso-nuevo {
+    border-left: 4px solid var(--primary);
+    background: linear-gradient(90deg, var(--bg-soft), var(--surface));
+}
+
+.badge-nuevo {
+    display: inline-block;
+    background: #ff4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+/* ============================================
+   CAMPANITA DE NOTIFICACIONES EN HOME
+   ============================================ */
+
+.campanita-notificacion {
+    position: relative;
+    cursor: pointer;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(155, 127, 212, 0.4);
+    transition: all 0.3s;
+    animation: campanitaPulse 2s ease-in-out infinite;
+}
+
+.campanita-notificacion:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(155, 127, 212, 0.6);
+}
+
+.campanita-notificacion:active {
+    transform: scale(0.95);
+}
+
+.campanita-notificacion svg {
+    stroke: white;
+}
+
+.campanita-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ff4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid var(--surface);
+    box-shadow: 0 2px 6px rgba(255, 68, 68, 0.5);
+}
+
+@keyframes campanitaPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Badge en el menú lateral */
+.nav-badge {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: #ff4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 2px 6px rgba(255, 68, 68, 0.4);
+}
+
+.nav-item {
+    position: relative;
+}
+
+/* Documento nuevo (no leído) */
+.item-card.aviso-nuevo {
+    border-left: 4px solid var(--primary);
+    background: linear-gradient(90deg, var(--bg-soft), var(--surface));
+}
+
+.badge-nuevo {
+    display: inline-block;
+    background: #ff4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}

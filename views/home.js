@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Módulo de Inicio con imagen de perfil procesada
+// HOME.JS - Módulo de Inicio con imagen de perfil y notificaciones
 // ============================================
 
 const Home = {
@@ -50,6 +50,9 @@ const Home = {
         const defaultName = Auth.currentUser ? Auth.getUserName(Auth.currentUser) : 'Usuario';
         const name = DB.get('userName', defaultName);
         const imagenPerfil = DB.get('imagenPerfil', null);
+        
+        // ✅ Obtener contador de avisos no leídos
+        const avisosNoLeidos = DB.get('avisosNoLeidos', 0);
 
         const roles = DB.load('roles');
         let semanaActual = null;
@@ -103,6 +106,18 @@ const Home = {
                         <h2>¡Hola, ${name}!</h2>
                         <p>Tu espacio de gestión inteligente</p>
                     </div>
+                    
+                    <!-- ✅ CAMPANITA DE NOTIFICACIONES -->
+                    ${avisosNoLeidos > 0 ? `
+                        <div class="campanita-notificacion" id="btnVerAvisos" title="Hay ${avisosNoLeidos} documento(s) nuevo(s)">
+                            <svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                            <span class="campanita-badge">${avisosNoLeidos}</span>
+                        </div>
+                    ` : ''}
+                    
                     ${semanaActual ? `
                         <div class="semana-badge-container">
                             <div class="badge-item">
@@ -280,6 +295,16 @@ const Home = {
 
     init() {
         this.minutosAtraso = 0;
+
+        // ✅ Evento para la campanita de notificaciones
+        const btnVerAvisos = document.getElementById('btnVerAvisos');
+        if (btnVerAvisos) {
+            btnVerAvisos.addEventListener('click', () => {
+                if (typeof Views !== 'undefined' && Views.load) {
+                    Views.load('avisos', true);
+                }
+            });
+        }
 
         // Evento para cambiar foto de perfil
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');

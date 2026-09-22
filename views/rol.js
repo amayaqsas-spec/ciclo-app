@@ -1,5 +1,5 @@
 // ============================================
-// ROL.JS - Módulo Mi Rol con día actual y mes
+// ROL.JS - Módulo Mi Rol con calendario en 2 pasos
 // ============================================
 
 const Rol = {
@@ -154,7 +154,6 @@ const Rol = {
             const fechaFin = new Date(fechaInicio);
             fechaFin.setDate(fechaFin.getDate() + 6);
             
-            // Calcular mes(es) de la semana
             const mesInicio = meses[fechaInicio.getMonth()];
             const mesFin = meses[fechaFin.getMonth()];
             const mesTexto = mesInicio === mesFin ? mesInicio : `${mesInicio}-${mesFin}`;
@@ -187,7 +186,7 @@ const Rol = {
                             <span class="dia-paso2-numero">${diaNumero}</span>
                         </div>
                         ${esDescanso ? 
-                            '<div class="dia-paso2-badge-descanso"></div>' :
+                            '<div class="dia-paso2-badge-descanso">🛌</div>' :
                             `<input type="text" 
                                    class="dia-paso2-input" 
                                    data-semana="${i}" 
@@ -287,12 +286,19 @@ const Rol = {
                 const input = document.querySelector(`.dia-paso2-input[data-semana="${i}"][data-dia="${diaIdx}"]`);
                 const valor = input ? input.value.trim() : '';
                 const esDescanso = descansos.includes(diaNombre);
+                
+                // ✅ Guardar la fecha exacta de cada día
+                const fechaDia = new Date(fechaInicio);
+                fechaDia.setDate(fechaDia.getDate() + diaIdx);
+                const fechaDiaStr = this.getFechaLocal(fechaDia);
 
                 dias.push({
                     dia: diaNombre,
                     dato: valor,
                     esDescanso: esDescanso,
-                    esFestivo: false
+                    esFestivo: false,
+                    fecha: fechaDiaStr, // ✅ Fecha guardada
+                    numeroDia: fechaDia.getDate() // ✅ Número del día guardado
                 });
             }
 
@@ -396,7 +402,8 @@ const Rol = {
             return;
         }
 
-        const semanasOrdenadas = [...semanas].sort((a, b) => a.numeroSemana - b.numeroSemana);
+        // ✅ MANTENER ORDEN CRONOLÓGICO (igual que Paso 2)
+        const semanasOrdenadas = semanas;
 
         container.innerHTML = `
             <div class="rol-calendario-scroll">
@@ -414,7 +421,6 @@ const Rol = {
         const fechaFin = new Date(semana.fechaFin);
         const esSemanaActual = hoy >= fechaInicio && hoy <= fechaFin;
         
-        // Calcular mes(es) de la semana
         const mesInicio = meses[fechaInicio.getMonth()];
         const mesFin = meses[fechaFin.getMonth()];
         const mesTexto = mesInicio === mesFin ? mesInicio : `${mesInicio}-${mesFin}`;
@@ -427,13 +433,13 @@ const Rol = {
                 </div>
                 <div class="rol-dias-grid-calendario">
                     ${semana.dias.map((dia, diaIdx) => {
-                        const fechaDia = this.calcularFecha(semana.fechaInicio, diaIdx);
-                        const esHoy = fechaDia === hoyStr;
+                        // ✅ Usar la fecha guardada en lugar de recalcular
+                        const fechaDiaStr = dia.fecha || this.calcularFecha(semana.fechaInicio, diaIdx);
+                        const esHoy = fechaDiaStr === hoyStr;
                         const esDescanso = dia.esDescanso || false;
                         
-                        // Obtener número del día
-                        const fechaDiaObj = new Date(fechaDia);
-                        const diaNumero = fechaDiaObj.getDate();
+                        // ✅ Usar el número del día guardado
+                        const diaNumero = dia.numeroDia || new Date(fechaDiaStr).getDate();
                         
                         return `
                             <div class="rol-dia-calendario ${esHoy ? 'dia-hoy' : ''} ${esDescanso ? 'dia-descanso' : ''}">

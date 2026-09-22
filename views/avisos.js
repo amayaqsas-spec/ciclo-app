@@ -1,10 +1,10 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos / Avisos
+// AVISOS.JS - Módulo de Documentos con notificaciones
 // ============================================
 
 const Avisos = {
     render() {
-        const isAdmin = Auth.isAdmin; // Verificar si es administrador
+        const isAdmin = Auth.isAdmin;
         
         return `
             <div class="view active">
@@ -28,6 +28,9 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
+        // ✅ Marcar todos los documentos como leídos al entrar al módulo
+        this.marcarTodosComoLeidos();
+        
         // Solo el administrador puede ver el botón de agregar
         if (isAdmin) {
             document.getElementById('btnAddAviso')?.addEventListener('click', () => this.openModal());
@@ -36,8 +39,34 @@ const Avisos = {
         this.renderList();
     },
 
+    // ✅ Marcar todos los avisos como leídos
+    marcarTodosComoLeidos() {
+        const avisos = DB.load('avisos');
+        let hayCambios = false;
+        
+        avisos.forEach(aviso => {
+            if (!aviso.leido) {
+                aviso.leido = true;
+                hayCambios = true;
+            }
+        });
+        
+        if (hayCambios) {
+            DB.save('avisos', avisos);
+            // Resetear el contador global
+            DB.set('avisosNoLeidos', 0);
+        }
+    },
+
+    // ✅ Calcular el contador de no leídos
+    calcularNoLeidos() {
+        const avisos = DB.load('avisos');
+        const noLeidos = avisos.filter(a => !a.leido).length;
+        DB.set('avisosNoLeidos', noLeidos);
+        return noLeidos;
+    },
+
     openModal(editId = null) {
-        // Verificar que solo el administrador pueda abrir el modal
         if (!Auth.isAdmin) {
             App.showToast('❌ Solo el administrador puede realizar esta acción');
             return;
@@ -83,15 +112,19 @@ const Avisos = {
                     avisos[idx] = { ...avisos[idx], titulo, texto, link };
                 }
             } else {
+                // ✅ NUEVO DOCUMENTO: marcar como NO leído
                 avisos.push({
                     id: DB.generateId(),
                     titulo,
                     texto,
                     link,
-                    leido: false, // Nuevo documento = no leído por los usuarios
+                    leido: false, // Importante: nuevo documento = no leído
                     fecha: new Date().toLocaleDateString(),
                     createdAt: Date.now()
                 });
+                
+                // ✅ Actualizar contador de no leídos
+                this.calcularNoLeidos();
             }
 
             DB.save('avisos', avisos);
@@ -119,9 +152,12 @@ const Avisos = {
         }
 
         list.innerHTML = data.map(item => `
-            <div class="item-card">
+            <div class="item-card ${!item.leido ? 'aviso-nuevo' : ''}">
                 <div class="item-header">
-                    <div class="item-title">${item.titulo}</div>
+                    <div class="item-title">
+                        ${item.titulo}
+                        ${!item.leido ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+                    </div>
                     <div class="item-date">${item.fecha}</div>
                 </div>
                 ${item.texto ? `<div class="item-desc">${item.texto}</div>` : ''}
@@ -135,7 +171,6 @@ const Avisos = {
             </div>
         `).join('');
 
-        // Solo el administrador puede editar y eliminar
         if (isAdmin) {
             list.querySelectorAll('.btn-edit').forEach(btn => {
                 btn.addEventListener('click', () => this.openModal(btn.dataset.id));
@@ -145,6 +180,7 @@ const Avisos = {
                     if (confirm('¿Eliminar este documento?')) {
                         let data = DB.load('avisos').filter(a => a.id !== btn.dataset.id);
                         DB.save('avisos', data);
+                        this.calcularNoLeidos();
                         this.renderList();
                         App.showToast('Documento eliminado');
                     }

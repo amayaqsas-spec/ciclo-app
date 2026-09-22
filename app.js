@@ -1,5 +1,5 @@
 // ============================================
-// APP.JS - Orquestador Principal
+// APP.JS - Orquestador Principal con navegación back
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
@@ -48,6 +48,13 @@ const viewModules = {
 };
 
 const loadedModules = {};
+
+// ============================================
+// HISTORIAL DE NAVEGACIÓN
+// ============================================
+const navigationHistory = ['home'];
+let backPressTimer = null;
+let isExiting = false;
 
 // ============================================
 // NAVEGACIÓN DE VISTAS
@@ -124,7 +131,7 @@ const Views = {
                 e.stopPropagation();
                 const viewId = item.dataset.view;
                 if (viewId) {
-                    this.load(viewId);
+                    this.load(viewId, true); // true = agregar al historial
                     App.toggleMenu();
                 }
             });
@@ -156,23 +163,30 @@ const Views = {
                 e.stopPropagation();
                 const viewId = subitem.dataset.view;
                 if (viewId) {
-                    this.load(viewId);
+                    this.load(viewId, true); // true = agregar al historial
                     App.toggleMenu();
                 }
             });
         });
     },
 
-    async load(viewId) {
+    async load(viewId, addToHistory = true) {
         console.log('📂 Cargando vista:', viewId);
 
         const currentModule = this.getCurrentModule();
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log(' Salida cancelada por atraso activo');
+                console.log('🚫 Salida cancelada por atraso activo');
                 return;
             }
+        }
+
+        // ✅ Agregar al historial de navegación
+        if (addToHistory && viewId !== this.current) {
+            navigationHistory.push(viewId);
+            // Agregar estado al historial del navegador
+            window.history.pushState({ viewId }, '', `#${viewId}`);
         }
 
         this.current = viewId;
@@ -345,7 +359,10 @@ const App = {
                 }
 
                 Views.renderMenu();
-                Views.load('home');
+                Views.load('home', false); // false = no agregar al historial (es la primera)
+
+                // ✅ Inicializar sistema de navegación back
+                this.initBackNavigation();
             } else {
                 Auth.currentUser = null;
                 Auth.isAdmin = false;
@@ -377,6 +394,80 @@ const App = {
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+        }
+    },
+
+    // ============================================
+    // ✅ SISTEMA DE NAVEGACIÓN BACK
+    // ============================================
+    initBackNavigation() {
+        // Escuchar el botón back del navegador/teléfono
+        window.addEventListener('popstate', (event) => {
+            console.log(' Botón back presionado');
+            this.handleBackButton();
+        });
+
+        // Prevenir que el usuario salga accidentalmente con swipe back
+        // Agregar un estado inicial al historial
+        window.history.replaceState({ viewId: 'home' }, '', '#home');
+    },
+
+    handleBackButton() {
+        console.log('📍 Historial actual:', navigationHistory);
+        console.log('📍 Vista actual:', Views.current);
+
+        // Si hay más de una vista en el historial, volver a la anterior
+        if (navigationHistory.length > 1) {
+            // Quitar la vista actual del historial
+            navigationHistory.pop();
+            const vistaAnterior = navigationHistory[navigationHistory.length - 1];
+            
+            console.log('↩️ Volviendo a:', vistaAnterior);
+            
+            // Cargar la vista anterior SIN agregar al historial
+            Views.load(vistaAnterior, false);
+            
+            // Cancelar cualquier timer de salida
+            if (backPressTimer) {
+                clearTimeout(backPressTimer);
+                backPressTimer = null;
+            }
+            isExiting = false;
+        } else {
+            // Estamos en la vista inicial (home)
+            // Mostrar mensaje de "Presiona otra vez para salir"
+            if (!isExiting) {
+                App.showToast('Presiona otra vez para salir');
+                isExiting = true;
+                
+                // Timer de 2 segundos para resetear
+                backPressTimer = setTimeout(() => {
+                    isExiting = false;
+                    backPressTimer = null;
+                }, 2000);
+            } else {
+                // Segunda vez presionando back - salir de la app
+                console.log('🚪 Saliendo de la app');
+                
+                // En móviles, cerrar la ventana no siempre funciona
+                // Intentamos minimizar la app
+                if (navigator.app) {
+                    navigator.app.exitApp();
+                } else if (navigator.device) {
+                    navigator.device.exitApp();
+                } else {
+                    // Fallback: intentar cerrar la ventana
+                    window.close();
+                    // Si no funciona, mostrar mensaje
+                    App.showToast('Desliza hacia abajo para minimizar la app');
+                }
+                
+                isExiting = false;
+                if (backPressTimer) {
+                    clearTimeout(backPressTimer);
+                    backPressTimer = null;
+                }
+            }
         }
     },
 
