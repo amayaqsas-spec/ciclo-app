@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Módulo de Inicio con botón Festivo
+// HOME.JS - Módulo de Inicio con imagen de perfil procesada
 // ============================================
 
 const Home = {
@@ -13,48 +13,49 @@ const Home = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ Verificar si hoy está marcado como festivo
-    esHoyFestivo() {
-        const festivoData = DB.get('diaFestivo', null);
-        if (!festivoData) return false;
-        
-        const hoy = this.getFechaLocal(new Date());
-        return festivoData.fecha === hoy && festivoData.esFestivo === true;
-    },
+    // ✅ Procesar imagen: recortar al centro y redimensionar a 200x200px
+    procesarImagen(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const size = 200; // Tamaño final cuadrado
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
 
-    // ✅ Marcar/desmarcar hoy como festivo
-    toggleFestivo() {
-        const hoy = this.getFechaLocal(new Date());
-        const festivoData = DB.get('diaFestivo', null);
-        
-        let nuevoEstado = false;
-        
-        if (festivoData && festivoData.fecha === hoy) {
-            // Si ya está marcado, desmarcar
-            nuevoEstado = !festivoData.esFestivo;
-        }
-        
-        DB.set('diaFestivo', {
-            fecha: hoy,
-            esFestivo: nuevoEstado
+                    // Calcular dimensiones para recortar al centro (cover)
+                    const minDim = Math.min(img.width, img.height);
+                    const startX = (img.width - minDim) / 2;
+                    const startY = (img.height - minDim) / 2;
+
+                    // Dibujar imagen recortada y redimensionada
+                    ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+
+                    // Convertir a base64 con calidad 0.9
+                    const base64 = canvas.toDataURL('image/jpeg', 0.9);
+                    resolve(base64);
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
         });
-        
-        // Recargar la vista para aplicar cambios
-        Views.load('home');
-        
-        App.showToast(nuevoEstado ? '🎉 Día marcado como festivo' : '✅ Día laboral normal');
     },
 
     render() {
         const defaultName = Auth.currentUser ? Auth.getUserName(Auth.currentUser) : 'Usuario';
         const name = DB.get('userName', defaultName);
+        const imagenPerfil = DB.get('imagenPerfil', null);
 
         const roles = DB.load('roles');
         let semanaActual = null;
         let datoDiaActual = null;
         let infoServicio = null;
         let tipoDiaActual = '';
-        let esFestivo = this.esHoyFestivo();
 
         if (roles.length > 0) {
             const rol = roles.sort((a, b) => b.createdAt - a.createdAt)[0];
@@ -65,27 +66,19 @@ const Home = {
             
             if (semanaActual) {
                 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const diaNombre = diasSemana[hoy.getDay()];
                 const diaIdx = hoy.getDay();
-                const diaNombre = diasSemana[diaIdx];
                 const dia = semanaActual.dias.find(d => d.dia === diaNombre);
                 
                 if (dia && dia.dato) {
-                    // ✅ Determinar tipo de día
                     tipoDiaActual = 'Laboral';
                     if (diaIdx === 0) {
                         tipoDiaActual = 'Domingo/Festivos';
                     } else if (diaIdx === 6) {
                         tipoDiaActual = 'Sábado';
                     }
-                    
-                    // ✅ Si está marcado como festivo, usar Domingo/Festivos
-                    if (esFestivo) {
-                        tipoDiaActual = 'Domingo/Festivos';
-                    }
 
                     datoDiaActual = dia.dato;
-                    
-                    // ✅ Buscar servicio según tipo de día
                     infoServicio = this.buscarServicioPorTipo(rol, tipoDiaActual, datoDiaActual);
                 }
             }
@@ -96,8 +89,15 @@ const Home = {
         return `
             <div class="view active">
                 <div class="welcome-card">
-                    <div class="welcome-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="welcome-icon" id="welcomeIcon">
+                        ${imagenPerfil ? 
+                            `<img src="${imagenPerfil}" alt="Perfil" class="perfil-imagen">` :
+                            `<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+                        }
+                        <button class="btn-cambiar-foto" id="btnCambiarFoto" title="Cambiar foto">
+                            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        </button>
+                        <input type="file" id="inputFotoPerfil" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
                     </div>
                     <div class="welcome-text">
                         <h2>¡Hola, ${name}!</h2>
@@ -110,7 +110,7 @@ const Home = {
                                 <span>Semana ${semanaActual.numeroSemana}</span>
                             </div>
                             ${datoDiaActual ? `
-                                <div class="badge-item ${esFestivo ? 'badge-festivo' : ''}">
+                                <div class="badge-item">
                                     <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     <span>${tipoDiaActual} - Servicio ${datoDiaActual}</span>
                                 </div>
@@ -139,7 +139,7 @@ const Home = {
                     </div>
                 ` : ''}
 
-                ${infoServicio ? this.renderServicioDia(infoServicio, esFestivo) : ''}
+                ${infoServicio ? this.renderServicioDia(infoServicio) : ''}
 
                 ${!infoServicio ? `
                     <div class="aviso-empty" style="margin-top:20px;">
@@ -153,7 +153,7 @@ const Home = {
         `;
     },
 
-    renderServicioDia(info, esFestivo) {
+    renderServicioDia(info) {
         const { servicio, linea, terminal, semana } = info;
         const trenes = servicio.trenes || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
@@ -177,7 +177,7 @@ const Home = {
                 </div>
                 <div class="hsd-info-row">
                     <span class="hsd-label">Tipo de Día:</span>
-                    <span class="hsd-value">${semana ? semana.tipo : 'N/A'} ${esFestivo ? '🎉' : ''}</span>
+                    <span class="hsd-value">${semana ? semana.tipo : 'N/A'}</span>
                 </div>
 
                 <div class="hsd-servicio-nombre">Servicio #${servicio.nombre}</div>
@@ -240,16 +240,6 @@ const Home = {
                         Agregar Atraso en Línea
                     </button>
                 </div>
-
-                <!-- ✅ BOTÓN MARCAR FESTIVO -->
-                <button class="btn-festivo ${esFestivo ? 'btn-festivo-activo' : ''}" id="btnToggleFestivo">
-                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;">
-                        ${esFestivo 
-                            ? '<path d="M20 6L9 17l-5-5"/><circle cx="12" cy="12" r="10"/>' 
-                            : '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>'}
-                    </svg>
-                    <span>${esFestivo ? 'Día Festivo (clic para quitar)' : 'Marcar como Festivo'}</span>
-                </button>
             </div>
         `;
     },
@@ -291,10 +281,99 @@ const Home = {
     init() {
         this.minutosAtraso = 0;
 
-        // ✅ Evento del botón festivo
-        const btnFestivo = document.getElementById('btnToggleFestivo');
-        if (btnFestivo) {
-            btnFestivo.addEventListener('click', () => this.toggleFestivo());
+        // Evento para cambiar foto de perfil
+        const btnCambiarFoto = document.getElementById('btnCambiarFoto');
+        const inputFotoPerfil = document.getElementById('inputFotoPerfil');
+        const welcomeIcon = document.getElementById('welcomeIcon');
+
+        if (btnCambiarFoto && inputFotoPerfil) {
+            btnCambiarFoto.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                inputFotoPerfil.click();
+            });
+
+            inputFotoPerfil.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validar tipo de archivo
+                    const tiposValidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                    if (!tiposValidos.includes(file.type)) {
+                        App.showToast('Formato no válido. Usa JPG, PNG o WebP');
+                        return;
+                    }
+
+                    // Validar tamaño (máximo 5MB antes de procesar)
+                    if (file.size > 5 * 1024 * 1024) {
+                        App.showToast('La imagen es muy grande. Máximo 5MB');
+                        return;
+                    }
+
+                    try {
+                        App.showToast('Procesando imagen...');
+                        
+                        // Procesar imagen: recortar y redimensionar
+                        const imagenBase64 = await this.procesarImagen(file);
+                        
+                        // Guardar en localStorage
+                        DB.set('imagenPerfil', imagenBase64);
+                        
+                        // Actualizar la imagen en la UI
+                        const imgExistente = welcomeIcon.querySelector('.perfil-imagen');
+                        if (imgExistente) {
+                            imgExistente.src = imagenBase64;
+                        } else {
+                            welcomeIcon.innerHTML = `
+                                <img src="${imagenBase64}" alt="Perfil" class="perfil-imagen">
+                                <button class="btn-cambiar-foto" id="btnCambiarFoto" title="Cambiar foto">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                </button>
+                                <input type="file" id="inputFotoPerfil" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
+                            `;
+                            
+                            // Reasignar eventos
+                            const nuevoBtn = document.getElementById('btnCambiarFoto');
+                            const nuevoInput = document.getElementById('inputFotoPerfil');
+                            nuevoBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                nuevoInput.click();
+                            });
+                            nuevoInput.addEventListener('change', async (e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    const tiposValidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                                    if (!tiposValidos.includes(file.type)) {
+                                        App.showToast('Formato no válido. Usa JPG, PNG o WebP');
+                                        return;
+                                    }
+                                    if (file.size > 5 * 1024 * 1024) {
+                                        App.showToast('La imagen es muy grande. Máximo 5MB');
+                                        return;
+                                    }
+                                    try {
+                                        App.showToast('Procesando imagen...');
+                                        const imagenBase64 = await this.procesarImagen(file);
+                                        DB.set('imagenPerfil', imagenBase64);
+                                        const imgExistente = welcomeIcon.querySelector('.perfil-imagen');
+                                        if (imgExistente) {
+                                            imgExistente.src = imagenBase64;
+                                        }
+                                        App.showToast('Foto de perfil actualizada');
+                                    } catch (error) {
+                                        App.showToast('Error al procesar la imagen');
+                                    }
+                                }
+                            });
+                        }
+                        
+                        App.showToast('Foto de perfil actualizada');
+                    } catch (error) {
+                        console.error('Error al procesar imagen:', error);
+                        App.showToast('Error al procesar la imagen');
+                    }
+                }
+            });
         }
 
         const servicioEl = document.querySelector('.home-servicio-dia');
@@ -315,9 +394,6 @@ const Home = {
                         let tipoDia = 'Laboral';
                         if (hoy.getDay() === 0) tipoDia = 'Domingo/Festivos';
                         else if (hoy.getDay() === 6) tipoDia = 'Sábado';
-                        
-                        const esFestivo = this.esHoyFestivo();
-                        if (esFestivo) tipoDia = 'Domingo/Festivos';
 
                         const servicio = this.buscarServicioPorTipo(rol, tipoDia, dia.dato);
                         

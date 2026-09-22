@@ -114,7 +114,7 @@ const Servicios = {
             selectTerminal.innerHTML = terminalesFiltradas.length === 0
                 ? '<option value="">No hay terminales</option>'
                 : '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => 
-                    `<option value="${t.id}" ${data && data.terminalId === t.id ? 'selected' : ''}>${t.nombre} - ${t.turno}</option>`
+                    `<option value="${t.id}" ${data && data.terminalId === t.id ? 'selected' : ''}>${t.nombre}</option>`
                 ).join('');
         };
 
@@ -138,6 +138,13 @@ const Servicios = {
         // Agregar tren
         document.getElementById('btnAddTren').addEventListener('click', () => {
             this.addTrenField();
+        });
+
+        // Eventos de eliminar trenes existentes
+        document.querySelectorAll('.btn-remove-tren').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.parentElement.remove();
+            });
         });
 
         document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
@@ -208,16 +215,22 @@ const Servicios = {
                 <div class="input-row">
                     <div class="input-group" style="flex:1;">
                         <label>Número de Tren</label>
-                        <input type="text" class="tren-numero" value="${tren.numero || tren.tren || ''}" placeholder="Ej. 1">
+                        <input type="text" class="tren-numero" value="${tren.numero || ''}" placeholder="Ej. 1">
                     </div>
+                    <div class="input-group" style="flex:1;">
+                        <label>Número de Vueltas</label>
+                        <input type="number" class="tren-vueltas" value="${tren.vueltas || ''}" placeholder="Ej. 2" min="1">
+                    </div>
+                </div>
+                <div class="input-row">
                     <div class="input-group" style="flex:1;">
                         <label>Hora de Salida</label>
                         <input type="time" class="tren-salida" value="${tren.salida || ''}">
                     </div>
-                </div>
-                <div class="input-group">
-                    <label>Hora de Llegada</label>
-                    <input type="time" class="tren-llegada" value="${tren.llegada || ''}">
+                    <div class="input-group" style="flex:1;">
+                        <label>Hora de Llegada</label>
+                        <input type="time" class="tren-llegada" value="${tren.llegada || ''}">
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -225,6 +238,11 @@ const Servicios = {
 
     addTrenField() {
         const container = document.getElementById('trenesContainer');
+        
+        // Si es el primer tren, limpiar el mensaje de "no hay trenes"
+        const mensajeVacio = container.querySelector('p');
+        if (mensajeVacio) mensajeVacio.remove();
+        
         const trenIndex = container.querySelectorAll('.tren-item').length;
         
         const trenHTML = `
@@ -236,13 +254,19 @@ const Servicios = {
                         <input type="text" class="tren-numero" placeholder="Ej. 1">
                     </div>
                     <div class="input-group" style="flex:1;">
+                        <label>Número de Vueltas</label>
+                        <input type="number" class="tren-vueltas" placeholder="Ej. 2" min="1">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group" style="flex:1;">
                         <label>Hora de Salida</label>
                         <input type="time" class="tren-salida">
                     </div>
-                </div>
-                <div class="input-group">
-                    <label>Hora de Llegada</label>
-                    <input type="time" class="tren-llegada">
+                    <div class="input-group" style="flex:1;">
+                        <label>Hora de Llegada</label>
+                        <input type="time" class="tren-llegada">
+                    </div>
                 </div>
             </div>
         `;
@@ -262,12 +286,14 @@ const Servicios = {
         
         trenItems.forEach(item => {
             const numero = item.querySelector('.tren-numero').value.trim();
+            const vueltas = item.querySelector('.tren-vueltas').value.trim();
             const salida = item.querySelector('.tren-salida').value;
             const llegada = item.querySelector('.tren-llegada').value;
             
             if (numero || salida || llegada) {
                 trenes.push({
                     numero,
+                    vueltas: vueltas ? parseInt(vueltas) : 1,
                     salida,
                     llegada
                 });

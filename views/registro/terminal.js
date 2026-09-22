@@ -45,10 +45,6 @@ const Terminal = {
                 <label>Nombre de Terminal</label>
                 <input type="text" id="terminalNombre" value="${data ? data.nombre : ''}" placeholder="Ej. Cuatro Caminos">
             </div>
-            <div class="input-group">
-                <label>Turno</label>
-                <input type="text" id="terminalTurno" value="${data ? data.turno : ''}" placeholder="Ej. 1er Turno, primer turno, 1">
-            </div>
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancel">Cancelar</button>
                 <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
@@ -59,9 +55,8 @@ const Terminal = {
         document.getElementById('btnSave').addEventListener('click', () => {
             const lineaId = document.getElementById('terminalLinea').value;
             const nombre = document.getElementById('terminalNombre').value.trim();
-            const turno = document.getElementById('terminalTurno').value.trim();
 
-            if (!lineaId || !nombre || !turno) {
+            if (!lineaId || !nombre) {
                 App.showToast('Completa todos los campos');
                 return;
             }
@@ -71,14 +66,13 @@ const Terminal = {
             if (editId) {
                 const idx = terminales.findIndex(t => t.id === editId);
                 if (idx !== -1) {
-                    terminales[idx] = { ...terminales[idx], lineaId, nombre, turno };
+                    terminales[idx] = { ...terminales[idx], lineaId, nombre };
                 }
             } else {
                 terminales.push({
                     id: DB.generateId(),
                     lineaId,
                     nombre,
-                    turno,
                     createdAt: Date.now()
                 });
             }
@@ -88,12 +82,11 @@ const Terminal = {
             this.renderList();
             App.showToast(editId ? 'Terminal actualizada' : 'Terminal guardada');
             
-            // ✅ Mensaje emergente informativo
             setTimeout(() => {
                 App.showModal(`
                     <h3>ℹ️ Información Importante</h3>
                     <p style="color:var(--text-soft);font-size:13px;line-height:1.6;margin-bottom:16px;">
-                        Si hay más turnos por terminal, hay que registrar cada uno por separado.
+                        Si hay más turnos por terminal, hay que registrar cada uno por separado en el módulo <strong>Registro > Turno</strong>.
                     </p>
                     <div class="modal-actions">
                         <button class="btn-primary" id="btnOk" style="background:var(--primary);">Entendido</button>
@@ -130,7 +123,6 @@ const Terminal = {
                 <div class="item-card">
                     <div class="item-header">
                         <div class="item-title">${t.nombre}</div>
-                        <div class="item-date">${t.turno}</div>
                     </div>
                     <div class="item-desc">${linea ? linea.nombre : 'Sin línea'}</div>
                     <div class="item-actions">

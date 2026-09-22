@@ -1,13 +1,8 @@
 // ============================================
-// SERVICIOS-BUSQUEDA.JS - Módulo Buscador de Servicios
+// SERVICIOS-BUSQUEDA.JS - Búsqueda Profesional de Servicios
 // ============================================
 
 const ServiciosBusqueda = {
-    relojInterval: null,
-    servicioActual: null,
-    minutosAtraso: 0,
-    hayAtrasoActivo: false,
-
     render() {
         const lineas = DB.load('lineas');
         const lineaOptions = lineas.length > 0
@@ -18,41 +13,46 @@ const ServiciosBusqueda = {
             <div class="view active">
                 <h2 class="page-title">
                     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Servicios
+                    Búsqueda de Servicios
                 </h2>
 
-                <div class="sb-buscador">
-                    <div class="input-group">
-                        <label>Línea</label>
-                        <select id="sbLinea">${lineaOptions}</select>
+                <!-- PANEL DE BÚSQUEDA -->
+                <div class="sb-search-panel">
+                    <div class="sb-search-grid">
+                        <div class="sb-input-group">
+                            <label>Línea</label>
+                            <select id="sbLinea">${lineaOptions}</select>
+                        </div>
+                        <div class="sb-input-group">
+                            <label>Terminal</label>
+                            <select id="sbTerminal">
+                                <option value="">Selecciona línea primero</option>
+                            </select>
+                        </div>
+                        <div class="sb-input-group">
+                            <label>Tipo de Día</label>
+                            <select id="sbSemana">
+                                <option value="">Selecciona línea primero</option>
+                            </select>
+                        </div>
+                        <div class="sb-input-group">
+                            <label>Número de Servicio</label>
+                            <input type="text" id="sbNumero" placeholder="Ej. 1, 2, 11, 12">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Terminal</label>
-                        <select id="sbTerminal"><option value="">Selecciona línea primero</option></select>
-                    </div>
-                    <div class="input-group">
-                        <label>Tipo de Semana</label>
-                        <select id="sbSemana"><option value="">Selecciona terminal primero</option></select>
-                    </div>
-                    <div class="input-group">
-                        <label>Número de Servicio</label>
-                        <input type="text" id="sbServicioTexto" placeholder="Ej: 1234" disabled>
-                    </div>
-                    <button class="btn-buscar-servicio" id="btnBuscarServicio" disabled>
-                        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        Buscar
+                    <button class="sb-btn-buscar" id="btnBuscar">
+                        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Buscar Servicio
                     </button>
                 </div>
 
-                <div id="sbResultado"></div>
+                <!-- RESULTADOS -->
+                <div id="sbResultados"></div>
             </div>
         `;
     },
 
     init() {
-        this.minutosAtraso = 0;
-        this.hayAtrasoActivo = false;
-
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const semanas = DB.load('semanas');
@@ -60,367 +60,177 @@ const ServiciosBusqueda = {
         const selectLinea = document.getElementById('sbLinea');
         const selectTerminal = document.getElementById('sbTerminal');
         const selectSemana = document.getElementById('sbSemana');
-        const inputServicio = document.getElementById('sbServicioTexto');
-        const btnBuscar = document.getElementById('btnBuscarServicio');
 
-        const resetearBusqueda = () => {
-            if (this.relojInterval) {
-                clearInterval(this.relojInterval);
-                this.relojInterval = null;
-            }
-            this.servicioActual = null;
-            this.minutosAtraso = 0;
-            this.hayAtrasoActivo = false;
-            inputServicio.value = '';
-            inputServicio.disabled = true;
-            btnBuscar.disabled = true;
-            document.getElementById('sbResultado').innerHTML = '';
+        const updateTerminales = () => {
+            const lineaId = selectLinea.value;
+            const terminalesFiltradas = terminales.filter(t => t.lineaId === lineaId);
+            selectTerminal.innerHTML = terminalesFiltradas.length === 0
+                ? '<option value="">No hay terminales</option>'
+                : '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => 
+                    `<option value="${t.id}">${t.nombre}</option>`
+                ).join('');
+            updateSemanas();
         };
 
-        // ✅ TERMINALES CON NOMBRE COMPLETO + TURNO
-        selectLinea.addEventListener('change', () => {
+        const updateSemanas = () => {
             const lineaId = selectLinea.value;
-            selectTerminal.innerHTML = '<option value="">Selecciona terminal</option>';
-            selectSemana.innerHTML = '<option value="">Selecciona terminal primero</option>';
-            resetearBusqueda();
+            const semanasFiltradas = semanas.filter(s => s.lineaId === lineaId);
+            selectSemana.innerHTML = semanasFiltradas.length === 0
+                ? '<option value="">No hay tipos de día</option>'
+                : '<option value="">Selecciona tipo de día</option>' + semanasFiltradas.map(s => 
+                    `<option value="${s.id}">${s.tipo}</option>`
+                ).join('');
+        };
 
-            if (lineaId) {
-                const terminalesFiltradas = terminales.filter(t => t.lineaId === lineaId);
-                terminalesFiltradas.forEach(t => {
-                    selectTerminal.innerHTML += `<option value="${t.id}">${t.nombre} - ${t.turno}</option>`;
-                });
-            }
+        selectLinea.addEventListener('change', updateTerminales);
+        updateTerminales();
+
+        document.getElementById('btnBuscar').addEventListener('click', () => this.buscar());
+        
+        // Buscar también al presionar Enter
+        document.getElementById('sbNumero').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.buscar();
         });
-
-        selectTerminal.addEventListener('change', () => {
-            const lineaId = selectLinea.value;
-            const terminalId = selectTerminal.value;
-            selectSemana.innerHTML = '<option value="">Selecciona semana</option>';
-            resetearBusqueda();
-
-            if (lineaId && terminalId) {
-                const semanasFiltradas = semanas.filter(s => 
-                    s.lineaId === lineaId && s.terminalId === terminalId
-                );
-                semanasFiltradas.forEach(s => {
-                    selectSemana.innerHTML += `<option value="${s.id}">${s.tipo}</option>`;
-                });
-            }
-        });
-
-        selectSemana.addEventListener('change', () => {
-            const lineaId = selectLinea.value;
-            const terminalId = selectTerminal.value;
-            const semanaId = selectSemana.value;
-
-            if (lineaId && terminalId && semanaId) {
-                inputServicio.disabled = false;
-                inputServicio.focus();
-            } else {
-                inputServicio.disabled = true;
-                btnBuscar.disabled = true;
-            }
-        });
-
-        inputServicio.addEventListener('input', () => {
-            btnBuscar.disabled = inputServicio.value.trim().length === 0;
-        });
-
-        inputServicio.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !btnBuscar.disabled) {
-                this.buscarServicio();
-            }
-        });
-
-        btnBuscar.addEventListener('click', () => this.buscarServicio());
     },
 
-    onLeave() {
-        if (this.hayAtrasoActivo && this.minutosAtraso > 0) {
-            return new Promise((resolve) => {
-                const overlay = document.createElement('div');
-                overlay.className = 'modal-overlay show';
-                overlay.innerHTML = `
-                    <div class="modal">
-                        <h3>⚠️ Atraso se borrará</h3>
-                        <p style="color:var(--text-soft);font-size:13px;margin-bottom:16px;line-height:1.5;">
-                            Tienes <strong style="color:#ff9800;">+${this.minutosAtraso} min de atraso</strong> agregado.<br><br>
-                            El atraso <strong>NO se guarda</strong> y se borrará al salir de esta vista.
-                        </p>
-                        <div class="modal-actions">
-                            <button class="btn-secondary" id="btnCancelarSalidaSB">Quedarme</button>
-                            <button class="btn-primary" id="btnConfirmarSalidaSB" style="background:#ff9800;">Salir y borrar</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-
-                document.getElementById('btnCancelarSalidaSB').addEventListener('click', () => {
-                    overlay.remove();
-                    resolve(false);
-                });
-
-                document.getElementById('btnConfirmarSalidaSB').addEventListener('click', () => {
-                    overlay.remove();
-                    this.minutosAtraso = 0;
-                    this.hayAtrasoActivo = false;
-                    if (this.relojInterval) {
-                        clearInterval(this.relojInterval);
-                        this.relojInterval = null;
-                    }
-                    resolve(true);
-                });
-            });
-        }
-        return Promise.resolve(true);
-    },
-
-    buscarServicio() {
+    buscar() {
         const lineaId = document.getElementById('sbLinea').value;
         const terminalId = document.getElementById('sbTerminal').value;
         const semanaId = document.getElementById('sbSemana').value;
-        const numeroServicio = document.getElementById('sbServicioTexto').value.trim();
+        const numero = document.getElementById('sbNumero').value.trim();
 
-        if (!lineaId || !terminalId || !semanaId || !numeroServicio) {
-            App.showToast('Completa todos los campos');
+        if (!lineaId || !terminalId || !semanaId || !numero) {
+            App.showToast('Completa todos los campos para buscar');
             return;
         }
 
         const servicios = DB.load('servicios');
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        const semanas = DB.load('semanas');
+
+        // Buscar servicio exacto
         const servicio = servicios.find(s => 
             s.lineaId === lineaId && 
             s.terminalId === terminalId && 
             s.semanaId === semanaId && 
-            s.nombre === numeroServicio
+            s.nombre === numero
         );
 
+        const container = document.getElementById('sbResultados');
+
         if (!servicio) {
-            document.getElementById('sbResultado').innerHTML = `
-                <div class="sb-no-resultado">
-                    <svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:var(--text-light);fill:none;stroke-width:2;margin-bottom:8px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                    <p>No se encontró el servicio <strong>${numeroServicio}</strong></p>
-                    <p style="font-size:11px;color:var(--text-light);margin-top:4px;">Verifica el número e intenta de nuevo</p>
+            container.innerHTML = `
+                <div class="sb-no-result">
+                    <svg viewBox="0 0 24 24" style="width:60px;height:60px;stroke:var(--text-light);fill:none;stroke-width:1.5;opacity:0.4;">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                    <h3>Servicio no encontrado</h3>
+                    <p>No existe un servicio con el número <strong>${numero}</strong></p>
+                    <p style="font-size:12px;color:var(--text-soft);margin-top:8px;">Verifica la línea, terminal, tipo de día y número de servicio.</p>
                 </div>
             `;
             return;
         }
 
-        this.mostrarServicio(servicio);
-    },
-
-    mostrarServicio(servicio) {
-        this.servicioActual = servicio;
-        this.minutosAtraso = 0;
-        this.hayAtrasoActivo = false;
-
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
-        const semanas = DB.load('semanas');
         const linea = lineas.find(l => l.id === servicio.lineaId);
         const terminal = terminales.find(t => t.id === servicio.terminalId);
         const semana = semanas.find(s => s.id === servicio.semanaId);
-
         const trenes = servicio.trenes || [];
-        const tren1 = trenes[0] || {};
-        const tren2 = trenes[1] || {};
-        const trenesExtra = trenes.slice(2);
-
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
-        const garageTexto = haceGarage ? 'Sí hace Garage' : 'No hace Garage';
-        const garageClase = haceGarage ? 'sb-garage-si' : 'sb-garage-no';
 
-        const resultado = document.getElementById('sbResultado');
-        resultado.innerHTML = `
-            <div class="sb-info-header">
-                <div class="sb-info-row">
-                    <span class="sb-info-label">Línea:</span>
-                    <span class="sb-info-value">${linea ? linea.nombre : 'N/A'}</span>
-                </div>
-                <div class="sb-info-row">
-                    <span class="sb-info-label">Terminal:</span>
-                    <span class="sb-info-value">${terminal ? terminal.nombre : 'N/A'}</span>
-                </div>
-                <div class="sb-info-row">
-                    <span class="sb-info-label">Semana:</span>
-                    <span class="sb-info-value">${semana ? semana.tipo : 'N/A'}</span>
-                </div>
-            </div>
-
-            <div class="sb-servicio-nombre">Servicio #${servicio.nombre}</div>
-
-            <div class="sb-garage-badge ${garageClase}">
-                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;">
-                    ${haceGarage 
-                        ? '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' 
-                        : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}
-                </svg>
-                ${garageTexto}
-            </div>
-
-            <div class="sb-trenes-container">
-                ${tren1.numero || tren1.salida ? `
-                    <div class="sb-tren">
-                        <div class="sb-tren-numero">Primer Tren #${tren1.numero || '1'}</div>
-                        <div class="sb-tren-horarios">
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Salida</span>
-                                <span class="sb-horario-valor">${tren1.salida || '--:--'}</span>
-                            </div>
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Llegada</span>
-                                <span class="sb-horario-valor">${tren1.llegada || '--:--'}</span>
-                            </div>
+        container.innerHTML = `
+            <div class="sb-result-container">
+                <!-- HEADER: Información básica -->
+                <div class="sb-header-info">
+                    <div class="sb-servicio-numero">Servicio #${servicio.nombre}</div>
+                    <div class="sb-info-detalles">
+                        <div class="sb-info-tag">
+                            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            ${linea ? linea.nombre : 'N/A'}
+                        </div>
+                        <div class="sb-info-tag">
+                            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            ${terminal ? terminal.nombre : 'N/A'}
+                        </div>
+                        <div class="sb-info-tag">
+                            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            ${semana ? semana.tipo : 'N/A'}
                         </div>
                     </div>
-                ` : ''}
-                
-                ${tren2.numero || tren2.salida ? `
-                    <div class="sb-tren">
-                        <div class="sb-tren-numero">Segundo Tren #${tren2.numero || '2'}</div>
-                        <div class="sb-tren-horarios">
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Salida</span>
-                                <span class="sb-horario-valor">${tren2.salida || '--:--'}</span>
-                            </div>
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Llegada</span>
-                                <span class="sb-horario-valor">${tren2.llegada || '--:--'}</span>
-                            </div>
+                </div>
+
+                <!-- SECCIÓN: Trenes -->
+                ${trenes.length > 0 ? `
+                    <div class="sb-section">
+                        <div class="sb-section-header">
+                            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
+                            <h3>Trenes</h3>
+                        </div>
+                        <div class="sb-trenes-grid">
+                            ${trenes.map((tren, idx) => `
+                                <div class="sb-tren-card">
+                                    <div class="sb-tren-header">
+                                        <span class="sb-tren-label">Tren</span>
+                                        <span class="sb-tren-numero">#${tren.numero || (idx + 1)}</span>
+                                    </div>
+                                    <div class="sb-tren-vueltas">
+                                        <span class="sb-vueltas-label">Vueltas:</span>
+                                        <span class="sb-vueltas-numero">${tren.vueltas || 'N/A'}</span>
+                                    </div>
+                                    <div class="sb-tren-horarios">
+                                        <div class="sb-horario-item">
+                                            <span class="sb-horario-label">Salida</span>
+                                            <span class="sb-horario-time">${tren.salida || '--:--'}</span>
+                                        </div>
+                                        <div class="sb-horario-separator">→</div>
+                                        <div class="sb-horario-item">
+                                            <span class="sb-horario-label">Llegada</span>
+                                            <span class="sb-horario-time">${tren.llegada || '--:--'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 ` : ''}
 
-                ${trenesExtra.map((tren, idx) => `
-                    <div class="sb-tren">
-                        <div class="sb-tren-numero">Tren Adicional #${tren.numero || (idx + 3)}</div>
-                        <div class="sb-tren-horarios">
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Salida</span>
-                                <span class="sb-horario-valor">${tren.salida || '--:--'}</span>
-                            </div>
-                            <div class="sb-horario">
-                                <span class="sb-horario-label">Llegada</span>
-                                <span class="sb-horario-valor">${tren.llegada || '--:--'}</span>
-                            </div>
+                <!-- SECCIÓN: Garage -->
+                <div class="sb-section">
+                    <div class="sb-section-header">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;">
+                            ${haceGarage 
+                                ? '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' 
+                                : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}
+                        </svg>
+                        <h3>Garage</h3>
+                    </div>
+                    <div class="sb-garage-status ${haceGarage ? 'sb-garage-yes' : 'sb-garage-no'}">
+                        ${haceGarage ? '✓ Sí hace Garage' : ' No hace Garage'}
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: Descanso -->
+                <div class="sb-section">
+                    <div class="sb-section-header">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <h3>Descanso</h3>
+                    </div>
+                    <div class="sb-descanso-container">
+                        <div class="sb-descanso-item">
+                            <span class="sb-descanso-label">Inicio</span>
+                            <span class="sb-descanso-time">${servicio.descansoInicio || '--:--'}</span>
+                        </div>
+                        <div class="sb-descanso-arrow">→</div>
+                        <div class="sb-descanso-item">
+                            <span class="sb-descanso-label">Final</span>
+                            <span class="sb-descanso-time">${servicio.descansoFinal || '--:--'}</span>
                         </div>
                     </div>
-                `).join('')}
-            </div>
-
-            <div class="sb-descanso-container">
-                <div class="sb-descanso-titulo">
-                    <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Descanso
                 </div>
-                <div class="sb-descanso-horarios">
-                    <div class="sb-descanso-item">
-                        <span class="sb-descanso-label">Inicio</span>
-                        <span class="sb-descanso-valor">${servicio.descansoInicio || '--:--'}</span>
-                    </div>
-                    <div class="sb-descanso-separador">→</div>
-                    <div class="sb-descanso-item">
-                        <span class="sb-descanso-label">Final</span>
-                        <span class="sb-descanso-valor">${servicio.descansoFinal || '--:--'}</span>
-                    </div>
-                </div>
-                
-                <div class="sb-reloj-container" id="sbRelojContainer">
-                    <div class="sb-reloj-tiempo" id="sbRelojTiempo">--:--:--</div>
-                    <div class="sb-reloj-etiqueta" id="sbRelojEtiqueta">Calculando...</div>
-                </div>
-
-                <button class="btn-atraso-sb" id="btnAgregarAtrasoSB">
-                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Agregar Atraso en Línea
-                </button>
             </div>
         `;
-
-        this.iniciarReloj(servicio);
-
-        document.getElementById('btnAgregarAtrasoSB').addEventListener('click', () => this.agregarAtraso());
-    },
-
-    iniciarReloj(servicio) {
-        if (this.relojInterval) clearInterval(this.relojInterval);
-
-        const actualizarReloj = () => {
-            const ahora = new Date();
-            const horaActual = ahora.getHours() * 60 + ahora.getMinutes();
-            const segundosActuales = ahora.getSeconds();
-
-            const [hInicio, mInicio] = (servicio.descansoInicio || '00:00').split(':').map(Number);
-            const [hFinal, mFinal] = (servicio.descansoFinal || '00:00').split(':').map(Number);
-
-            const minutosInicio = hInicio * 60 + mInicio;
-            const minutosFinal = hFinal * 60 + mFinal;
-            const minutosAtraso = this.minutosAtraso || 0;
-            const minutosFinalAjustado = minutosFinal + minutosAtraso;
-
-            const relojTiempo = document.getElementById('sbRelojTiempo');
-            const relojEtiqueta = document.getElementById('sbRelojEtiqueta');
-
-            if (!relojTiempo || !relojEtiqueta) return;
-
-            if (horaActual < minutosInicio) {
-                const diff = minutosInicio - horaActual;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = 'Tiempo para iniciar descanso';
-                relojTiempo.className = 'sb-reloj-tiempo sb-reloj-espera';
-            } else if (horaActual >= minutosInicio && horaActual < minutosFinalAjustado) {
-                const diff = minutosFinalAjustado - horaActual;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                const segs = 60 - segundosActuales;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 
-                    ? `Tiempo restante (con +${minutosAtraso} min de atraso)` 
-                    : 'Tiempo restante de descanso';
-                relojTiempo.className = 'sb-reloj-tiempo sb-reloj-activo';
-            } else {
-                const diff = horaActual - minutosFinalAjustado;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = 'Descanso finalizado';
-                relojTiempo.className = 'sb-reloj-tiempo sb-reloj-terminado';
-            }
-        };
-
-        actualizarReloj();
-        this.relojInterval = setInterval(actualizarReloj, 1000);
-    },
-
-    agregarAtraso() {
-        const minutos = prompt('¿Cuántos minutos de atraso en línea?');
-        
-        if (minutos === null) return;
-        
-        const minutosNum = parseInt(minutos);
-        
-        if (isNaN(minutosNum) || minutosNum <= 0) {
-            App.showToast('Ingresa un número válido de minutos');
-            return;
-        }
-
-        this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-        this.hayAtrasoActivo = true;
-
-        App.showToast(`+${minutosNum} min de atraso agregados (temporal)`);
-        this.iniciarReloj(this.servicioActual);
-        
-        const container = document.getElementById('sbRelojContainer');
-        if (container) {
-            let badge = container.querySelector('.sb-atraso-badge');
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.className = 'sb-atraso-badge';
-                container.appendChild(badge);
-            }
-            badge.textContent = `+${this.minutosAtraso} min atraso`;
-        }
     }
 };
 

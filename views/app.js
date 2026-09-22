@@ -37,7 +37,7 @@ const AppInfo = {
                             </div>
                         </div>
                         <div class="benefit-item">
-                            <div class="benefit-icon"></div>
+                            <div class="benefit-icon">💾</div>
                             <div class="benefit-text">
                                 <strong>Respaldo Seguro</strong>
                                 <p>Exporta e importa tus datos cuando lo necesites</p>
@@ -145,7 +145,7 @@ const AppInfo = {
                 <!-- VERSIÓN -->
                 <div class="app-version">
                     <p style="font-size:11px;color:var(--text-light);text-align:center;">
-                        CICLO v1.0 • Desarrollado con ❤️
+                        CICLO v1.0 • Desarrollado por amayasily
                     </p>
                 </div>
             </div>
