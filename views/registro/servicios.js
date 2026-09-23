@@ -64,10 +64,10 @@ const Servicios = {
                     <input type="text" id="servicioNombre" value="${data ? data.nombre : ''}" placeholder="Ej. 1234">
                 </div>
                 
-                <!-- Checkbox de Garage: texto al centro, checkbox a la derecha -->
+                <!-- Checkbox de Garage general -->
                 <div class="input-group">
                     <div class="garage-row">
-                        <label class="garage-label">Hace Garage</label>
+                        <label class="garage-label">Hace Garage (General)</label>
                         <label class="garage-checkbox">
                             <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''}>
                             <span class="garage-checkmark"></span>
@@ -162,7 +162,7 @@ const Servicios = {
                 return;
             }
 
-            // Obtener trenes
+            // Obtener trenes con su propio campo de garage
             const trenes = this.getTrenesFromForm();
 
             let servicios = DB.load('servicios');
@@ -232,6 +232,14 @@ const Servicios = {
                         <input type="time" class="tren-llegada" value="${tren.llegada || ''}">
                     </div>
                 </div>
+                <!-- ✅ Checkbox de Garage por cada tren -->
+                <div class="tren-garage-row">
+                    <label class="tren-garage-label">Hace Garage</label>
+                    <label class="tren-garage-checkbox">
+                        <input type="checkbox" class="tren-garage" ${tren.garage ? 'checked' : ''}>
+                        <span class="tren-garage-checkmark"></span>
+                    </label>
+                </div>
             </div>
         `).join('');
     },
@@ -268,6 +276,14 @@ const Servicios = {
                         <input type="time" class="tren-llegada">
                     </div>
                 </div>
+                <!-- ✅ Checkbox de Garage por cada tren -->
+                <div class="tren-garage-row">
+                    <label class="tren-garage-label">Hace Garage</label>
+                    <label class="tren-garage-checkbox">
+                        <input type="checkbox" class="tren-garage">
+                        <span class="tren-garage-checkmark"></span>
+                    </label>
+                </div>
             </div>
         `;
         
@@ -289,13 +305,15 @@ const Servicios = {
             const vueltas = item.querySelector('.tren-vueltas').value.trim();
             const salida = item.querySelector('.tren-salida').value;
             const llegada = item.querySelector('.tren-llegada').value;
+            const garage = item.querySelector('.tren-garage') ? item.querySelector('.tren-garage').checked : false;
             
             if (numero || salida || llegada) {
                 trenes.push({
                     numero,
                     vueltas: vueltas ? parseInt(vueltas) : 1,
                     salida,
-                    llegada
+                    llegada,
+                    garage: garage  // ✅ Campo garage por cada tren
                 });
             }
         });
@@ -328,6 +346,9 @@ const Servicios = {
             const semana = semanas.find(w => w.id === s.semanaId);
             const trenesCount = s.trenes ? s.trenes.length : 0;
             
+            // Verificar si algún tren hace garage
+            const trenesConGarage = s.trenes ? s.trenes.filter(t => t.garage).length : 0;
+            
             return `
                 <div class="item-card">
                     <div class="item-header">
@@ -339,7 +360,7 @@ const Servicios = {
                         <span class="item-tag">🚇 ${terminal ? terminal.nombre : 'Sin terminal'}</span>
                         <span class="item-tag">📅 ${semana ? semana.tipo : 'Sin día'}</span>
                     </div>
-                    ${trenesCount > 0 ? `<div class="item-desc" style="margin-top:6px;">${trenesCount} tren(es) registrado(s)</div>` : ''}
+                    ${trenesCount > 0 ? `<div class="item-desc" style="margin-top:6px;">${trenesCount} tren(es) registrado(s) ${trenesConGarage > 0 ? `• ${trenesConGarage} con garage` : ''}</div>` : ''}
                     <div class="item-actions">
                         <button class="btn-edit" data-id="${s.id}">Editar</button>
                         <button class="btn-remove" data-id="${s.id}">Eliminar</button>
