@@ -66,11 +66,13 @@ const Servicios = {
                 
                 <!-- Checkbox de Garage general -->
                 <div class="input-group">
-                    <div class="garage-row">
-                        <label class="garage-label">Hace Garage (General)</label>
-                        <label class="garage-checkbox">
-                            <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''}>
-                            <span class="garage-checkmark"></span>
+                    <div class="garage-row" style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-soft);border-radius:8px;">
+                        <label style="font-size:13px;font-weight:600;color:var(--text);">Hace Garage (General)</label>
+                        <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                            <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
+                            <span id="garageToggle" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${haceGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
+                                <span id="garageToggleCircle" style="position:absolute;height:18px;width:18px;left:${haceGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -81,13 +83,13 @@ const Servicios = {
                     <div id="trenesContainer">
                         ${this.renderTrenesForm(data ? data.trenes : [])}
                     </div>
-                    <button class="btn-add-tren" id="btnAddTren" style="margin-top:10px;width:100%;padding:10px;background:var(--bg-soft);border:2px dashed var(--primary-soft);border-radius:var(--radius-xs);color:var(--primary);cursor:pointer;font-weight:600;">
+                    <button class="btn-add-tren" id="btnAddTren" style="margin-top:10px;width:100%;padding:10px;background:var(--bg-soft);border:2px dashed var(--primary-soft);border-radius:8px;color:var(--primary);cursor:pointer;font-weight:600;font-size:13px;">
                         + Agregar Tren
                     </button>
                 </div>
 
                 <!-- DESCANSO -->
-                <div class="input-row" style="margin-top:16px;">
+                <div class="input-row" style="margin-top:16px;display:flex;gap:10px;">
                     <div class="input-group" style="flex:1;">
                         <label>Inicio de Descanso</label>
                         <input type="time" id="servicioDescansoInicio" value="${data ? data.descansoInicio : ''}">
@@ -103,6 +105,23 @@ const Servicios = {
                 <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
             </div>
         `);
+
+        // Toggle del garage general
+        const checkboxGarage = document.getElementById('servicioGarage');
+        const garageToggle = document.getElementById('garageToggle');
+        const garageToggleCircle = document.getElementById('garageToggleCircle');
+        
+        if (checkboxGarage && garageToggle && garageToggleCircle) {
+            checkboxGarage.addEventListener('change', () => {
+                if (checkboxGarage.checked) {
+                    garageToggle.style.background = 'var(--primary)';
+                    garageToggleCircle.style.left = '22px';
+                } else {
+                    garageToggle.style.background = 'var(--bg)';
+                    garageToggleCircle.style.left = '3px';
+                }
+            });
+        }
 
         const selectLinea = document.getElementById('servicioLinea');
         const selectTerminal = document.getElementById('servicioTerminal');
@@ -144,8 +163,12 @@ const Servicios = {
         document.querySelectorAll('.btn-remove-tren').forEach(btn => {
             btn.addEventListener('click', () => {
                 btn.parentElement.remove();
+                this.updateTrenRemoveButtons();
             });
         });
+
+        // Inicializar toggles de garage en trenes existentes
+        this.initTrenGarageToggles();
 
         document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
         document.getElementById('btnSave').addEventListener('click', () => {
@@ -162,7 +185,6 @@ const Servicios = {
                 return;
             }
 
-            // Obtener trenes con su propio campo de garage
             const trenes = this.getTrenesFromForm();
 
             let servicios = DB.load('servicios');
@@ -204,44 +226,87 @@ const Servicios = {
         });
     },
 
+    // ✅ Inicializar toggles de garage en trenes
+    initTrenGarageToggles() {
+        document.querySelectorAll('.tren-garage-toggle').forEach(toggle => {
+            const checkbox = toggle.querySelector('input[type="checkbox"]');
+            const track = toggle.querySelector('.tren-garage-track');
+            const circle = toggle.querySelector('.tren-garage-circle');
+            
+            if (checkbox && track && circle) {
+                // Estado inicial
+                if (checkbox.checked) {
+                    track.style.background = 'var(--primary)';
+                    circle.style.left = '22px';
+                }
+                
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        track.style.background = 'var(--primary)';
+                        circle.style.left = '22px';
+                    } else {
+                        track.style.background = 'var(--bg)';
+                        circle.style.left = '3px';
+                    }
+                });
+            }
+        });
+    },
+
+    // ✅ Actualizar botones de eliminar trenes
+    updateTrenRemoveButtons() {
+        const items = document.querySelectorAll('.tren-item');
+        items.forEach((item, idx) => {
+            const btn = item.querySelector('.btn-remove-tren');
+            if (btn) btn.dataset.idx = idx;
+        });
+    },
+
     renderTrenesForm(trenes) {
-        if (trenes.length === 0) {
+        if (!trenes || trenes.length === 0) {
             return '<p style="color:var(--text-soft);font-size:13px;text-align:center;padding:20px;">No hay trenes registrados. Agrega al menos uno.</p>';
         }
 
-        return trenes.map((tren, idx) => `
-            <div class="tren-item" style="background:var(--bg-soft);padding:12px;border-radius:var(--radius-xs);margin-bottom:10px;position:relative;">
-                <button class="btn-remove-tren" data-idx="${idx}" style="position:absolute;top:8px;right:8px;background:#ff4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;">×</button>
-                <div class="input-row">
-                    <div class="input-group" style="flex:1;">
-                        <label>Número de Tren</label>
-                        <input type="text" class="tren-numero" value="${tren.numero || ''}" placeholder="Ej. 1">
+        return trenes.map((tren, idx) => this.crearHTMLTren(tren, idx)).join('');
+    },
+
+    crearHTMLTren(tren, idx) {
+        const tieneGarage = tren && tren.garage;
+        return `
+            <div class="tren-item" style="background:var(--bg-soft);padding:12px;border-radius:8px;margin-bottom:10px;position:relative;border:1px solid var(--primary-soft);">
+                <button class="btn-remove-tren" data-idx="${idx}" style="position:absolute;top:8px;right:8px;background:#ff4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">×</button>
+                <div style="display:flex;gap:10px;margin-bottom:8px;">
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Número de Tren</label>
+                        <input type="text" class="tren-numero" value="${tren ? tren.numero || '' : ''}" placeholder="Ej. 1" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
                     </div>
-                    <div class="input-group" style="flex:1;">
-                        <label>Número de Vueltas</label>
-                        <input type="number" class="tren-vueltas" value="${tren.vueltas || ''}" placeholder="Ej. 2" min="1">
-                    </div>
-                </div>
-                <div class="input-row">
-                    <div class="input-group" style="flex:1;">
-                        <label>Hora de Salida</label>
-                        <input type="time" class="tren-salida" value="${tren.salida || ''}">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label>Hora de Llegada</label>
-                        <input type="time" class="tren-llegada" value="${tren.llegada || ''}">
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Vueltas</label>
+                        <input type="number" class="tren-vueltas" value="${tren ? tren.vueltas || '' : ''}" placeholder="Ej. 2" min="1" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
                     </div>
                 </div>
-                <!-- ✅ Checkbox de Garage por cada tren -->
-                <div class="tren-garage-row">
-                    <label class="tren-garage-label">Hace Garage</label>
-                    <label class="tren-garage-checkbox">
-                        <input type="checkbox" class="tren-garage" ${tren.garage ? 'checked' : ''}>
-                        <span class="tren-garage-checkmark"></span>
+                <div style="display:flex;gap:10px;margin-bottom:8px;">
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Salida</label>
+                        <input type="time" class="tren-salida" value="${tren ? tren.salida || '' : ''}" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                    </div>
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Llegada</label>
+                        <input type="time" class="tren-llegada" value="${tren ? tren.llegada || '' : ''}" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                    </div>
+                </div>
+                <!-- ✅ Toggle de Garage por tren -->
+                <div class="tren-garage-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface);border-radius:6px;border:1px solid var(--bg-soft);">
+                    <label style="font-size:12px;font-weight:600;color:var(--text);">Hace Garage</label>
+                    <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;margin:0;">
+                        <input type="checkbox" class="tren-garage-checkbox" ${tieneGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
+                        <span class="tren-garage-track" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${tieneGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
+                            <span class="tren-garage-circle" style="position:absolute;height:18px;width:18px;left:${tieneGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
+                        </span>
                     </label>
                 </div>
             </div>
-        `).join('');
+        `;
     },
 
     addTrenField() {
@@ -253,47 +318,35 @@ const Servicios = {
         
         const trenIndex = container.querySelectorAll('.tren-item').length;
         
-        const trenHTML = `
-            <div class="tren-item" style="background:var(--bg-soft);padding:12px;border-radius:var(--radius-xs);margin-bottom:10px;position:relative;">
-                <button class="btn-remove-tren" data-idx="${trenIndex}" style="position:absolute;top:8px;right:8px;background:#ff4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;">×</button>
-                <div class="input-row">
-                    <div class="input-group" style="flex:1;">
-                        <label>Número de Tren</label>
-                        <input type="text" class="tren-numero" placeholder="Ej. 1">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label>Número de Vueltas</label>
-                        <input type="number" class="tren-vueltas" placeholder="Ej. 2" min="1">
-                    </div>
-                </div>
-                <div class="input-row">
-                    <div class="input-group" style="flex:1;">
-                        <label>Hora de Salida</label>
-                        <input type="time" class="tren-salida">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label>Hora de Llegada</label>
-                        <input type="time" class="tren-llegada">
-                    </div>
-                </div>
-                <!-- ✅ Checkbox de Garage por cada tren -->
-                <div class="tren-garage-row">
-                    <label class="tren-garage-label">Hace Garage</label>
-                    <label class="tren-garage-checkbox">
-                        <input type="checkbox" class="tren-garage">
-                        <span class="tren-garage-checkmark"></span>
-                    </label>
-                </div>
-            </div>
-        `;
+        const trenHTML = this.crearHTMLTren(null, trenIndex);
         
         container.insertAdjacentHTML('beforeend', trenHTML);
         
-        // Agregar evento al botón de eliminar
-        const btnRemove = container.querySelector(`.btn-remove-tren[data-idx="${trenIndex}"]`);
-        btnRemove.addEventListener('click', () => {
-            btnRemove.parentElement.remove();
-        });
+        // Inicializar el toggle del nuevo tren
+        const nuevoTren = container.lastElementChild;
+        const checkbox = nuevoTren.querySelector('.tren-garage-checkbox');
+        const track = nuevoTren.querySelector('.tren-garage-track');
+        const circle = nuevoTren.querySelector('.tren-garage-circle');
+        const btnRemove = nuevoTren.querySelector('.btn-remove-tren');
+        
+        if (checkbox && track && circle) {
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    track.style.background = 'var(--primary)';
+                    circle.style.left = '22px';
+                } else {
+                    track.style.background = 'var(--bg)';
+                    circle.style.left = '3px';
+                }
+            });
+        }
+        
+        if (btnRemove) {
+            btnRemove.addEventListener('click', () => {
+                btnRemove.parentElement.remove();
+                this.updateTrenRemoveButtons();
+            });
+        }
     },
 
     getTrenesFromForm() {
@@ -305,7 +358,8 @@ const Servicios = {
             const vueltas = item.querySelector('.tren-vueltas').value.trim();
             const salida = item.querySelector('.tren-salida').value;
             const llegada = item.querySelector('.tren-llegada').value;
-            const garage = item.querySelector('.tren-garage') ? item.querySelector('.tren-garage').checked : false;
+            const garageCheckbox = item.querySelector('.tren-garage-checkbox');
+            const garage = garageCheckbox ? garageCheckbox.checked : false;
             
             if (numero || salida || llegada) {
                 trenes.push({
@@ -313,7 +367,7 @@ const Servicios = {
                     vueltas: vueltas ? parseInt(vueltas) : 1,
                     salida,
                     llegada,
-                    garage: garage  // ✅ Campo garage por cada tren
+                    garage: garage
                 });
             }
         });
@@ -344,23 +398,30 @@ const Servicios = {
             const linea = lineas.find(l => l.id === s.lineaId);
             const terminal = terminales.find(t => t.id === s.terminalId);
             const semana = semanas.find(w => w.id === s.semanaId);
-            const trenesCount = s.trenes ? s.trenes.length : 0;
+            const trenes = s.trenes || [];
+            const trenesCount = trenes.length;
             
-            // Verificar si algún tren hace garage
-            const trenesConGarage = s.trenes ? s.trenes.filter(t => t.garage).length : 0;
+            // ✅ Contar trenes con garage
+            const trenesConGarage = trenes.filter(t => t.garage === true).length;
+            
+            // ✅ Determinar si hace garage (general o por tren)
+            const haceGarageGeneral = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
+            const tieneGarage = haceGarageGeneral || trenesConGarage > 0;
             
             return `
                 <div class="item-card">
                     <div class="item-header">
                         <div class="item-title">Servicio #${s.nombre}</div>
-                        <div class="item-date">${s.garage ? 'Con Garage' : 'Sin Garage'}</div>
+                        <div class="item-date ${tieneGarage ? 'garage-si' : 'garage-no'}">
+                            ${tieneGarage ? 'Hace Garage' : 'Sin Garage'}
+                        </div>
                     </div>
                     <div class="item-meta">
                         <span class="item-tag">📍 ${linea ? linea.nombre : 'Sin línea'}</span>
                         <span class="item-tag">🚇 ${terminal ? terminal.nombre : 'Sin terminal'}</span>
                         <span class="item-tag">📅 ${semana ? semana.tipo : 'Sin día'}</span>
                     </div>
-                    ${trenesCount > 0 ? `<div class="item-desc" style="margin-top:6px;">${trenesCount} tren(es) registrado(s) ${trenesConGarage > 0 ? `• ${trenesConGarage} con garage` : ''}</div>` : ''}
+                    ${trenesCount > 0 ? `<div class="item-desc" style="margin-top:6px;font-size:12px;color:var(--text-soft);">${trenesCount} tren(es) registrado(s) ${trenesConGarage > 0 ? `• ${trenesConGarage} con garage` : ''}</div>` : ''}
                     <div class="item-actions">
                         <button class="btn-edit" data-id="${s.id}">Editar</button>
                         <button class="btn-remove" data-id="${s.id}">Eliminar</button>
