@@ -108,7 +108,7 @@ const Auth = {
             console.log('✅ Login exitoso');
             
         } catch (error) {
-            console.error(' Error de login:', error.code, error.message);
+            console.error('❌ Error de login:', error.code, error.message);
             this.showError('loginError', this.getAuthError(error.code, error.message));
             btn.innerHTML = 'Iniciar Sesión';
             btn.disabled = false;
@@ -120,7 +120,7 @@ const Auth = {
         const email = document.getElementById('registerEmail').value.trim();
         const password = document.getElementById('registerPassword').value;
 
-        console.log(' Intentando registro:', { name, email });
+        console.log('📝 Intentando registro:', { name, email });
 
         if (!name || !email || !password) {
             this.showError('registerError', 'Completa todos los campos');
@@ -208,7 +208,7 @@ const Auth = {
 
     // FUNCIÓN CORREGIDA: Prioriza el nombre del campo "Nombre" del registro
     getUserName(user) {
-        console.log(' Obteniendo nombre del usuario...');
+        console.log('👤 Obteniendo nombre del usuario...');
         
         // PRIORIDAD 1: Nombre guardado en localStorage (del campo "Nombre" del registro)
         const localName = DB.get('userName');
@@ -239,9 +239,15 @@ const Auth = {
     },
 
     async logout() {
-        console.log(' Cerrando sesión...');
-        DB.remove('userName');
+        console.log('🚪 Cerrando sesión...');
+        
+        // ✅ 1. Limpiar TODOS los datos locales del usuario que se va
+        DB.clearUserData();
+        
+        // ✅ 2. Cerrar sesión en Firebase
         await firebase.auth().signOut();
+        
+        console.log('✅ Sesión cerrada y datos locales limpiados');
     }
 };
 

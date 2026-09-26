@@ -6922,3 +6922,352 @@ html, body {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
+/* ============================================
+   CELDAS DEL CALENDARIO (MÓVIL FRIENDLY)
+   ============================================ */
+
+.dia-paso2-celda {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    min-height: 85px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.dia-paso2-celda:active {
+    transform: scale(0.95);
+    background: var(--bg-soft);
+}
+
+.dia-paso2-celda.dia-paso2-descanso {
+    background: var(--bg);
+    opacity: 0.6;
+    border: 2px dashed var(--text-light);
+    cursor: default;
+}
+
+.dia-paso2-celda.dia-paso2-descanso:active {
+    transform: none;
+}
+
+.dia-paso2-celda.dia-paso2-hoy {
+    background: linear-gradient(135deg, #FF9800, #F57C00) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4) !important;
+    border: 2px solid #FF9800 !important;
+}
+
+.dia-paso2-celda.dia-paso2-hoy .dia-paso2-nombre {
+    color: white !important;
+}
+
+.dia-paso2-celda.dia-paso2-hoy .dia-paso2-numero {
+    color: white !important;
+}
+
+.dia-paso2-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.dia-paso2-nombre {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-soft);
+}
+
+.dia-paso2-numero {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+}
+
+.dia-paso2-valor-display {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-top: 4px;
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+.dia-paso2-celda.dia-paso2-hoy .dia-paso2-valor-display {
+    color: white !important;
+}
+
+.dia-paso2-badge-descanso {
+    font-size: 20px;
+    margin-top: 4px;
+}
+/* ============================================
+   RESULTADOS DE BÚSQUEDA DE RESERVAS - COMPACTO
+   ============================================ */
+
+.rb-result-card {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--bg-soft) 100%);
+    border-radius: 16px;
+    padding: 0;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    border: 1px solid var(--primary-soft);
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease;
+}
+
+.rb-result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(155, 127, 212, 0.25);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rb-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    padding: 16px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.rb-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 4s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-30%, -30%); }
+}
+
+.rb-tipo-badge {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1;
+    animation: pulseBadge 3s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+    0%, 100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+    50% { box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3); }
+}
+
+.rb-info-basica {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.rb-info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    backdrop-filter: blur(5px);
+}
+
+.rb-info-item svg {
+    width: 14px !important;
+    height: 14px !important;
+    stroke: rgba(255, 255, 255, 0.9) !important;
+    flex-shrink: 0;
+}
+
+/* SECCIÓN DE HORARIOS - COMPACTA */
+.rb-horarios {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    background: var(--surface);
+    position: relative;
+}
+
+.rb-horario-box {
+    flex: 1;
+    background: linear-gradient(135deg, var(--bg-soft), var(--surface));
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid var(--primary-soft);
+    box-shadow: 0 2px 8px rgba(155, 127, 212, 0.1);
+    transition: all 0.3s ease;
+}
+
+.rb-horario-box:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(155, 127, 212, 0.2);
+    border-color: var(--primary);
+}
+
+.rb-horario-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+    line-height: 1.2;
+}
+
+.rb-horario-valor {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 4px rgba(155, 127, 212, 0.2);
+    display: block;
+    line-height: 1;
+}
+
+/* FLECHA ANIMADA - COMPACTA */
+.rb-horario-arrow {
+    font-size: 20px;
+    color: var(--primary);
+    font-weight: 600;
+    animation: moveArrow 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+@keyframes moveArrow {
+    0%, 100% {
+        transform: translateX(0);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateX(4px);
+        opacity: 1;
+    }
+}
+
+/* RESPONSIVE - MÓVIL */
+@media (max-width: 480px) {
+    .rb-info-basica {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+    
+    .rb-info-item {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+    
+    .rb-horarios {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .rb-horario-box {
+        padding: 10px 8px;
+    }
+    
+    .rb-horario-valor {
+        font-size: 20px;
+    }
+    
+    .rb-horario-label {
+        font-size: 8px;
+    }
+    
+    .rb-horario-arrow {
+        font-size: 18px;
+    }
+    
+    .rb-tipo-badge {
+        font-size: 14px;
+        padding: 5px 12px;
+    }
+}
+/* ============================================
+   EFECTO WAVE EN TÍTULO CICLO
+   ============================================ */
+
+.wave-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.wave-title span {
+    display: inline-block;
+    animation: waveTitle 2.5s ease-in-out infinite;
+    transform-origin: bottom center;
+}
+
+@keyframes waveTitle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Responsive para móvil */
+@media (max-width: 480px) {
+    .wave-title {
+        font-size: 20px;
+    }
+    
+    @keyframes waveTitle {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-4px);
+        }
+    }
+}

@@ -1,5 +1,5 @@
 // ============================================
-// ROL.JS - Módulo Mi Rol con calendario en 2 pasos
+// ROL.JS - Módulo Mi Rol con calendario y Modal para móvil
 // ============================================
 
 const Rol = {
@@ -29,9 +29,6 @@ const Rol = {
         this.renderList();
     },
 
-    // ============================================
-    // PASO 1: Datos básicos
-    // ============================================
     paso1(editId = null) {
         const data = editId ? DB.load('roles').find(r => r.id === editId) : null;
         const lineas = DB.load('lineas');
@@ -82,7 +79,7 @@ const Rol = {
             <div class="input-group">
                 <label>Semana de Inicio</label>
                 <select id="rolSemanaInicio">
-                    <option value="">¿Con qué semana empezamos?</option>
+                    <option value="">¿En que semana vamos?</option>
                     ${semanaOptions}
                 </select>
                 <small style="color:var(--text-soft);font-size:11px;margin-top:6px;display:block;">La semana actual se marcará con este número</small>
@@ -128,9 +125,6 @@ const Rol = {
         });
     },
 
-    // ============================================
-    // PASO 2: Calendario para asignar servicios
-    // ============================================
     paso2(editId, datosBasicos, dataAnterior) {
         const { lineaId, terminalId, numeroRol, semanaInicio, descansos } = datosBasicos;
         const lineas = DB.load('lineas');
@@ -179,21 +173,18 @@ const Rol = {
                     valorGuardado = dataAnterior.semanas[i].dias[diaIdx].dato || '';
                 }
 
+                const displayValor = valorGuardado ? valorGuardado : '<span style="color:var(--primary);font-size:22px;font-weight:800;">+</span>';
+
                 htmlCalendario += `
-                    <div class="dia-paso2-item ${esDescanso ? 'dia-paso2-descanso' : ''} ${esHoy ? 'dia-paso2-hoy' : ''}">
+                    <div class="dia-paso2-celda ${esDescanso ? 'dia-paso2-descanso' : ''} ${esHoy ? 'dia-paso2-hoy' : ''}" 
+                         data-semana="${i}" data-dia="${diaIdx}" data-valor="${valorGuardado}">
                         <div class="dia-paso2-header">
                             <span class="dia-paso2-nombre">${diasCortos[diaIdx]}</span>
                             <span class="dia-paso2-numero">${diaNumero}</span>
                         </div>
                         ${esDescanso ? 
                             '<div class="dia-paso2-badge-descanso">🛌</div>' :
-                            `<input type="text" 
-                                   class="dia-paso2-input" 
-                                   data-semana="${i}" 
-                                   data-dia="${diaIdx}" 
-                                   value="${valorGuardado}" 
-                                   placeholder="Serv"
-                                   maxlength="4">`
+                            `<div class="dia-paso2-valor-display">${displayValor}</div>`
                         }
                     </div>
                 `;
@@ -214,7 +205,7 @@ const Rol = {
                 <span class="paso2-info-tag">${linea ? linea.nombre : ''}</span>
                 <span class="paso2-info-tag">${terminal ? terminal.nombre : ''}</span>
             </div>
-            <p style="font-size:12px;color:var(--text-soft);margin-bottom:12px;">Escribe el número de servicio o reserva en cada día laboral. El día de hoy está resaltado.</p>
+            <p style="font-size:12px;color:var(--text-soft);margin-bottom:12px;">Toca cada día para agregar el servicio o reserva. El día de hoy está resaltado.</p>
             ${htmlCalendario}
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnVolverPaso1">← Volver</button>
@@ -222,13 +213,56 @@ const Rol = {
             </div>
         `);
 
+        // ✅ Lógica para abrir el modal al tocar un día
+        document.querySelectorAll('.dia-paso2-celda:not(.dia-paso2-descanso)').forEach(celda => {
+            celda.addEventListener('click', () => {
+                const semIdx = parseInt(celda.dataset.semana);
+                const diaIdx = parseInt(celda.dataset.dia);
+                const currentVal = celda.dataset.valor || '';
+                const diaNombre = diasSemana[diaIdx];
+                
+                // Calcular fecha para mostrar en el modal
+                const fechaInicioSem = new Date(domingoInicio);
+                fechaInicioSem.setDate(fechaInicioSem.getDate() + (semIdx * 7));
+                const fechaDia = new Date(fechaInicioSem);
+                fechaDia.setDate(fechaDia.getDate() + diaIdx);
+                const fechaStr = fechaDia.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+                const modalDia = App.showModal(`
+                    <h3 style="text-transform:capitalize;">${diaNombre} ${fechaStr}</h3>
+                    <div class="input-group" style="margin: 24px 0;">
+                        <label style="font-size:14px;font-weight:700;">Servicio o Reserva</label>
+                        <input type="text" id="modalServicioInput" value="${currentVal}" placeholder="Ej: 1234, MA, RA" 
+                               style="width:100%;padding:14px;font-size:18px;text-align:center;border:2px solid var(--primary);border-radius:10px;background:var(--surface);color:var(--text);font-weight:700;">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" id="btnCancelModalDia">Cancelar</button>
+                        <button class="btn-primary" id="btnSaveModalDia">Guardar</button>
+                    </div>
+                `);
+
+                document.getElementById('btnCancelModalDia').addEventListener('click', () => modalDia.remove());
+                document.getElementById('btnSaveModalDia').addEventListener('click', () => {
+                    const nuevoValor = document.getElementById('modalServicioInput').value.trim();
+                    
+                    // Actualizar la celda visualmente y en sus datos
+                    celda.dataset.valor = nuevoValor;
+                    const displayDiv = celda.querySelector('.dia-paso2-valor-display');
+                    displayDiv.innerHTML = nuevoValor ? nuevoValor : '<span style="color:var(--primary);font-size:22px;font-weight:800;">+</span>';
+                    
+                    modalDia.remove();
+                    App.showToast('Dato guardado');
+                });
+            });
+        });
+
         document.getElementById('btnVolverPaso1').addEventListener('click', () => {
             modal.remove();
             this.paso1(editId);
         });
 
         document.getElementById('btnGuardarRol').addEventListener('click', () => {
-            const semanasData = this.obtenerDatosCalendarioPaso2(semanaInicio, descansos);
+            const semanasData = this.obtenerDatosCalendarioPaso2(semanaInicio, descansos, domingoInicio);
 
             let roles = DB.load('roles');
 
@@ -265,11 +299,8 @@ const Rol = {
         });
     },
 
-    obtenerDatosCalendarioPaso2(semanaInicio, descansos) {
-        const hoy = new Date();
-        const domingoInicio = this.getDomingoDeEstaSemana(hoy);
+    obtenerDatosCalendarioPaso2(semanaInicio, descansos, domingoInicio) {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
         const semanas = [];
 
         for (let i = 0; i < 5; i++) {
@@ -283,11 +314,12 @@ const Rol = {
             const dias = [];
             for (let diaIdx = 0; diaIdx < 7; diaIdx++) {
                 const diaNombre = diasSemana[diaIdx];
-                const input = document.querySelector(`.dia-paso2-input[data-semana="${i}"][data-dia="${diaIdx}"]`);
-                const valor = input ? input.value.trim() : '';
                 const esDescanso = descansos.includes(diaNombre);
                 
-                // ✅ Guardar la fecha exacta de cada día
+                // ✅ Leer el valor del atributo data-valor de la celda
+                const celda = document.querySelector(`.dia-paso2-celda[data-semana="${i}"][data-dia="${diaIdx}"]`);
+                const valor = celda ? (celda.dataset.valor || '') : '';
+                
                 const fechaDia = new Date(fechaInicio);
                 fechaDia.setDate(fechaDia.getDate() + diaIdx);
                 const fechaDiaStr = this.getFechaLocal(fechaDia);
@@ -297,8 +329,8 @@ const Rol = {
                     dato: valor,
                     esDescanso: esDescanso,
                     esFestivo: false,
-                    fecha: fechaDiaStr, // ✅ Fecha guardada
-                    numeroDia: fechaDia.getDate() // ✅ Número del día guardado
+                    fecha: fechaDiaStr,
+                    numeroDia: fechaDia.getDate()
                 });
             }
 
@@ -402,7 +434,6 @@ const Rol = {
             return;
         }
 
-        // ✅ MANTENER ORDEN CRONOLÓGICO (igual que Paso 2)
         const semanasOrdenadas = semanas;
 
         container.innerHTML = `
@@ -433,12 +464,9 @@ const Rol = {
                 </div>
                 <div class="rol-dias-grid-calendario">
                     ${semana.dias.map((dia, diaIdx) => {
-                        // ✅ Usar la fecha guardada en lugar de recalcular
                         const fechaDiaStr = dia.fecha || this.calcularFecha(semana.fechaInicio, diaIdx);
                         const esHoy = fechaDiaStr === hoyStr;
                         const esDescanso = dia.esDescanso || false;
-                        
-                        // ✅ Usar el número del día guardado
                         const diaNumero = dia.numeroDia || new Date(fechaDiaStr).getDate();
                         
                         return `

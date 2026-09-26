@@ -36,6 +36,12 @@ const ReservasBusqueda = {
                             </select>
                         </div>
                         <div class="input-group">
+                            <label>Tipo de Día</label>
+                            <select id="rbSemana">
+                                <option value="">Selecciona línea primero</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
                             <label>Tipo de Reserva</label>
                             <input type="text" id="rbTipo" placeholder="Ej. MA, CC, CB, RA">
                         </div>
@@ -56,10 +62,12 @@ const ReservasBusqueda = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const turnos = DB.load('turnos');
+        const semanas = DB.load('semanas');
 
         const selectLinea = document.getElementById('rbLinea');
         const selectTerminal = document.getElementById('rbTerminal');
         const selectTurno = document.getElementById('rbTurno');
+        const selectSemana = document.getElementById('rbSemana');
 
         const updateTerminales = () => {
             const lineaId = selectLinea.value;
@@ -70,6 +78,7 @@ const ReservasBusqueda = {
                     `<option value="${t.id}">${t.nombre}</option>`
                 ).join('');
             updateTurnos();
+            updateSemanas();
         };
 
         const updateTurnos = () => {
@@ -85,6 +94,16 @@ const ReservasBusqueda = {
                 ? '<option value="">No hay turnos</option>'
                 : '<option value="">Selecciona turno</option>' + turnosFiltrados.map(t => 
                     `<option value="${t.id}">${t.nombre}</option>`
+                ).join('');
+        };
+
+        const updateSemanas = () => {
+            const lineaId = selectLinea.value;
+            const semanasFiltradas = semanas.filter(s => s.lineaId === lineaId);
+            selectSemana.innerHTML = semanasFiltradas.length === 0
+                ? '<option value="">No hay tipos de día</option>'
+                : '<option value="">Selecciona tipo de día</option>' + semanasFiltradas.map(s => 
+                    `<option value="${s.id}">${s.tipo}</option>`
                 ).join('');
         };
 
@@ -104,9 +123,10 @@ const ReservasBusqueda = {
         const lineaId = document.getElementById('rbLinea').value;
         const terminalId = document.getElementById('rbTerminal').value;
         const turnoId = document.getElementById('rbTurno').value;
+        const semanaId = document.getElementById('rbSemana').value;
         const tipo = document.getElementById('rbTipo').value.trim().toUpperCase();
 
-        if (!lineaId || !terminalId || !turnoId || !tipo) {
+        if (!lineaId || !terminalId || !turnoId || !semanaId || !tipo) {
             App.showToast('Completa todos los campos para buscar');
             return;
         }
@@ -115,12 +135,14 @@ const ReservasBusqueda = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const turnos = DB.load('turnos');
+        const semanas = DB.load('semanas');
 
-        // Buscar reservas que coincidan (case-insensitive)
+        // Buscar reservas que coincidan exactamente con todos los filtros
         const reservasEncontradas = reservas.filter(r => 
             r.lineaId === lineaId && 
             r.terminalId === terminalId && 
-            r.turnoId === turnoId && 
+            r.turnoId === turnoId &&
+            r.semanaId === semanaId && 
             r.tipo.toUpperCase() === tipo
         );
 
@@ -135,7 +157,7 @@ const ReservasBusqueda = {
                     </svg>
                     <h3>Reserva no encontrada</h3>
                     <p>No existe una reserva con tipo <strong>${tipo}</strong> para los filtros seleccionados.</p>
-                    <p style="font-size:12px;color:var(--text-soft);margin-top:8px;">Verifica la línea, terminal, turno y tipo de reserva.</p>
+                    <p style="font-size:12px;color:var(--text-soft);margin-top:8px;">Verifica la línea, terminal, turno, tipo de día y tipo de reserva.</p>
                 </div>
             `;
             return;
@@ -145,6 +167,7 @@ const ReservasBusqueda = {
             const linea = lineas.find(l => l.id === reserva.lineaId);
             const terminal = terminales.find(t => t.id === reserva.terminalId);
             const turno = turnos.find(t => t.id === reserva.turnoId);
+            const semana = semanas.find(s => s.id === reserva.semanaId);
 
             return `
                 <div class="rb-result-card">
@@ -162,6 +185,10 @@ const ReservasBusqueda = {
                             <div class="rb-info-item">
                                 <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 <span>${turno ? turno.nombre : 'N/A'}</span>
+                            </div>
+                            <div class="rb-info-item">
+                                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <span>${semana ? semana.tipo : 'N/A'}</span>
                             </div>
                         </div>
                     </div>
