@@ -269,7 +269,7 @@ const Home = {
         `;
     },
 
-    // ✅ FUNCIÓN MEJORADA: Búsqueda tolerante a mayúsculas, minúsculas y espacios
+    // ✅ FUNCIÓN MEJORADA: Elimina acentos y es tolerante a mayúsculas
     buscarServicioPorTipo(rol, tipoDia, numeroServicio) {
         if (!numeroServicio) return null;
         
@@ -278,18 +278,31 @@ const Home = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         
-        // Normalizar tipo de día para evitar problemas de acentos o mayúsculas
-        const tipoDiaNorm = tipoDia.toLowerCase().trim();
+        // Función para normalizar texto (quitar acentos y minúsculas)
+        const normalizar = (texto) => {
+            return texto.toLowerCase()
+                       .normalize('NFD')
+                       .replace(/[\u0300-\u036f]/g, '')
+                       .trim();
+        };
         
-        const semanaTipo = semanas.find(s => 
-            s.lineaId === rol.lineaId && 
-            s.tipo.toLowerCase().trim() === tipoDiaNorm
-        );
+        const tipoDiaNorm = normalizar(tipoDia);
+        
+        console.log('🔍 Buscando semana para tipo:', tipoDia, '-> normalizado:', tipoDiaNorm);
+        console.log('📋 Semanas disponibles:', semanas.map(s => `${s.tipo} (ID: ${s.id})`));
+        
+        const semanaTipo = semanas.find(s => {
+            const tipoSemanaNorm = normalizar(s.tipo);
+            return s.lineaId === rol.lineaId && tipoSemanaNorm === tipoDiaNorm;
+        });
         
         if (!semanaTipo) {
             console.warn('⚠️ No se encontró configuración de semana para tipo:', tipoDia, '| Línea ID:', rol.lineaId);
+            console.log('Tipos disponibles para esta línea:', semanas.filter(s => s.lineaId === rol.lineaId).map(s => s.tipo));
             return null;
         }
+        
+        console.log('✅ Semana encontrada:', semanaTipo.tipo, 'ID:', semanaTipo.id);
         
         const numeroServicioStr = String(numeroServicio).trim();
         
@@ -301,6 +314,7 @@ const Home = {
         });
         
         if (servicio) {
+            console.log('✅ Servicio encontrado:', servicio.nombre);
             return {
                 servicio,
                 linea: lineas.find(l => l.id === servicio.lineaId),
@@ -310,6 +324,7 @@ const Home = {
         }
         
         console.warn('⚠️ Servicio no encontrado. Buscado:', numeroServicioStr, '| En semana ID:', semanaTipo.id);
+        console.log('Servicios disponibles:', servicios.filter(s => s.lineaId === rol.lineaId && s.semanaId === semanaTipo.id).map(s => s.nombre));
         return null;
     },
 
