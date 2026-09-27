@@ -1,5 +1,5 @@
 // ============================================
-// ROL.JS - Módulo Mi Rol con calendario y Modal para móvil
+// ROL.JS - Módulo Mi Rol con calendario en 2 pasos
 // ============================================
 
 const Rol = {
@@ -29,6 +29,9 @@ const Rol = {
         this.renderList();
     },
 
+    // ============================================
+    // PASO 1: Datos básicos
+    // ============================================
     paso1(editId = null) {
         const data = editId ? DB.load('roles').find(r => r.id === editId) : null;
         const lineas = DB.load('lineas');
@@ -79,7 +82,7 @@ const Rol = {
             <div class="input-group">
                 <label>Semana de Inicio</label>
                 <select id="rolSemanaInicio">
-                    <option value="">¿En que semana vamos?</option>
+                    <option value="">¿Con qué semana empezamos?</option>
                     ${semanaOptions}
                 </select>
                 <small style="color:var(--text-soft);font-size:11px;margin-top:6px;display:block;">La semana actual se marcará con este número</small>
@@ -125,6 +128,9 @@ const Rol = {
         });
     },
 
+    // ============================================
+    // PASO 2: Calendario para asignar servicios
+    // ============================================
     paso2(editId, datosBasicos, dataAnterior) {
         const { lineaId, terminalId, numeroRol, semanaInicio, descansos } = datosBasicos;
         const lineas = DB.load('lineas');
@@ -434,6 +440,7 @@ const Rol = {
             return;
         }
 
+        // ✅ MANTENER ORDEN CRONOLÓGICO (igual que Paso 2)
         const semanasOrdenadas = semanas;
 
         container.innerHTML = `
@@ -450,6 +457,13 @@ const Rol = {
         
         const fechaInicio = new Date(semana.fechaInicio);
         const fechaFin = new Date(semana.fechaFin);
+        
+        // ✅ Normalizar todas las fechas al inicio del día (00:00:00) para comparar correctamente
+        hoy.setHours(0, 0, 0, 0);
+        fechaInicio.setHours(0, 0, 0, 0);
+        fechaFin.setHours(0, 0, 0, 0);
+        
+        // ✅ Comparar correctamente
         const esSemanaActual = hoy >= fechaInicio && hoy <= fechaFin;
         
         const mesInicio = meses[fechaInicio.getMonth()];
