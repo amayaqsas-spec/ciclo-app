@@ -156,12 +156,22 @@ const Home = {
 
                 ${infoServicio ? this.renderServicioDia(infoServicio) : ''}
 
-                ${!infoServicio ? `
+                ${!infoServicio && datoDiaActual ? `
                     <div class="aviso-empty" style="margin-top:20px;">
                         <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
-                        <p>No hay servicio registrado para hoy (${tipoDiaActual || 'Sin tipo'})</p>
+                        <p>No se encontró el servicio <strong>"${datoDiaActual}"</strong> registrado para <strong>${tipoDiaActual}</strong>.</p>
+                        <p style="font-size:12px; color:var(--text-soft); margin-top:8px;">Ve a Registro > Servicios y asegúrate de que el número de servicio y el tipo de día coincidan exactamente.</p>
+                    </div>
+                ` : ''}
+                
+                ${!infoServicio && !datoDiaActual ? `
+                    <div class="aviso-empty" style="margin-top:20px;">
+                        <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <p>No hay servicio asignado para hoy.</p>
                     </div>
                 ` : ''}
             </div>
@@ -259,37 +269,47 @@ const Home = {
         `;
     },
 
+    // ✅ FUNCIÓN MEJORADA: Búsqueda tolerante a mayúsculas, minúsculas y espacios
     buscarServicioPorTipo(rol, tipoDia, numeroServicio) {
         if (!numeroServicio) return null;
         
         const servicios = DB.load('servicios');
         const semanas = DB.load('semanas');
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        
+        // Normalizar tipo de día para evitar problemas de acentos o mayúsculas
+        const tipoDiaNorm = tipoDia.toLowerCase().trim();
         
         const semanaTipo = semanas.find(s => 
             s.lineaId === rol.lineaId && 
-            s.tipo === tipoDia
+            s.tipo.toLowerCase().trim() === tipoDiaNorm
         );
         
-        if (!semanaTipo) return null;
+        if (!semanaTipo) {
+            console.warn('⚠️ No se encontró configuración de semana para tipo:', tipoDia, '| Línea ID:', rol.lineaId);
+            return null;
+        }
         
-        const servicio = servicios.find(s => 
-            s.nombre === numeroServicio && 
-            s.lineaId === rol.lineaId && 
-            s.semanaId === semanaTipo.id
-        );
+        const numeroServicioStr = String(numeroServicio).trim();
+        
+        const servicio = servicios.find(s => {
+            const nombreServicio = String(s.nombre).trim();
+            return nombreServicio === numeroServicioStr && 
+                   s.lineaId === rol.lineaId && 
+                   s.semanaId === semanaTipo.id;
+        });
         
         if (servicio) {
-            const lineas = DB.load('lineas');
-            const terminales = DB.load('terminales');
-            const semanas = DB.load('semanas');
             return {
                 servicio,
                 linea: lineas.find(l => l.id === servicio.lineaId),
                 terminal: terminales.find(t => t.id === servicio.terminalId),
-                semana: semanas.find(s => s.id === servicio.semanaId)
+                semana: semanaTipo
             };
         }
         
+        console.warn('⚠️ Servicio no encontrado. Buscado:', numeroServicioStr, '| En semana ID:', semanaTipo.id);
         return null;
     },
 
@@ -321,29 +341,19 @@ const Home = {
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // Validar tipo de archivo
                     const tiposValidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
                     if (!tiposValidos.includes(file.type)) {
                         App.showToast('Formato no válido. Usa JPG, PNG o WebP');
                         return;
                     }
-
-                    // Validar tamaño (máximo 5MB antes de procesar)
                     if (file.size > 5 * 1024 * 1024) {
                         App.showToast('La imagen es muy grande. Máximo 5MB');
                         return;
                     }
-
                     try {
                         App.showToast('Procesando imagen...');
-                        
-                        // Procesar imagen: recortar y redimensionar
                         const imagenBase64 = await this.procesarImagen(file);
-                        
-                        // Guardar en localStorage
                         DB.set('imagenPerfil', imagenBase64);
-                        
-                        // Actualizar la imagen en la UI
                         const imgExistente = welcomeIcon.querySelector('.perfil-imagen');
                         if (imgExistente) {
                             imgExistente.src = imagenBase64;
@@ -356,7 +366,6 @@ const Home = {
                                 <input type="file" id="inputFotoPerfil" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
                             `;
                             
-                            // Reasignar eventos
                             const nuevoBtn = document.getElementById('btnCambiarFoto');
                             const nuevoInput = document.getElementById('inputFotoPerfil');
                             nuevoBtn.addEventListener('click', (e) => {
@@ -391,7 +400,6 @@ const Home = {
                                 }
                             });
                         }
-                        
                         App.showToast('Foto de perfil actualizada');
                     } catch (error) {
                         console.error('Error al procesar imagen:', error);

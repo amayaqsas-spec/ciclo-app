@@ -452,29 +452,19 @@ const Rol = {
 
     renderSemanaCard(rol, semana, hoyStr) {
         const diasCortos = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-        const hoy = new Date();
         const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         
         const fechaInicio = new Date(semana.fechaInicio);
-        const fechaFin = new Date(semana.fechaFin);
-        
-        // ✅ Normalizar todas las fechas al inicio del día (00:00:00) para comparar correctamente
-        hoy.setHours(0, 0, 0, 0);
-        fechaInicio.setHours(0, 0, 0, 0);
-        fechaFin.setHours(0, 0, 0, 0);
-        
-        // ✅ Comparar correctamente
-        const esSemanaActual = hoy >= fechaInicio && hoy <= fechaFin;
-        
         const mesInicio = meses[fechaInicio.getMonth()];
+        const fechaFin = new Date(semana.fechaFin);
         const mesFin = meses[fechaFin.getMonth()];
         const mesTexto = mesInicio === mesFin ? mesInicio : `${mesInicio}-${mesFin}`;
 
+        // ✅ SIN badge HOY ni clase semana-activa - solo el día marcado
         return `
-            <div class="rol-semana-card ${esSemanaActual ? 'semana-activa' : ''}">
+            <div class="rol-semana-card">
                 <div class="rol-semana-header">
                     <div class="rol-semana-titulo">SEMANA ${semana.numeroSemana} - ${mesTexto}</div>
-                    ${esSemanaActual ? '<div class="rol-semana-badge-actual">HOY</div>' : ''}
                 </div>
                 <div class="rol-dias-grid-calendario">
                     ${semana.dias.map((dia, diaIdx) => {
