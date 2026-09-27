@@ -1,25 +1,17 @@
 // ============================================
-// DB.JS - Almacenamiento Local (localStorage) con aislamiento por usuario
+// DB.JS - Almacenamiento Local (localStorage)
 // ============================================
 
 const DB = {
-    // ✅ Función interna para obtener la clave única por usuario
-    _getKey(key) {
-        // Intentamos obtener el usuario actual de Firebase
-        const user = window.firebase?.auth()?.currentUser;
-        const userId = user ? user.uid : 'guest'; // Si no hay usuario logueado, usa 'guest'
-        return `ciclo_${userId}_${key}`;
-    },
-
     // Guardar array en localStorage
     save(key, data) {
-        localStorage.setItem(this._getKey(key), JSON.stringify(data));
+        localStorage.setItem('ciclo_' + key, JSON.stringify(data));
     },
 
     // Obtener array de localStorage
     load(key) {
         try {
-            const val = localStorage.getItem(this._getKey(key));
+            const val = localStorage.getItem('ciclo_' + key);
             return val ? JSON.parse(val) : [];
         } catch {
             return [];
@@ -28,14 +20,14 @@ const DB = {
 
     // Guardar valor simple
     set(key, value) {
-        localStorage.setItem(this._getKey(key), typeof value === 'string' ? value : JSON.stringify(value));
+        localStorage.setItem('ciclo_' + key, typeof value === 'string' ? value : JSON.stringify(value));
     },
 
     // Obtener valor simple
     get(key, defaultValue = null) {
         let val = null;
         try {
-            val = localStorage.getItem(this._getKey(key));
+            val = localStorage.getItem('ciclo_' + key);
             if (val === null) return defaultValue;
             return JSON.parse(val);
         } catch {
@@ -43,23 +35,9 @@ const DB = {
         }
     },
 
-    // Eliminar una clave específica
+    // Eliminar
     remove(key) {
-        localStorage.removeItem(this._getKey(key));
-    },
-
-    // ✅ Limpiar TODOS los datos del usuario actual (se usa al cerrar sesión)
-    clearUserData() {
-        const user = window.firebase?.auth()?.currentUser;
-        const userId = user ? user.uid : 'guest';
-        const prefix = `ciclo_${userId}_`;
-        
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith(prefix)) {
-                localStorage.removeItem(key);
-            }
-        }
+        localStorage.removeItem('ciclo_' + key);
     },
 
     // Generar ID único
@@ -68,7 +46,7 @@ const DB = {
     }
 };
 
-// Inicializar colecciones si no existen (ahora usan el prefijo correcto del usuario)
+// Inicializar colecciones si no existen
 if (DB.load('actividades').length === 0) DB.save('actividades', []);
 if (DB.load('notas').length === 0) DB.save('notas', []);
 if (DB.load('tareas').length === 0) DB.save('tareas', []);

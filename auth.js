@@ -108,7 +108,7 @@ const Auth = {
             console.log('✅ Login exitoso');
             
         } catch (error) {
-            console.error('❌ Error de login:', error.code, error.message);
+            console.error(' Error de login:', error.code, error.message);
             this.showError('loginError', this.getAuthError(error.code, error.message));
             btn.innerHTML = 'Iniciar Sesión';
             btn.disabled = false;
@@ -120,7 +120,7 @@ const Auth = {
         const email = document.getElementById('registerEmail').value.trim();
         const password = document.getElementById('registerPassword').value;
 
-        console.log('📝 Intentando registro:', { name, email });
+        console.log(' Intentando registro:', { name, email });
 
         if (!name || !email || !password) {
             this.showError('registerError', 'Completa todos los campos');
@@ -143,7 +143,7 @@ const Auth = {
             const auth = firebase.auth();
             const cred = await auth.createUserWithEmailAndPassword(email, password);
             
-            // GUARDAR EL NOMBRE EN LOCALSTORAGE (PRIORIDAD MÁXIMA)
+            // GUARDAR EL NOMBRE EN LOCALSTORAGE
             DB.set('userName', name);
             console.log('💾 Nombre guardado en localStorage:', name);
             
@@ -206,11 +206,10 @@ const Auth = {
         return 'Error: ' + (code || 'desconocido');
     },
 
-    // FUNCIÓN CORREGIDA: Prioriza el nombre del campo "Nombre" del registro
     getUserName(user) {
-        console.log('👤 Obteniendo nombre del usuario...');
+        console.log(' Obteniendo nombre del usuario...');
         
-        // PRIORIDAD 1: Nombre guardado en localStorage (del campo "Nombre" del registro)
+        // PRIORIDAD 1: Nombre guardado en localStorage
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);
         
@@ -219,18 +218,17 @@ const Auth = {
             return localName.trim();
         }
         
-        // PRIORIDAD 2: displayName de Firebase (también se actualiza al registrar)
+        // PRIORIDAD 2: displayName de Firebase
         if (user && user.displayName && user.displayName.trim() !== '') {
             console.log('✅ Usando displayName de Firebase:', user.displayName);
-            // Guardar en localStorage para futuras sesiones
             DB.set('userName', user.displayName);
             return user.displayName.trim();
         }
         
-        // PRIORIDAD 3: Parte del correo (último recurso, NOMBRE NO DEBERÍA LLEGAR AQUÍ)
+        // PRIORIDAD 3: Parte del correo
         if (user && user.email) {
             const emailName = user.email.split('@')[0];
-            console.log('⚠️ Usando nombre del correo (último recurso):', emailName);
+            console.log('⚠️ Usando nombre del correo:', emailName);
             return emailName;
         }
         
@@ -240,14 +238,8 @@ const Auth = {
 
     async logout() {
         console.log('🚪 Cerrando sesión...');
-        
-        // ✅ 1. Limpiar TODOS los datos locales del usuario que se va
-        DB.clearUserData();
-        
-        // ✅ 2. Cerrar sesión en Firebase
+        DB.remove('userName');
         await firebase.auth().signOut();
-        
-        console.log('✅ Sesión cerrada y datos locales limpiados');
     }
 };
 

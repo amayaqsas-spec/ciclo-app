@@ -1,9 +1,9 @@
 // ============================================
-// BD.JS - Módulo de Base de Datos (Importación universal)
+// BD.JS - Módulo de Base de Datos
 // ============================================
 
 const BD = {
-    clavesSistema: ['theme', 'auth', 'currentUser', 'isAdmin', 'userName'],
+    clavesSistema: ['theme', 'auth', 'currentUser', 'isAdmin'],
 
     render() {
         const nombreActual = DB.get('userName', Auth.getUserName(Auth.currentUser));
@@ -116,12 +116,6 @@ const BD = {
         this.mostrarEstadisticas();
     },
 
-    // ✅ Obtener el UID del usuario actual
-    getUserId() {
-        const user = window.firebase?.auth()?.currentUser;
-        return user ? user.uid : 'guest';
-    },
-
     exportar() {
         const modal = App.showModal(`
             <h3>📤 Exportar Base de Datos</h3>
@@ -142,29 +136,21 @@ const BD = {
     },
 
     ejecutarExportacion() {
-        const userId = this.getUserId();
         const datos = {};
         
-        // Exportar solo las claves del usuario actual, pero guardadas SIN prefijo en el JSON
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            
-            if (key.startsWith(`ciclo_${userId}_`)) {
-                // Quitar el prefijo 'ciclo_UID_' para que el JSON quede limpio (ej: "roles")
-                const cleanKey = key.replace(`ciclo_${userId}_`, '');
-                
-                if (!this.clavesSistema.includes(cleanKey)) {
-                    try {
-                        datos[cleanKey] = JSON.parse(localStorage.getItem(key));
-                    } catch (e) {
-                        datos[cleanKey] = localStorage.getItem(key);
-                    }
+            if (!this.clavesSistema.includes(key) && !key.startsWith('firebase')) {
+                try {
+                    datos[key] = JSON.parse(localStorage.getItem(key));
+                } catch (e) {
+                    datos[key] = localStorage.getItem(key);
                 }
             }
         }
 
         datos._meta = {
-            version: '2.1',
+            version: '1.0',
             fechaExportacion: new Date().toISOString(),
             app: 'CICLO'
         };
@@ -194,12 +180,12 @@ const BD = {
                 const datos = JSON.parse(e.target.result);
                 this.confirmarImportacion(datos);
             } catch (err) {
-                App.showToast('❌ Archivo JSON no válido o corrupto');
+                App.showToast('❌ Archivo no válido');
             }
         };
         reader.readAsText(file);
         
-        event.target.value = ''; // Resetear input para permitir re-importar el mismo archivo
+        event.target.value = '';
     },
 
     confirmarImportacion(datos) {
@@ -217,7 +203,7 @@ const BD = {
                 </p>
             </div>
             <p style="color:#ff9800;font-size:12px;font-weight:600;margin-bottom:14px;">
-                ⚠️ Esto REEMPLAZARÁ los datos actuales de este usuario. ¿Continuar?
+                ⚠️ Esto REEMPLAZARÁ los datos actuales. ¿Continuar?
             </p>
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelImport">Cancelar</button>
@@ -238,24 +224,11 @@ const BD = {
         Object.keys(datos).forEach(key => {
             if (!this.clavesSistema.includes(key) && key !== '_meta') {
                 try {
-                    // 🛡️ BLINDAJE: Limpiar CUALQUIER prefijo viejo o nuevo para evitar duplicados
-                    let cleanKey = key;
-                    if (cleanKey.startsWith('ciclo_')) {
-                        // Elimina 'ciclo_UID_' o 'ciclo_' dejando solo 'roles', 'servicios', etc.
-                        cleanKey = cleanKey.replace(/^ciclo_[a-zA-Z0-9]+_/, '').replace(/^ciclo_/, '');
-                    }
-                    
                     const valor = datos[key];
-                    
-                    // ✅ Usar DB.save / DB.set que automáticamente le pone el prefijo del usuario ACTUAL
-                    if (Array.isArray(valor)) {
-                        DB.save(cleanKey, valor);
-                    } else {
-                        DB.set(cleanKey, valor);
-                    }
-                    
+                    const valorStr = typeof valor === 'string' ? valor : JSON.stringify(valor);
+                    localStorage.setItem(key, valorStr);
                     contador++;
-                    console.log(`✅ Importado: ${cleanKey}`);
+                    console.log(`✅ Importado: ${key}`);
                 } catch (e) {
                     console.error(`❌ Error al importar ${key}:`, e);
                 }
@@ -264,7 +237,6 @@ const BD = {
 
         App.showToast(`✅ ${contador} secciones importadas correctamente`);
         
-        // Recargar la página para que se reflejen los cambios
         setTimeout(() => {
             location.reload();
         }, 1000);
@@ -289,7 +261,7 @@ const BD = {
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancelReset">Cancelar</button>
-                <button class="btn-primary" id="btnConfirmReset" style="background:#dc3545;" disabled>🗑️ Resetear todo</button>
+                <button class="btn-primary" id="btnConfirmReset" style="background:#dc3545;" disabled>️ Resetear todo</button>
             </div>
         `);
 
@@ -310,8 +282,15 @@ const BD = {
     },
 
     ejecutarReset() {
-        // ✅ Usa la función de db.js que borra solo los datos del usuario actual
-        DB.clearUserData();
+        const clavesAEliminar = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!this.clavesSistema.includes(key) && !key.startsWith('firebase')) {
+                clavesAEliminar.push(key);
+            }
+        }
+
+        clavesAEliminar.forEach(key => localStorage.removeItem(key));
 
         App.showToast('🗑️ Aplicación reseteada completamente');
         
