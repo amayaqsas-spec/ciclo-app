@@ -7,17 +7,17 @@
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
     <title>CICLO</title>
     
-    <!-- PWA Manifest e Iconos -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
-    <link rel="apple-touch-icon" href="./assets/icon-192.png">
+    <!-- ✅ PWA Manifest e Iconos (Rutas absolutas para evitar errores) -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
     
     <!-- Meta tags para iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CICLO">
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -26,7 +26,6 @@
 
     <!-- ✅ INICIALIZACIÓN INMEDIATA DE FIREBASE -->
     <script>
-        // Verificar que Firebase SDK cargó
         if (typeof firebase === 'undefined') {
             console.error('❌ Firebase SDK no cargó');
         } else {
@@ -39,13 +38,10 @@
                 appId: "1:384309494842:web:b5c113c35877a431462103"
             };
 
-            // Inicializar si no existe
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
                 console.log('✅ Firebase inicializado correctamente');
             }
-            
-            // Hacer disponible globalmente
             window.firebase = firebase;
         }
     </script>
@@ -128,7 +124,6 @@
                 <button class="menu-btn" id="menuBtn">
                     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
-                <!-- ✅ SE AGREGÓ LA CLASE wave-title AQUÍ -->
                 <span class="header-title wave-title">CICLO</span>
             </div>
         </header>
@@ -159,16 +154,15 @@
     <div class="toast" id="toast"></div>
 
     <!-- Scripts base -->
-    <script src="db.js"></script>
-    <script src="auth.js"></script>
-    <!-- app.js como módulo -->
-    <script type="module" src="app.js"></script>
+    <script src="/db.js"></script>
+    <script src="/auth.js"></script>
+    <script type="module" src="/app.js"></script>
 
     <!-- Registrar Service Worker para PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('/sw.js')
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
                     })
