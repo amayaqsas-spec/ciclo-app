@@ -8011,3 +8011,144 @@ input, textarea, select {
     padding-right: env(safe-area-inset-right);
   }
 }
+/* ============================================
+   SPLASH SCREEN
+   ============================================ */
+#splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg, #F0E6F6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#splashScreen.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-logo {
+    width: 120px;
+    height: 120px;
+    background: var(--primary, #9B7FD4);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 40px rgba(155, 127, 212, 0.4);
+    animation: pulse-splash 2s ease-in-out infinite;
+}
+
+.splash-logo svg {
+    width: 60px;
+    height: 60px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+@keyframes pulse-splash {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.splash-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--text, #3D2E5C);
+    margin-bottom: 8px;
+}
+
+.splash-subtitle {
+    font-size: 14px;
+    color: var(--text-soft, #7A6B8E);
+}
+
+/* ============================================
+   WAVE TRANSITION
+   ============================================ */
+.wave-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--primary, #9B7FD4);
+    transform: translateY(100%);
+    transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wave.active {
+    transform: translateY(0);
+}
+
+.wave-bg {
+    fill: var(--bg, #F0E6F6);
+}
+
+/* ============================================
+   AUTH CONTAINER
+   ============================================ */
+#authContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg, #F0E6F6);
+}
+
+#authContainer.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ============================================
+   MAIN APP
+   ============================================ */
+#mainApp {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg, #F0E6F6);
+}
+
+#mainApp.show {
+    opacity: 1;
+    visibility: visible;
+}
