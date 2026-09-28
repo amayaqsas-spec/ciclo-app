@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos con notificaciones
+// AVISOS.JS - Módulo de Documentos (visible para todos los usuarios)
 // ============================================
 
 const Avisos = {
@@ -28,8 +28,10 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
-        // ✅ Marcar todos los documentos como leídos al entrar al módulo
-        this.marcarTodosComoLeidos();
+        // ✅ Marcar todos los documentos como leídos al entrar al módulo (solo para usuarios normales)
+        if (!isAdmin) {
+            this.marcarTodosComoLeidos();
+        }
         
         // Solo el administrador puede ver el botón de agregar
         if (isAdmin) {
@@ -75,17 +77,19 @@ const Avisos = {
         const data = editId ? DB.load('avisos').find(a => a.id === editId) : null;
         const modal = App.showModal(`
             <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
-            <div class="input-group">
-                <label>Título del Documento</label>
-                <input type="text" id="avisoTitulo" value="${data ? data.titulo : ''}" placeholder="Ej: Aviso de cambio de turno">
-            </div>
-            <div class="input-group">
-                <label>Descripción</label>
-                <textarea id="avisoTexto" rows="3" placeholder="Detalles del documento...">${data ? data.texto : ''}</textarea>
-            </div>
-            <div class="input-group">
-                <label>Enlace (Google Drive, PDF, etc.)</label>
-                <input type="text" id="avisoLink" value="${data ? data.link : ''}" placeholder="https://...">
+            <div class="modal-scroll-content">
+                <div class="input-group">
+                    <label>Título del Documento</label>
+                    <input type="text" id="avisoTitulo" value="${data ? data.titulo : ''}" placeholder="Ej: Aviso de cambio de turno">
+                </div>
+                <div class="input-group">
+                    <label>Descripción</label>
+                    <textarea id="avisoTexto" rows="3" placeholder="Detalles del documento...">${data ? data.texto : ''}</textarea>
+                </div>
+                <div class="input-group">
+                    <label>Enlace (Google Drive, PDF, etc.)</label>
+                    <input type="text" id="avisoLink" value="${data ? data.link : ''}" placeholder="https://...">
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" id="btnCancel">Cancelar</button>
@@ -136,6 +140,7 @@ const Avisos = {
 
     renderList() {
         const list = document.getElementById('avisoList');
+        // ✅ Cargar TODOS los avisos sin filtrar por usuario
         const data = DB.load('avisos').sort((a, b) => b.createdAt - a.createdAt);
         const isAdmin = Auth.isAdmin;
 
@@ -156,7 +161,7 @@ const Avisos = {
                 <div class="item-header">
                     <div class="item-title">
                         ${item.titulo}
-                        ${!item.leido ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+                        ${!item.leido && !isAdmin ? '<span class="badge-nuevo">NUEVO</span>' : ''}
                     </div>
                     <div class="item-date">${item.fecha}</div>
                 </div>
