@@ -29,7 +29,7 @@ const themeNames = {
 // ============================================
 const viewModules = {
     home: './views/home.js',
-    avisos: './views/avisos-compartido.js', // ✅ CAMBIADO: ahora usa el módulo de documentos compartidos
+    avisos: './views/avisos.js',
     notas: './views/notas.js',
     'tiempo-extra': './views/tiempo-extra.js',
     'servicios-busqueda': './views/servicios-busqueda.js',
@@ -131,7 +131,7 @@ const Views = {
                 e.stopPropagation();
                 const viewId = item.dataset.view;
                 if (viewId) {
-                    this.load(viewId, true); // true = agregar al historial
+                    this.load(viewId, true);
                     App.toggleMenu();
                 }
             });
@@ -163,7 +163,7 @@ const Views = {
                 e.stopPropagation();
                 const viewId = subitem.dataset.view;
                 if (viewId) {
-                    this.load(viewId, true); // true = agregar al historial
+                    this.load(viewId, true);
                     App.toggleMenu();
                 }
             });
@@ -177,15 +177,13 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log('🚫 Salida cancelada por atraso activo');
+                console.log(' Salida cancelada por atraso activo');
                 return;
             }
         }
 
-        // ✅ Agregar al historial de navegación
         if (addToHistory && viewId !== this.current) {
             navigationHistory.push(viewId);
-            // Agregar estado al historial del navegador
             window.history.pushState({ viewId }, '', `#${viewId}`);
         }
 
@@ -220,7 +218,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(`❌ Error al cargar vista "${viewId}":`, error);
+            console.error(` Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -296,7 +294,7 @@ const Views = {
         const theme = themes[themeName];
         
         if (!theme) {
-            console.error('❌ Tema no encontrado:', themeName);
+            console.error(' Tema no encontrado:', themeName);
             return;
         }
 
@@ -359,14 +357,10 @@ const App = {
                 }
 
                 Views.renderMenu();
-                Views.load('home', false); // false = no agregar al historial (es la primera)
+                Views.load('home', false);
 
-                // ✅ Inicializar sistema de navegación back
                 this.initBackNavigation();
 
-                // ============================================
-                // ✅ EFECTO WAVE EN TÍTULO CICLO
-                // ============================================
                 const waveTitle = document.querySelector('.wave-title');
                 if (waveTitle && !waveTitle.classList.contains('wave-applied')) {
                     const text = waveTitle.textContent;
@@ -381,7 +375,6 @@ const App = {
                     
                     waveTitle.classList.add('wave-applied');
                 }
-                // ============================================
             } else {
                 Auth.currentUser = null;
                 Auth.isAdmin = false;
@@ -416,18 +409,12 @@ const App = {
         }
     },
 
-    // ============================================
-    // ✅ SISTEMA DE NAVEGACIÓN BACK
-    // ============================================
     initBackNavigation() {
-        // Escuchar el botón back del navegador/teléfono
         window.addEventListener('popstate', (event) => {
             console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
-        // Prevenir que el usuario salga accidentalmente con swipe back
-        // Agregar un estado inicial al historial
         window.history.replaceState({ viewId: 'home' }, '', '#home');
     },
 
@@ -435,49 +422,37 @@ const App = {
         console.log('📜 Historial actual:', navigationHistory);
         console.log('📍 Vista actual:', Views.current);
 
-        // Si hay más de una vista en el historial, volver a la anterior
         if (navigationHistory.length > 1) {
-            // Quitar la vista actual del historial
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('️ Volviendo a:', vistaAnterior);
+            console.log('↩️ Volviendo a:', vistaAnterior);
             
-            // Cargar la vista anterior SIN agregar al historial
             Views.load(vistaAnterior, false);
             
-            // Cancelar cualquier timer de salida
             if (backPressTimer) {
                 clearTimeout(backPressTimer);
                 backPressTimer = null;
             }
             isExiting = false;
         } else {
-            // Estamos en la vista inicial (home)
-            // Mostrar mensaje de "Presiona otra vez para salir"
             if (!isExiting) {
                 App.showToast('Presiona otra vez para salir');
                 isExiting = true;
                 
-                // Timer de 2 segundos para resetear
                 backPressTimer = setTimeout(() => {
                     isExiting = false;
                     backPressTimer = null;
                 }, 2000);
             } else {
-                // Segunda vez presionando back - salir de la app
                 console.log('👋 Saliendo de la app');
                 
-                // En móviles, cerrar la ventana no siempre funciona
-                // Intentamos minimizar la app
                 if (navigator.app) {
                     navigator.app.exitApp();
                 } else if (navigator.device) {
                     navigator.device.exitApp();
                 } else {
-                    // Fallback: intentar cerrar la ventana
                     window.close();
-                    // Si no funciona, mostrar mensaje
                     App.showToast('Desliza hacia abajo para minimizar la app');
                 }
                 
@@ -519,6 +494,22 @@ const App = {
 };
 
 window.App = App;
+
+// ============================================
+// ✅ FORZAR ACTUALIZACIÓN DEL SERVICE WORKER
+// ============================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('[APP] Nueva versión del Service Worker detectada, recargando...');
+    window.location.reload();
+  });
+  
+  navigator.serviceWorker.ready.then(registration => {
+    registration.update().then(() => {
+      console.log('[APP] Service Worker actualizado');
+    });
+  });
+}
 
 // ============================================
 // INICIALIZACIÓN

@@ -1,63 +1,71 @@
-const CACHE_NAME = 'ciclo-v2';
-const assetsToCache = [
-    '/',
-    './index.html',
-    './manifest.json',
-    './styles.css',
-    './db.js',
-    './auth.js',
-    './app.js',
-    './assets/icon-192.png',
-    './assets/icon-512.png'
+// ============================================
+// SW.JS - Service Worker con actualización forzada
+// ============================================
+
+const CACHE_NAME = 'ciclo-app-v2.0'; // ✅ Versión nueva para forzar actualización
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/app.js',
+  '/db.js',
+  '/auth.js'
 ];
 
-// Instalar Service Worker y cachear archivos
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('✅ Cache abierto');
-                return cache.addAll(assetsToCache);
-            })
-            .catch((err) => console.error('❌ Error al cachear:', err))
-    );
-    self.skipWaiting();
-});
-
-// Activar Service Worker y limpiar cachés viejas
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames
-                    .filter((name) => name !== CACHE_NAME)
-                    .map((name) => caches.delete(name))
-            );
+// Instalación: limpiar cachés viejos inmediatamente
+self.addEventListener('install', event => {
+  console.log('[SW] Instalando nueva versión:', CACHE_NAME);
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Eliminando caché viejo:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
-    );
-    self.clients.claim();
+      );
+    }).then(() => {
+      return self.skipWaiting(); // ✅ Fuerza activación inmediata
+    })
+  );
 });
 
-// Interceptar peticiones y servir desde caché
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request)
-                    .then((response) => {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                cache.put(event.request, responseToCache);
-                            });
-                        return response;
-                    });
-            })
-    );
+// Activación: tomar control de todas las pestañas inmediatamente
+self.addEventListener('activate', event => {
+  console.log('[SW] Activando nueva versión:', CACHE_NAME);
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      return self.clients.claim(); // ✅ Toma control inmediato
+    })
+  );
+});
+
+// Fetch: estrategia de red primero, luego caché
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        // Si la respuesta es válida, guardarla en caché
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Si falla la red, usar caché
+        return caches.match(event.request);
+      })
+  );
 });
