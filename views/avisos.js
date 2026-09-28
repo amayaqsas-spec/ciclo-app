@@ -1,8 +1,13 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos (con migración automática)
+// AVISOS.JS - Módulo de Documentos con Firestore
 // ============================================
 
 const Avisos = {
+    // Referencia a la colección "avisos" en Firestore
+    getCollection() {
+        return window.firebase.firestore().collection('avisos');
+    },
+
     render() {
         const isAdmin = Auth.isAdmin;
         
@@ -20,7 +25,12 @@ const Avisos = {
                         </button>
                     ` : ''}
                 </div>
-                <div id="avisoList"></div>
+                <div id="avisoList">
+                    <div style="text-align:center; padding:40px; color:var(--text-soft);">
+                        <div class="spinner" style="border-color:var(--primary-soft); border-top-color:var(--primary); width:32px; height:32px; margin:0 auto 10px;"></div>
+                        Cargando documentos...
+                    </div>
+                </div>
             </div>
         `;
     },
@@ -28,195 +38,49 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
-        // ✅ MIGRACIÓN AUTOMÁTICA: Mover documentos de formato UID a compartido
-        this.migrarDocumentos();
-        
-        if (!isAdmin) {
-            this.marcarTodosComoLeidos();
-        }
-        
         if (isAdmin) {
             document.getElementById('btnAddAviso')?.addEventListener('click', () => this.openModal());
         }
         
-        this.renderList();
+        // ✅ Cargar documentos desde Firestore
+        this.cargarDocumentos();
     },
 
-    // ✅ FUNCIÓN DE MIGRACIÓN AUTOMÁTICA
-    migrarDocumentos() {
-        let todosAvisos = [];
-        const idsVistos = new Set();
-        const clavesAEliminar = [];
-        
-        // Recorrer todo el localStorage buscando documentos
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
+    // ✅ Cargar desde Firestore (visible para todos los dispositivos)
+    async cargarDocumentos() {
+        try {
+            const snapshot = await this.getCollection()
+                .orderBy('timestamp', 'desc')
+                .get();
             
-            if (key && key.includes('avisos') && !key.startsWith('firebase')) {
-                try {
-                    const datos = JSON.parse(localStorage.getItem(key));
-                    
-                    if (Array.isArray(datos)) {
-                        datos.forEach(aviso => {
-                            if (!idsVistos.has(aviso.id)) {
-                                todosAvisos.push(aviso);
-                                idsVistos.add(aviso.id);
-                            }
-                        });
-                    }
-                    
-                    // Marcar para eliminar si NO es la clave compartida
-                    if (key !== 'ciclo_avisos') {
-                        clavesAEliminar.push(key);
-                    }
-                } catch(e) {}
-            }
-        }
-        
-        // Si hay documentos para migrar
-        if (todosAvisos.length > 0) {
-            // Guardar en formato compartido
-            localStorage.setItem('ciclo_avisos', JSON.stringify(todosAvisos));
-            
-            // Eliminar claves viejas con UID
-            clavesAEliminar.forEach(key => {
-                localStorage.removeItem(key);
+            const documentos = [];
+            snapshot.forEach(doc => {
+                documentos.push({ id: doc.id, ...doc.data() });
             });
             
-            console.log(`✅ Migrados ${todosAvisos.length} documento(s) al formato compartido`);
-        }
-    },
-
-    // ✅ FUNCIÓN: Busca documentos en CUALQUIER formato
-    obtenerTodosLosAvisos() {
-        let todosAvisos = [];
-        const idsVistos = new Set();
-        
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            
-            if (key && key.includes('avisos') && !key.startsWith('firebase')) {
-                try {
-                    const datos = JSON.parse(localStorage.getItem(key));
-                    if (Array.isArray(datos)) {
-                        datos.forEach(aviso => {
-                            if (!idsVistos.has(aviso.id)) {
-                                todosAvisos.push(aviso);
-                                idsVistos.add(aviso.id);
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-        }
-        
-        return todosAvisos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    },
-
-    // ✅ Siempre guarda en formato compartido
-    guardarAvisosCompartidos(avisos) {
-        localStorage.setItem('ciclo_avisos', JSON.stringify(avisos));
-    },
-
-    marcarTodosComoLeidos() {
-        const avisos = this.obtenerTodosLosAvisos();
-        let hayCambios = false;
-        
-        avisos.forEach(aviso => {
-            if (!aviso.leido) {
-                aviso.leido = true;
-                hayCambios = true;
-            }
-        });
-        
-        if (hayCambios) {
-            this.guardarAvisosCompartidos(avisos);
-            DB.set('avisosNoLeidos', 0);
-        }
-    },
-
-    calcularNoLeidos() {
-        const avisos = this.obtenerTodosLosAvisos();
-        const noLeidos = avisos.filter(a => !a.leido).length;
-        DB.set('avisosNoLeidos', noLeidos);
-        return noLeidos;
-    },
-
-    openModal(editId = null) {
-        if (!Auth.isAdmin) {
-            App.showToast('Solo el administrador puede realizar esta acción');
-            return;
-        }
-
-        const data = editId ? this.obtenerTodosLosAvisos().find(a => a.id === editId) : null;
-        const modal = App.showModal(`
-            <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
-            <div class="modal-scroll-content">
-                <div class="input-group">
-                    <label>Título del Documento</label>
-                    <input type="text" id="avisoTitulo" value="${data ? data.titulo : ''}" placeholder="Ej: Aviso de cambio de turno">
+            this.renderizarLista(documentos);
+        } catch (error) {
+            console.error(' Error al cargar documentos:', error);
+            document.getElementById('avisoList').innerHTML = `
+                <div class="aviso-empty">
+                    <p>Error al cargar documentos</p>
+                    <p style="font-size:11px;color:var(--text-soft);">${error.message}</p>
                 </div>
-                <div class="input-group">
-                    <label>Descripción</label>
-                    <textarea id="avisoTexto" rows="3" placeholder="Detalles del documento...">${data ? data.texto : ''}</textarea>
-                </div>
-                <div class="input-group">
-                    <label>Enlace (Google Drive, PDF, etc.)</label>
-                    <input type="text" id="avisoLink" value="${data ? data.link : ''}" placeholder="https://...">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancel">Cancelar</button>
-                <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
-            </div>
-        `);
-
-        document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
-        document.getElementById('btnSave').addEventListener('click', () => {
-            const titulo = document.getElementById('avisoTitulo').value.trim();
-            const texto = document.getElementById('avisoTexto').value.trim();
-            const link = document.getElementById('avisoLink').value.trim();
-
-            if (!titulo) {
-                App.showToast('El título es obligatorio');
-                return;
-            }
-
-            let avisos = this.obtenerTodosLosAvisos();
-
-            if (editId) {
-                const idx = avisos.findIndex(a => a.id === editId);
-                if (idx !== -1) {
-                    avisos[idx] = { ...avisos[idx], titulo, texto, link };
-                }
-            } else {
-                avisos.push({
-                    id: DB.generateId(),
-                    titulo,
-                    texto,
-                    link,
-                    leido: false,
-                    fecha: new Date().toLocaleDateString(),
-                    createdAt: Date.now()
-                });
-            }
-
-            this.guardarAvisosCompartidos(avisos);
-            this.calcularNoLeidos();
-            modal.remove();
-            this.renderList();
-            App.showToast(editId ? 'Documento actualizado' : 'Documento guardado');
-        });
+            `;
+        }
     },
 
-    renderList() {
+    // ✅ Renderizar la lista
+    renderizarLista(documentos) {
         const list = document.getElementById('avisoList');
-        const data = this.obtenerTodosLosAvisos();
         const isAdmin = Auth.isAdmin;
+        
+        // Marcar como leídos (solo usuarios normales)
+        if (!isAdmin) {
+            this.marcarComoLeidos(documentos);
+        }
 
-        console.log('📋 Documentos cargados:', data.length);
-
-        if (data.length === 0) {
+        if (documentos.length === 0) {
             list.innerHTML = `
                 <div class="aviso-empty">
                     <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
@@ -228,41 +92,180 @@ const Avisos = {
             return;
         }
 
-        list.innerHTML = data.map(item => `
-            <div class="item-card ${!item.leido ? 'aviso-nuevo' : ''}">
-                <div class="item-header">
-                    <div class="item-title">
-                        ${item.titulo}
-                        ${!item.leido && !isAdmin ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+        list.innerHTML = documentos.map(doc => {
+            const leido = this.estaLeido(doc.id);
+            // Adaptar campos: puede venir como "titulo" o "título", "url" o "link"
+            const titulo = doc.titulo || doc.título || 'Sin título';
+            const texto = doc.texto || doc.descripcion || doc.descripción || '';
+            const link = doc.url || doc.link || doc.enlace || '';
+            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString() : '');
+            
+            return `
+                <div class="item-card ${!leido ? 'aviso-nuevo' : ''}">
+                    <div class="item-header">
+                        <div class="item-title">
+                            ${titulo}
+                            ${!leido && !isAdmin ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+                        </div>
+                        <div class="item-date">${fecha}</div>
                     </div>
-                    <div class="item-date">${item.fecha || ''}</div>
+                    ${texto ? `<div class="item-desc">${texto}</div>` : ''}
+                    <div class="item-actions">
+                        ${link ? `<a href="${link}" target="_blank" class="btn-pdf">📄 Ver Documento</a>` : ''}
+                        ${isAdmin ? `
+                            <button class="btn-edit" data-id="${doc.id}">Editar</button>
+                            <button class="btn-remove" data-id="${doc.id}">Eliminar</button>
+                        ` : ''}
+                    </div>
                 </div>
-                ${item.texto ? `<div class="item-desc">${item.texto}</div>` : ''}
-                <div class="item-actions">
-                    ${item.link ? `<a href="${item.link}" target="_blank" class="btn-pdf">📄 Ver Documento</a>` : ''}
-                    ${isAdmin ? `
-                        <button class="btn-edit" data-id="${item.id}">Editar</button>
-                        <button class="btn-remove" data-id="${item.id}">Eliminar</button>
-                    ` : ''}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
+        // Eventos para admin
         if (isAdmin) {
             list.querySelectorAll('.btn-edit').forEach(btn => {
                 btn.addEventListener('click', () => this.openModal(btn.dataset.id));
             });
             list.querySelectorAll('.btn-remove').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (confirm('¿Eliminar este documento?')) {
-                        let avisos = this.obtenerTodosLosAvisos().filter(a => a.id !== btn.dataset.id);
-                        this.guardarAvisosCompartidos(avisos);
-                        this.calcularNoLeidos();
-                        this.renderList();
-                        App.showToast('Documento eliminado');
-                    }
-                });
+                btn.addEventListener('click', () => this.eliminarDocumento(btn.dataset.id));
             });
+        }
+    },
+
+    // ✅ Verificar si un documento ya fue leído
+    estaLeido(docId) {
+        const leidos = DB.get('docsLeidos', []);
+        return leidos.includes(docId);
+    },
+
+    // ✅ Marcar documentos como leídos
+    marcarComoLeidos(documentos) {
+        const leidos = DB.get('docsLeidos', []);
+        let hayNuevos = false;
+        
+        documentos.forEach(doc => {
+            if (!leidos.includes(doc.id)) {
+                leidos.push(doc.id);
+                hayNuevos = true;
+            }
+        });
+        
+        if (hayNuevos) {
+            DB.set('docsLeidos', leidos);
+            const noLeidos = documentos.filter(d => !leidos.includes(d.id)).length;
+            DB.set('avisosNoLeidos', noLeidos);
+        }
+    },
+
+    // ✅ Abrir modal para crear/editar
+    openModal(editId = null) {
+        if (!Auth.isAdmin) {
+            App.showToast('Solo el administrador puede realizar esta acción');
+            return;
+        }
+
+        const modal = App.showModal(`
+            <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
+            <div class="modal-scroll-content">
+                <div class="input-group">
+                    <label>Título del Documento</label>
+                    <input type="text" id="docTitulo" placeholder="Ej: Calendario de Pagos">
+                </div>
+                <div class="input-group">
+                    <label>Descripción</label>
+                    <textarea id="docTexto" rows="3" placeholder="Detalles del documento..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Tipo</label>
+                    <select id="docTipo">
+                        <option value="google_drive">Google Drive</option>
+                        <option value="pdf">PDF</option>
+                        <option value="enlace">Enlace Web</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>URL / Enlace</label>
+                    <input type="text" id="docUrl" placeholder="https://drive.google.com/...">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btnCancel">Cancelar</button>
+                <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
+            </div>
+        `);
+
+        // Si es edición, cargar datos
+        if (editId) {
+            this.getCollection().doc(editId).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('docTitulo').value = data.titulo || '';
+                    document.getElementById('docTexto').value = data.texto || data.descripcion || '';
+                    document.getElementById('docTipo').value = data.tipo || 'google_drive';
+                    document.getElementById('docUrl').value = data.url || data.link || '';
+                }
+            });
+        }
+
+        document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
+        document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modal));
+    },
+
+    // ✅ Guardar documento en Firestore
+    async guardarDocumento(editId, modal) {
+        const titulo = document.getElementById('docTitulo').value.trim();
+        const texto = document.getElementById('docTexto').value.trim();
+        const tipo = document.getElementById('docTipo').value;
+        const url = document.getElementById('docUrl').value.trim();
+
+        if (!titulo) {
+            App.showToast('El título es obligatorio');
+            return;
+        }
+
+        try {
+            const data = {
+                titulo,
+                texto,
+                tipo,
+                url,
+                updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: Auth.currentUser?.email || 'admin'
+            };
+
+            if (editId) {
+                await this.getCollection().doc(editId).update(data);
+                App.showToast('Documento actualizado');
+            } else {
+                data.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
+                data.fecha = new Date().toLocaleDateString();
+                data.creadoPor = Auth.currentUser?.email || 'admin';
+                
+                await this.getCollection().add(data);
+                App.showToast('Documento guardado');
+            }
+
+            modal.remove();
+            await this.cargarDocumentos();
+            
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            App.showToast('Error al guardar documento');
+        }
+    },
+
+    // ✅ Eliminar documento
+    async eliminarDocumento(docId) {
+        if (!confirm('¿Eliminar este documento?')) return;
+        
+        try {
+            await this.getCollection().doc(docId).delete();
+            App.showToast('Documento eliminado');
+            await this.cargarDocumentos();
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+            App.showToast('Error al eliminar documento');
         }
     }
 };
