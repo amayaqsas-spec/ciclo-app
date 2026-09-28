@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos (visible para todos los usuarios)
+// AVISOS.JS - Módulo de Documentos (versión robusta)
 // ============================================
 
 const Avisos = {
@@ -28,12 +28,11 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
-        // ✅ Marcar todos los documentos como leídos al entrar al módulo (solo para usuarios normales)
+        // ✅ Marcar todos los documentos como leídos al entrar (solo usuarios normales)
         if (!isAdmin) {
             this.marcarTodosComoLeidos();
         }
         
-        // Solo el administrador puede ver el botón de agregar
         if (isAdmin) {
             document.getElementById('btnAddAviso')?.addEventListener('click', () => this.openModal());
         }
@@ -41,9 +40,41 @@ const Avisos = {
         this.renderList();
     },
 
-    // ✅ Marcar todos los avisos como leídos
+    // ✅ FUNCIÓN ROBUSTA: Obtiene avisos de TODOS los formatos (UID y compartido)
+    obtenerTodosLosAvisos() {
+        let todosAvisos = [];
+        const idsVistos = new Set();
+        
+        // Recorrer todo el localStorage buscando claves que contengan 'avisos'
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('avisos') && !key.startsWith('firebase')) {
+                try {
+                    const datos = JSON.parse(localStorage.getItem(key));
+                    if (Array.isArray(datos)) {
+                        datos.forEach(aviso => {
+                            if (!idsVistos.has(aviso.id)) {
+                                todosAvisos.push(aviso);
+                                idsVistos.add(aviso.id);
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+        
+        // Ordenar por fecha (más reciente primero)
+        return todosAvisos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    },
+
+    // ✅ Guardar avisos en formato compartido (para que todos los vean)
+    guardarAvisosCompartidos(avisos) {
+        localStorage.setItem('ciclo_avisos', JSON.stringify(avisos));
+    },
+
     marcarTodosComoLeidos() {
-        const avisos = DB.load('avisos');
+        // ✅ Usar la función robusta para obtener todos
+        const avisos = this.obtenerTodosLosAvisos();
         let hayCambios = false;
         
         avisos.forEach(aviso => {
@@ -54,15 +85,13 @@ const Avisos = {
         });
         
         if (hayCambios) {
-            DB.save('avisos', avisos);
-            // Resetear el contador global
+            this.guardarAvisosCompartidos(avisos);
             DB.set('avisosNoLeidos', 0);
         }
     },
 
-    // ✅ Calcular el contador de no leídos
     calcularNoLeidos() {
-        const avisos = DB.load('avisos');
+        const avisos = this.obtenerTodosLosAvisos();
         const noLeidos = avisos.filter(a => !a.leido).length;
         DB.set('avisosNoLeidos', noLeidos);
         return noLeidos;
@@ -70,11 +99,11 @@ const Avisos = {
 
     openModal(editId = null) {
         if (!Auth.isAdmin) {
-            App.showToast('❌ Solo el administrador puede realizar esta acción');
+            App.showToast('Solo el administrador puede realizar esta acción');
             return;
         }
 
-        const data = editId ? DB.load('avisos').find(a => a.id === editId) : null;
+        const data = editId ? this.obtenerTodosLosAvisos().find(a => a.id === editId) : null;
         const modal = App.showModal(`
             <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
             <div class="modal-scroll-content">
@@ -108,7 +137,8 @@ const Avisos = {
                 return;
             }
 
-            let avisos = DB.load('avisos');
+            // ✅ Obtener todos los avisos (de cualquier formato)
+            let avisos = this.obtenerTodosLosAvisos();
 
             if (editId) {
                 const idx = avisos.findIndex(a => a.id === editId);
@@ -116,22 +146,21 @@ const Avisos = {
                     avisos[idx] = { ...avisos[idx], titulo, texto, link };
                 }
             } else {
-                // ✅ NUEVO DOCUMENTO: marcar como NO leído
                 avisos.push({
                     id: DB.generateId(),
                     titulo,
                     texto,
                     link,
-                    leido: false, // Importante: nuevo documento = no leído
+                    leido: false,
                     fecha: new Date().toLocaleDateString(),
                     createdAt: Date.now()
                 });
-                
-                // ✅ Actualizar contador de no leídos
-                this.calcularNoLeidos();
             }
 
-            DB.save('avisos', avisos);
+            // ✅ Guardar en formato compartido para que todos lo vean
+            this.guardarAvisosCompartidos(avisos);
+            
+            this.calcularNoLeidos();
             modal.remove();
             this.renderList();
             App.showToast(editId ? 'Documento actualizado' : 'Documento guardado');
@@ -140,9 +169,11 @@ const Avisos = {
 
     renderList() {
         const list = document.getElementById('avisoList');
-        // ✅ Cargar TODOS los avisos sin filtrar por usuario
-        const data = DB.load('avisos').sort((a, b) => b.createdAt - a.createdAt);
+        // ✅ Usar la función robusta que busca en todos los formatos
+        const data = this.obtenerTodosLosAvisos();
         const isAdmin = Auth.isAdmin;
+
+        console.log('📋 Documentos cargados:', data.length);
 
         if (data.length === 0) {
             list.innerHTML = `
@@ -163,7 +194,7 @@ const Avisos = {
                         ${item.titulo}
                         ${!item.leido && !isAdmin ? '<span class="badge-nuevo">NUEVO</span>' : ''}
                     </div>
-                    <div class="item-date">${item.fecha}</div>
+                    <div class="item-date">${item.fecha || ''}</div>
                 </div>
                 ${item.texto ? `<div class="item-desc">${item.texto}</div>` : ''}
                 <div class="item-actions">
@@ -183,8 +214,8 @@ const Avisos = {
             list.querySelectorAll('.btn-remove').forEach(btn => {
                 btn.addEventListener('click', () => {
                     if (confirm('¿Eliminar este documento?')) {
-                        let data = DB.load('avisos').filter(a => a.id !== btn.dataset.id);
-                        DB.save('avisos', data);
+                        let avisos = this.obtenerTodosLosAvisos().filter(a => a.id !== btn.dataset.id);
+                        this.guardarAvisosCompartidos(avisos);
                         this.calcularNoLeidos();
                         this.renderList();
                         App.showToast('Documento eliminado');
