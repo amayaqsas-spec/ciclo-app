@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos (versión robusta)
+// AVISOS.JS - Módulo de Documentos (con migración automática)
 // ============================================
 
 const Avisos = {
@@ -28,7 +28,9 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
-        // ✅ Marcar todos los documentos como leídos al entrar (solo usuarios normales)
+        // ✅ MIGRACIÓN AUTOMÁTICA: Mover documentos de formato UID a compartido
+        this.migrarDocumentos();
+        
         if (!isAdmin) {
             this.marcarTodosComoLeidos();
         }
@@ -40,14 +42,59 @@ const Avisos = {
         this.renderList();
     },
 
-    // ✅ FUNCIÓN ROBUSTA: Obtiene avisos de TODOS los formatos (UID y compartido)
+    // ✅ FUNCIÓN DE MIGRACIÓN AUTOMÁTICA
+    migrarDocumentos() {
+        let todosAvisos = [];
+        const idsVistos = new Set();
+        const clavesAEliminar = [];
+        
+        // Recorrer todo el localStorage buscando documentos
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            
+            if (key && key.includes('avisos') && !key.startsWith('firebase')) {
+                try {
+                    const datos = JSON.parse(localStorage.getItem(key));
+                    
+                    if (Array.isArray(datos)) {
+                        datos.forEach(aviso => {
+                            if (!idsVistos.has(aviso.id)) {
+                                todosAvisos.push(aviso);
+                                idsVistos.add(aviso.id);
+                            }
+                        });
+                    }
+                    
+                    // Marcar para eliminar si NO es la clave compartida
+                    if (key !== 'ciclo_avisos') {
+                        clavesAEliminar.push(key);
+                    }
+                } catch(e) {}
+            }
+        }
+        
+        // Si hay documentos para migrar
+        if (todosAvisos.length > 0) {
+            // Guardar en formato compartido
+            localStorage.setItem('ciclo_avisos', JSON.stringify(todosAvisos));
+            
+            // Eliminar claves viejas con UID
+            clavesAEliminar.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            console.log(`✅ Migrados ${todosAvisos.length} documento(s) al formato compartido`);
+        }
+    },
+
+    // ✅ FUNCIÓN: Busca documentos en CUALQUIER formato
     obtenerTodosLosAvisos() {
         let todosAvisos = [];
         const idsVistos = new Set();
         
-        // Recorrer todo el localStorage buscando claves que contengan 'avisos'
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
+            
             if (key && key.includes('avisos') && !key.startsWith('firebase')) {
                 try {
                     const datos = JSON.parse(localStorage.getItem(key));
@@ -63,17 +110,15 @@ const Avisos = {
             }
         }
         
-        // Ordenar por fecha (más reciente primero)
         return todosAvisos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     },
 
-    // ✅ Guardar avisos en formato compartido (para que todos los vean)
+    // ✅ Siempre guarda en formato compartido
     guardarAvisosCompartidos(avisos) {
         localStorage.setItem('ciclo_avisos', JSON.stringify(avisos));
     },
 
     marcarTodosComoLeidos() {
-        // ✅ Usar la función robusta para obtener todos
         const avisos = this.obtenerTodosLosAvisos();
         let hayCambios = false;
         
@@ -137,7 +182,6 @@ const Avisos = {
                 return;
             }
 
-            // ✅ Obtener todos los avisos (de cualquier formato)
             let avisos = this.obtenerTodosLosAvisos();
 
             if (editId) {
@@ -157,9 +201,7 @@ const Avisos = {
                 });
             }
 
-            // ✅ Guardar en formato compartido para que todos lo vean
             this.guardarAvisosCompartidos(avisos);
-            
             this.calcularNoLeidos();
             modal.remove();
             this.renderList();
@@ -169,7 +211,6 @@ const Avisos = {
 
     renderList() {
         const list = document.getElementById('avisoList');
-        // ✅ Usar la función robusta que busca en todos los formatos
         const data = this.obtenerTodosLosAvisos();
         const isAdmin = Auth.isAdmin;
 
