@@ -332,7 +332,7 @@ const App = {
         const auth = firebase.auth();
 
         auth.onAuthStateChanged(user => {
-            console.log('🔐 Auth state changed:', user ? user.email : 'null');
+            console.log(' Auth state changed:', user ? user.email : 'null');
 
             if (user) {
                 Auth.currentUser = user;
@@ -405,7 +405,7 @@ const App = {
         });
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
         }
     },
 
@@ -510,6 +510,51 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// ============================================
+// ✅ BOTÓN DE INSTALACIÓN MANUAL PWA
+// ============================================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log('✅ PWA: Evento de instalación capturado');
+});
+
+function mostrarBotonInstalacion() {
+  if (deferredPrompt) {
+    const btnInstalar = document.createElement('button');
+    btnInstalar.textContent = '📱 Instalar App';
+    btnInstalar.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    btnInstalar.addEventListener('click', async () => {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+      deferredPrompt = null;
+      btnInstalar.remove();
+    });
+    
+    document.body.appendChild(btnInstalar);
+  }
+}
+
+setTimeout(mostrarBotonInstalacion, 3000);
 
 // ============================================
 // INICIALIZACIÓN
