@@ -2,20 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
-    <title>CICLO</title>
-    
-    <!-- ✅ PWA Manifest e Iconos (Rutas absolutas para evitar errores) -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    
-    <!-- Meta tags para iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CICLO">
+    <title>CICLO</title>
+    
+    <!-- PWA Manifest e Iconos -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/icon-192.png">
+    
+    <!-- iOS Splash Screen -->
+    <link rel="apple-touch-startup-image" href="/assets/splash.png">
 
     <link rel="stylesheet" href="/styles.css">
 
@@ -24,7 +27,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-    <!-- ✅ INICIALIZACIÓN INMEDIATA DE FIREBASE -->
+    <!-- INICIALIZACIÓN INMEDIATA DE FIREBASE -->
     <script>
         if (typeof firebase === 'undefined') {
             console.error('❌ Firebase SDK no cargó');

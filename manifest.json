@@ -1,12 +1,15 @@
 {
-  "name": "CICLO",
+  "name": "CICLO - Gestión Inteligente",
   "short_name": "CICLO",
-  "description": "Gestión inteligente de roles y horarios",
+  "description": "Aplicación de gestión inteligente de roles y horarios para trabajadores",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#F0E6F6",
   "theme_color": "#9B7FD4",
   "orientation": "portrait",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["productivity", "business"],
   "icons": [
     {
       "src": "/assets/icon-192.png",
@@ -19,6 +22,23 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "short_name": "Inicio",
+      "description": "Ir al inicio",
+      "url": "/#home",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi Rol",
+      "short_name": "Rol",
+      "description": "Ver mi rol",
+      "url": "/#mi-rol",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
