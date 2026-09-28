@@ -2,22 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CICLO">
     <title>CICLO</title>
     
     <!-- PWA Manifest e Iconos -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-192.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/assets/icon-192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/assets/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png">
+    
+    <!-- Meta tags para iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CICLO">
 
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="styles.css">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -46,7 +46,7 @@
         }
     </script>
 
-    <!-- Script de splash ORIGINAL (el que sí funcionaba) -->
+    <!-- Script de splash INMEDIATO -->
     <script>
         (function() {
             function initSplash() {
@@ -154,15 +154,15 @@
     <div class="toast" id="toast"></div>
 
     <!-- Scripts base -->
-    <script src="/db.js"></script>
-    <script src="/auth.js"></script>
-    <script type="module" src="/app.js"></script>
+    <script src="db.js"></script>
+    <script src="auth.js"></script>
+    <script type="module" src="app.js"></script>
 
     <!-- Registrar Service Worker para PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
                     })
