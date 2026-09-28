@@ -49,47 +49,56 @@
         }
     </script>
 
-    <!-- Script de splash INMEDIATO -->
+    <!-- Script de splash CORREGIDO -->
     <script>
         (function() {
-            function initSplash() {
-                console.log('🎬 Iniciando splash...');
-                setTimeout(function() {
-                    console.log('⏳ Ocultando splash (2s)');
-                    var splash = document.getElementById('splashScreen');
-                    if (splash) splash.classList.add('hide');
-                    
-                    setTimeout(function() {
-                        console.log(' Activando wave (2.1s)');
-                        var wave = document.getElementById('wave');
-                        if (wave) wave.classList.add('active');
-                        
-                        setTimeout(function() {
-                            console.log(' Mostrando auth (2.6s)');
-                            var auth = document.getElementById('authContainer');
-                            if (auth) {
-                                auth.classList.add('show');
-                                if (window.Auth && Auth.renderLogin) {
-                                    Auth.renderLogin();
-                                }
-                            }
-                            
-                            setTimeout(function() {
-                                console.log('✅ Wave completada (3.2s)');
-                                if (wave) wave.classList.remove('active');
-                            }, 600);
-                            
-                        }, 500);
-                        
-                    }, 100);
-                    
-                }, 2000);
+            function hideSplash() {
+                console.log('🎬 Ocultando splash...');
+                var splash = document.getElementById('splashScreen');
+                var wave = document.getElementById('wave');
+                var auth = document.getElementById('authContainer');
+                var mainApp = document.getElementById('mainApp');
+                
+                // Ocultar splash inmediatamente
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 300);
+                }
+                
+                // Mostrar wave
+                if (wave) {
+                    setTimeout(() => {
+                        wave.classList.add('active');
+                        setTimeout(() => {
+                            wave.classList.remove('active');
+                        }, 1500);
+                    }, 200);
+                }
+                
+                // Mostrar auth o mainApp
+                setTimeout(() => {
+                    if (auth) {
+                        auth.classList.add('show');
+                        if (window.Auth && Auth.renderLogin) {
+                            Auth.renderLogin();
+                        }
+                    }
+                    if (mainApp) {
+                        mainApp.classList.add('show');
+                    }
+                }, 500);
             }
 
+            // Ejecutar cuando el DOM esté listo
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initSplash);
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(hideSplash, 500);
+                });
             } else {
-                setTimeout(initSplash, 100);
+                setTimeout(hideSplash, 500);
             }
         })();
     </script>
@@ -97,31 +106,31 @@
 <body>
 
     <!-- SPLASH SCREEN -->
-    <div id="splashScreen">
-        <div class="splash-logo">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg,#F0E6F6);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.3s ease;">
+        <div class="splash-logo" style="width:120px;height:120px;background:var(--primary,#9B7FD4);border-radius:30px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 10px 40px rgba(155,127,212,0.4);">
+            <svg viewBox="0 0 24 24" style="width:60px;height:60px;stroke:white;fill:none;stroke-width:2;" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 <polyline points="21 3 21 9 15 9"/>
             </svg>
         </div>
-        <div class="splash-title">CICLO</div>
-        <div class="splash-subtitle">Gestión inteligente</div>
+        <div class="splash-title" style="font-size:32px;font-weight:bold;color:var(--text,#3D2E5C);margin-bottom:8px;">CICLO</div>
+        <div class="splash-subtitle" style="font-size:14px;color:var(--text-soft,#7A6B8E);">Gestión inteligente</div>
     </div>
 
     <!-- WAVE TRANSITION -->
-    <div class="wave-container">
-        <div class="wave" id="wave">
-            <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <path class="wave-bg" d="M0,0 L1440,0 L1440,450 C1200,550 960,350 720,500 C480,650 240,400 0,550 Z"/>
+    <div class="wave-container" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;pointer-events:none;">
+        <div class="wave" id="wave" style="position:absolute;top:0;left:0;width:100%;height:100%;background:var(--primary,#9B7FD4);transform:translateY(100%);transition:transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);">
+            <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                <path class="wave-bg" d="M0,0 L1440,0 L1440,450 C1200,550 960,350 720,500 C480,650 240,400 0,550 Z" fill="var(--bg,#F0E6F6)"/>
             </svg>
         </div>
     </div>
 
     <!-- AUTH CONTAINER -->
-    <div id="authContainer"></div>
+    <div id="authContainer" style="display:none;"></div>
 
     <!-- MAIN APP -->
-    <div id="mainApp">
+    <div id="mainApp" style="display:none;">
         <header class="app-header">
             <div class="header-left">
                 <button class="menu-btn" id="menuBtn">
