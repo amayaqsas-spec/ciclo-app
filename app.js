@@ -29,7 +29,7 @@ const themeNames = {
 // ============================================
 const viewModules = {
     home: './views/home.js',
-    avisos: './views/avisos.js',
+    avisos: './views/avisos-compartido.js', // ✅ CAMBIADO: ahora usa el módulo de documentos compartidos
     notas: './views/notas.js',
     'tiempo-extra': './views/tiempo-extra.js',
     'servicios-busqueda': './views/servicios-busqueda.js',
@@ -422,7 +422,7 @@ const App = {
     initBackNavigation() {
         // Escuchar el botón back del navegador/teléfono
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -432,7 +432,7 @@ const App = {
     },
 
     handleBackButton() {
-        console.log(' Historial actual:', navigationHistory);
+        console.log('📜 Historial actual:', navigationHistory);
         console.log('📍 Vista actual:', Views.current);
 
         // Si hay más de una vista en el historial, volver a la anterior
@@ -441,7 +441,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('↩️ Volviendo a:', vistaAnterior);
+            console.log('️ Volviendo a:', vistaAnterior);
             
             // Cargar la vista anterior SIN agregar al historial
             Views.load(vistaAnterior, false);
@@ -466,7 +466,7 @@ const App = {
                 }, 2000);
             } else {
                 // Segunda vez presionando back - salir de la app
-                console.log(' Saliendo de la app');
+                console.log('👋 Saliendo de la app');
                 
                 // En móviles, cerrar la ventana no siempre funciona
                 // Intentamos minimizar la app
