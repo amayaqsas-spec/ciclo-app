@@ -44,6 +44,7 @@ const viewModules = {
     'registro-espejo': './views/registro/espejo.js',
     'mi-rol': './views/rol.js',
     'bd': './views/bd.js',
+    'instalacion': './views/instalacion.js',
     'app': './views/app.js'
 };
 
@@ -72,6 +73,7 @@ const Views = {
         { id: 'mi-rol', label: 'Mi Rol', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
         { id: 'avisos', label: 'Documentos', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>' },
         { id: 'apariencia', label: 'Apariencia', icon: '<circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>' },
+        { id: 'instalacion', label: 'Instalación', icon: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' },
         { 
             id: 'registro', 
             label: 'Registro', 
@@ -177,7 +179,7 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log(' Salida cancelada por atraso activo');
+                console.log('🚫 Salida cancelada por atraso activo');
                 return;
             }
         }
@@ -218,7 +220,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(` Error al cargar vista "${viewId}":`, error);
+            console.error(`❌ Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -332,7 +334,7 @@ const App = {
         const auth = firebase.auth();
 
         auth.onAuthStateChanged(user => {
-            console.log(' Auth state changed:', user ? user.email : 'null');
+            console.log('🔐 Auth state changed:', user ? user.email : 'null');
 
             if (user) {
                 Auth.currentUser = user;
@@ -512,7 +514,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ============================================
-// ✅ BOTÓN DE INSTALACIÓN MANUAL PWA
+// ✅ CAPTURAR EVENTO DE INSTALACIÓN PWA
 // ============================================
 let deferredPrompt;
 
@@ -522,39 +524,19 @@ window.addEventListener('beforeinstallprompt', (e) => {
   console.log('✅ PWA: Evento de instalación capturado');
 });
 
-function mostrarBotonInstalacion() {
+// Función global para iniciar instalación (usada por el módulo Instalación)
+window.iniciarInstalacionPWA = async function() {
   if (deferredPrompt) {
-    const btnInstalar = document.createElement('button');
-    btnInstalar.textContent = '📱 Instalar App';
-    btnInstalar.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 10000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    btnInstalar.addEventListener('click', async () => {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
-      deferredPrompt = null;
-      btnInstalar.remove();
-    });
-    
-    document.body.appendChild(btnInstalar);
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+    deferredPrompt = null;
+    return outcome === 'accepted';
+  } else {
+    console.log('❌ No hay evento de instalación disponible');
+    return false;
   }
-}
-
-setTimeout(mostrarBotonInstalacion, 3000);
+};
 
 // ============================================
 // INICIALIZACIÓN
