@@ -286,7 +286,7 @@ const Bd = {
 
         // Validar tipo de archivo
         if (!file.name.endsWith('.json')) {
-            App.showToast('❌ Solo se permiten archivos .json');
+            App.showToast(' Solo se permiten archivos .json');
             return;
         }
 
@@ -298,7 +298,7 @@ const Bd = {
                 
                 // ✅ DIAGNÓSTICO: Mostrar en consola la estructura real del archivo
                 console.log('📄 Estructura del archivo JSON importado:');
-                console.log(' Claves disponibles:', Object.keys(datos));
+                console.log('🔑 Claves disponibles:', Object.keys(datos));
                 console.log('📦 Contenido completo:', datos);
                 
                 // ✅ Validar que el archivo tiene el formato correcto
@@ -306,34 +306,74 @@ const Bd = {
                     throw new Error('Archivo JSON inválido');
                 }
 
-                // ✅ Intentar encontrar los datos en diferentes estructuras
-                let datosAImportar = datos;
+                // ✅ MAPEO DE CLAVES - Maneja tanto formato nuevo como antiguo con prefijo "ciclo_"
+                const mapeoClaves = {
+                    // Formato nuevo (sin prefijo)
+                    'roles': 'roles',
+                    'servicios': 'servicios',
+                    'lineas': 'lineas',
+                    'terminales': 'terminales',
+                    'semanas': 'semanas',
+                    'reservas': 'reservas',
+                    'espejos': 'espejos',
+                    'notas': 'notas',
+                    'tiempoExtra': 'tiempoExtra',
+                    'avisos': 'avisos',
+                    'userName': 'userName',
+                    'theme': 'theme',
+                    
+                    // Formato antiguo (con prefijo "ciclo_")
+                    'ciclo_roles': 'roles',
+                    'ciclo_servicios': 'servicios',
+                    'ciclo_lineas': 'lineas',
+                    'ciclo_terminales': 'terminales',
+                    'ciclo_semanas': 'semanas',
+                    'ciclo_reservas': 'reservas',
+                    'ciclo_espejos': 'espejos',
+                    'ciclo_notas': 'notas',
+                    'ciclo_tiempoExtra': 'tiempoExtra',
+                    'ciclo_avisos': 'avisos',
+                    'ciclo_theme': 'theme',
+                    'ciclo_actividades': 'tiempoExtra', // Mapeo adicional
+                    'ciclo_turnos': 'turnos', // Si existe
+                    'ciclo_tareas': 'tareas', // Si existe
+                    'ciclo_ciclos': 'ciclos' // Si existe
+                };
+
+                // ✅ Normalizar datos - convertir claves con prefijo a claves sin prefijo
+                const datosNormalizados = {};
                 
-                // Si los datos están dentro de una propiedad 'data' o 'datos'
-                if (datos.data && typeof datos.data === 'object') {
-                    console.log('📦 Datos encontrados en propiedad "data"');
-                    datosAImportar = datos.data;
-                } else if (datos.datos && typeof datos.datos === 'object') {
-                    console.log(' Datos encontrados en propiedad "datos"');
-                    datosAImportar = datos.datos;
-                }
+                Object.keys(datos).forEach(claveOriginal => {
+                    const claveNormalizada = mapeoClaves[claveOriginal];
+                    
+                    if (claveNormalizada) {
+                        datosNormalizados[claveNormalizada] = datos[claveOriginal];
+                        console.log(` Mapeado: "${claveOriginal}" → "${claveNormalizada}"`);
+                    } else {
+                        // Si no hay mapeo, guardar con el nombre original
+                        datosNormalizados[claveOriginal] = datos[claveOriginal];
+                        console.log(`⚠️ Sin mapeo: "${claveOriginal}" se guarda tal cual`);
+                    }
+                });
+
+                console.log(' Datos normalizados:', datosNormalizados);
 
                 // ✅ Mostrar resumen de lo que se va a importar
                 const resumen = [];
                 const colecciones = ['roles', 'servicios', 'lineas', 'terminales', 'semanas', 'reservas', 'espejos', 'notas', 'tiempoExtra', 'avisos'];
                 
                 colecciones.forEach(coleccion => {
-                    if (Array.isArray(datosAImportar[coleccion])) {
-                        resumen.push(`${datosAImportar[coleccion].length} ${coleccion}`);
+                    if (Array.isArray(datosNormalizados[coleccion])) {
+                        resumen.push(`${datosNormalizados[coleccion].length} ${coleccion}`);
                     }
                 });
 
                 if (resumen.length === 0) {
-                    throw new Error('El archivo no contiene datos válidos. Claves encontradas: ' + Object.keys(datosAImportar).join(', '));
+                    throw new Error('El archivo no contiene datos válidos. Claves encontradas: ' + Object.keys(datos).join(', '));
                 }
 
                 const resumenTexto = resumen.join(', ');
-                console.log('📋 Se importarán:', resumenTexto);
+                console.log(' Se importarán:', resumenTexto);
 
                 if (!confirm(`¿Restaurar base de datos?\n\nSe importarán:\n${resumenTexto}\n\n⚠️ Esto reemplazará TODA la información actual.`)) {
                     return;
@@ -346,24 +386,24 @@ const Bd = {
 
                 try {
                     // Datos de usuario
-                    if (datosAImportar.userName !== undefined) {
-                        DB.set('userName', datosAImportar.userName);
+                    if (datosNormalizados.userName !== undefined) {
+                        DB.set('userName', datosNormalizados.userName);
                         datosGuardados++;
-                        console.log('✅ userName:', datosAImportar.userName);
+                        console.log('✅ userName:', datosNormalizados.userName);
                     }
                     
-                    if (datosAImportar.theme) {
-                        DB.set('theme', datosAImportar.theme);
+                    if (datosNormalizados.theme) {
+                        DB.set('theme', datosNormalizados.theme);
                         datosGuardados++;
-                        console.log('✅ theme:', datosAImportar.theme);
+                        console.log('✅ theme:', datosNormalizados.theme);
                     }
 
                     // Colecciones principales
                     colecciones.forEach(coleccion => {
-                        if (Array.isArray(datosAImportar[coleccion])) {
-                            DB.save(coleccion, datosAImportar[coleccion]);
+                        if (Array.isArray(datosNormalizados[coleccion])) {
+                            DB.save(coleccion, datosNormalizados[coleccion]);
                             datosGuardados++;
-                            console.log(`✅ ${coleccion}: ${datosAImportar[coleccion].length} registros guardados`);
+                            console.log(`✅ ${coleccion}: ${datosNormalizados[coleccion].length} registros guardados`);
                         }
                     });
 
@@ -406,7 +446,7 @@ const Bd = {
     },
 
     reiniciarDatos() {
-        if (confirm('⚠️ ¿Estás seguro? Se borrarán TODOS los datos de la aplicación.')) {
+        if (confirm('️ ¿Estás seguro? Se borrarán TODOS los datos de la aplicación.')) {
             if (confirm('Esta acción no se puede deshacer. ¿Continuar?')) {
                 const keys = ['roles', 'servicios', 'lineas', 'terminales', 'semanas', 
                              'reservas', 'espejos', 'notas', 'tiempoExtra', 'avisos'];
