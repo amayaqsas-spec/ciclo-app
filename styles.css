@@ -8256,3 +8256,92 @@ BOTONES DE MODO LABORAL/DOMINGO - SKEUOMORPHISM
 .ske-te-card-titulo h3:has(:contains("Suplementario"))::before {
     background: #4CAF50;
 }
+/* ============================================
+   FIX: ESTADO VACÍO SIN CUADRO NEGRO
+   ============================================ */
+
+/* Hacer el ícono más pequeño y elegante */
+.ske-empty-icono {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg)) !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    margin-bottom: 12px;
+}
+
+.ske-empty-icono svg {
+    width: 30px !important;
+    height: 30px !important;
+    stroke: var(--text-light) !important;
+    fill: none !important;
+    stroke-width: 1.5 !important;
+    opacity: 0.6;
+}
+
+/* Ajustar el texto para que se vea más limpio */
+.ske-empty-title {
+    font-size: 16px !important;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 6px 0;
+}
+
+.ske-empty-text {
+    font-size: 12px !important;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ============================================
+   FIX: SERVICIO NO DISPONIBLE (cuadro naranja)
+   ============================================ */
+.ske-servicio-no-existe-icono {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(145deg, #FFB74D, #FF9800) !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 4px 12px rgba(255, 152, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    margin-bottom: 12px;
+}
+
+.ske-servicio-no-existe-icono svg {
+    width: 28px !important;
+    height: 28px !important;
+    stroke: white !important;
+    fill: none !important;
+    stroke-width: 2.5 !important;
+}
+
+.ske-servicio-no-existe h3 {
+    font-size: 16px !important;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 6px 0;
+}
+
+.ske-servicio-no-existe p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0 0 6px 0;
+    line-height: 1.5;
+}
+
+.ske-servicio-no-existe-hint {
+    font-size: 11px !important;
+    color: var(--text-light);
+    font-style: italic;
+    margin: 0 !important;
+}
