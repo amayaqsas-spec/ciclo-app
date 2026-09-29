@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
     
@@ -11,17 +11,18 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
+    <!-- ✅ Meta tags para iOS (ACTUALIZADAS) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CICLO">
+    
     <title>CICLO</title>
     
     <!-- PWA Manifest e Iconos -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
-    
-    <!-- Meta tags para iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CICLO">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -56,7 +57,7 @@
     <script>
         (function() {
             function initSplash() {
-                console.log('🎬 Iniciando splash...');
+                console.log(' Iniciando splash...');
                 setTimeout(function() {
                     console.log('⏳ Ocultando splash (2s)');
                     var splash = document.getElementById('splashScreen');
@@ -175,7 +176,7 @@
                         // ✅ Verificar actualizaciones cada hora
                         setInterval(() => {
                             registration.update();
-                        }, 60 * 60 * 1000); // 1 hora
+                        }, 60 * 60 * 1000);
                         
                         // ✅ Escuchar cuando hay una nueva versión disponible
                         registration.addEventListener('updatefound', () => {
@@ -184,15 +185,12 @@
                             
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // ✅ Hay una nueva versión lista
                                     console.log('📦 Nueva versión lista, actualizando...');
                                     
-                                    // Notificar al usuario
                                     if (window.App && window.App.showToast) {
                                         window.App.showToast('🔄 Actualizando app...');
                                     }
                                     
-                                    // Forzar actualización después de 2 segundos
                                     setTimeout(() => {
                                         window.location.reload();
                                     }, 2000);
@@ -204,7 +202,6 @@
                         console.log('❌ Error al registrar Service Worker:', error);
                     });
                 
-                // ✅ Forzar actualización si hay un SW esperando
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     console.log('🔄 Service Worker cambiado, recargando...');
                     window.location.reload();
