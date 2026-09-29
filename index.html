@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
+    
+    <!-- ✅ Prevenir caché agresivo del navegador -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <title>CICLO</title>
     
     <!-- PWA Manifest e Iconos -->
@@ -158,17 +164,51 @@
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
 
-    <!-- Registrar Service Worker para PWA -->
+    <!-- ✅ Registrar Service Worker con actualización automática -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
+                        
+                        // ✅ Verificar actualizaciones cada hora
+                        setInterval(() => {
+                            registration.update();
+                        }, 60 * 60 * 1000); // 1 hora
+                        
+                        // ✅ Escuchar cuando hay una nueva versión disponible
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('🔄 Nueva versión detectada');
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // ✅ Hay una nueva versión lista
+                                    console.log('📦 Nueva versión lista, actualizando...');
+                                    
+                                    // Notificar al usuario
+                                    if (window.App && window.App.showToast) {
+                                        window.App.showToast('🔄 Actualizando app...');
+                                    }
+                                    
+                                    // Forzar actualización después de 2 segundos
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 2000);
+                                }
+                            });
+                        });
                     })
                     .catch((error) => {
                         console.log('❌ Error al registrar Service Worker:', error);
                     });
+                
+                // ✅ Forzar actualización si hay un SW esperando
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('🔄 Service Worker cambiado, recargando...');
+                    window.location.reload();
+                });
             });
         }
     </script>
