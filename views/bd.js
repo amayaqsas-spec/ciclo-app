@@ -284,37 +284,109 @@ const Bd = {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validar tipo de archivo
+        if (!file.name.endsWith('.json')) {
+            App.showToast(' Solo se permiten archivos .json');
+            return;
+        }
+
         const reader = new FileReader();
+        
         reader.onload = (event) => {
             try {
                 const datos = JSON.parse(event.target.result);
                 
-                if (confirm('¿Restaurar datos? Esto reemplazará toda la información actual.')) {
-                    if (datos.userName) DB.set('userName', datos.userName);
-                    if (datos.theme) DB.set('theme', datos.theme);
-                    if (datos.roles) DB.save('roles', datos.roles);
-                    if (datos.servicios) DB.save('servicios', datos.servicios);
-                    if (datos.lineas) DB.save('lineas', datos.lineas);
-                    if (datos.terminales) DB.save('terminales', datos.terminales);
-                    if (datos.semanas) DB.save('semanas', datos.semanas);
-                    if (datos.reservas) DB.save('reservas', datos.reservas);
-                    if (datos.espejos) DB.save('espejos', datos.espejos);
-                    if (datos.notas) DB.save('notas', datos.notas);
-                    if (datos.tiempoExtra) DB.save('tiempoExtra', datos.tiempoExtra);
-                    if (datos.avisos) DB.save('avisos', datos.avisos);
-
-                    App.showToast('✅ Datos restaurados correctamente');
-                    setTimeout(() => location.reload(), 1500);
+                // ✅ Validar que el archivo tiene el formato correcto
+                if (!datos || typeof datos !== 'object') {
+                    throw new Error('Archivo JSON inválido');
                 }
-            } catch (error) {
-                App.showToast('❌ Error al importar: archivo inválido');
+
+                // ✅ Mostrar confirmación con detalles
+                const resumen = [
+                    datos.roles ? `${datos.roles.length} roles` : '0 roles',
+                    datos.servicios ? `${datos.servicios.length} servicios` : '0 servicios',
+                    datos.lineas ? `${datos.lineas.length} líneas` : '0 líneas',
+                    datos.reservas ? `${datos.reservas.length} reservas` : '0 reservas',
+                    datos.tiempoExtra ? `${datos.tiempoExtra.length} tiempos extra` : '0 tiempos extra',
+                    datos.notas ? `${datos.notas.length} notas` : '0 notas'
+                ].join(', ');
+
+                if (!confirm(`¿Restaurar base de datos?\n\nSe importarán:\n${resumen}\n\n⚠️ Esto reemplazará TODA la información actual.`)) {
+                    return;
+                }
+
+                App.showToast('📥 Importando datos...');
+
+                // ✅ Guardar datos con verificación
+                let datosGuardados = 0;
+
+                try {
+                    // Datos de usuario
+                    if (datos.userName !== undefined) {
+                        DB.set('userName', datos.userName);
+                        datosGuardados++;
+                    }
+                    
+                    if (datos.theme) {
+                        DB.set('theme', datos.theme);
+                        datosGuardados++;
+                    }
+
+                    // Colecciones principales
+                    const colecciones = [
+                        'roles', 'servicios', 'lineas', 'terminales', 
+                        'semanas', 'reservas', 'espejos', 'notas', 
+                        'tiempoExtra', 'avisos'
+                    ];
+
+                    colecciones.forEach(coleccion => {
+                        if (Array.isArray(datos[coleccion])) {
+                            DB.save(coleccion, datos[coleccion]);
+                            datosGuardados++;
+                            console.log(`✅ ${coleccion}: ${datos[coleccion].length} registros`);
+                        }
+                    });
+
+                    // ✅ Verificar que se guardaron los datos
+                    const rolesGuardados = DB.load('roles');
+                    console.log('✅ Roles guardados en DB:', rolesGuardados.length);
+                    console.log('📊 Total de datos guardados:', datosGuardados);
+
+                    if (datosGuardados > 0) {
+                        App.showToast(`✅ Importación exitosa (${datosGuardados} elementos)`);
+                        
+                        // ✅ Esperar más tiempo para asegurar que todo se guardó
+                        setTimeout(() => {
+                            console.log(' Recargando app...');
+                            window.location.reload();
+                        }, 2000); // 2 segundos de espera
+                    } else {
+                        throw new Error('No se guardaron datos');
+                    }
+
+                } catch (saveError) {
+                    console.error('❌ Error al guardar:', saveError);
+                    App.showToast('❌ Error al guardar los datos: ' + saveError.message);
+                }
+
+            } catch (parseError) {
+                console.error('❌ Error al parsear JSON:', parseError);
+                App.showToast('❌ Archivo JSON inválido o corrupto');
             }
         };
+
+        reader.onerror = () => {
+            App.showToast('❌ Error al leer el archivo');
+        };
+
         reader.readAsText(file);
+        
+        // ✅ Resetear el input para poder importar el mismo archivo de nuevo
+        e.target.value = '';
     },
 
     reiniciarDatos() {
-        if (confirm('️ ¿Estás seguro? Se borrarán TODOS los datos de la aplicación.')) {
+        if (confirm('⚠️ ¿Estás seguro? Se borrarán TODOS los datos de la aplicación.')) {
             if (confirm('Esta acción no se puede deshacer. ¿Continuar?')) {
                 const keys = ['roles', 'servicios', 'lineas', 'terminales', 'semanas', 
                              'reservas', 'espejos', 'notas', 'tiempoExtra', 'avisos'];
@@ -323,7 +395,7 @@ const Bd = {
                 DB.set('userName', '');
                 DB.set('theme', 'lavender');
                 
-                App.showToast(' Aplicación reiniciada');
+                App.showToast('🔄 Aplicación reiniciada');
                 setTimeout(() => location.reload(), 1500);
             }
         }
