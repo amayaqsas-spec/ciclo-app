@@ -286,7 +286,7 @@ const Bd = {
 
         // Validar tipo de archivo
         if (!file.name.endsWith('.json')) {
-            App.showToast(' Solo se permiten archivos .json');
+            App.showToast('❌ Solo se permiten archivos .json');
             return;
         }
 
@@ -296,70 +296,90 @@ const Bd = {
             try {
                 const datos = JSON.parse(event.target.result);
                 
+                // ✅ DIAGNÓSTICO: Mostrar en consola la estructura real del archivo
+                console.log('📄 Estructura del archivo JSON importado:');
+                console.log(' Claves disponibles:', Object.keys(datos));
+                console.log('📦 Contenido completo:', datos);
+                
                 // ✅ Validar que el archivo tiene el formato correcto
                 if (!datos || typeof datos !== 'object') {
                     throw new Error('Archivo JSON inválido');
                 }
 
-                // ✅ Mostrar confirmación con detalles
-                const resumen = [
-                    datos.roles ? `${datos.roles.length} roles` : '0 roles',
-                    datos.servicios ? `${datos.servicios.length} servicios` : '0 servicios',
-                    datos.lineas ? `${datos.lineas.length} líneas` : '0 líneas',
-                    datos.reservas ? `${datos.reservas.length} reservas` : '0 reservas',
-                    datos.tiempoExtra ? `${datos.tiempoExtra.length} tiempos extra` : '0 tiempos extra',
-                    datos.notas ? `${datos.notas.length} notas` : '0 notas'
-                ].join(', ');
+                // ✅ Intentar encontrar los datos en diferentes estructuras
+                let datosAImportar = datos;
+                
+                // Si los datos están dentro de una propiedad 'data' o 'datos'
+                if (datos.data && typeof datos.data === 'object') {
+                    console.log('📦 Datos encontrados en propiedad "data"');
+                    datosAImportar = datos.data;
+                } else if (datos.datos && typeof datos.datos === 'object') {
+                    console.log(' Datos encontrados en propiedad "datos"');
+                    datosAImportar = datos.datos;
+                }
 
-                if (!confirm(`¿Restaurar base de datos?\n\nSe importarán:\n${resumen}\n\n⚠️ Esto reemplazará TODA la información actual.`)) {
+                // ✅ Mostrar resumen de lo que se va a importar
+                const resumen = [];
+                const colecciones = ['roles', 'servicios', 'lineas', 'terminales', 'semanas', 'reservas', 'espejos', 'notas', 'tiempoExtra', 'avisos'];
+                
+                colecciones.forEach(coleccion => {
+                    if (Array.isArray(datosAImportar[coleccion])) {
+                        resumen.push(`${datosAImportar[coleccion].length} ${coleccion}`);
+                    }
+                });
+
+                if (resumen.length === 0) {
+                    throw new Error('El archivo no contiene datos válidos. Claves encontradas: ' + Object.keys(datosAImportar).join(', '));
+                }
+
+                const resumenTexto = resumen.join(', ');
+                console.log('📋 Se importarán:', resumenTexto);
+
+                if (!confirm(`¿Restaurar base de datos?\n\nSe importarán:\n${resumenTexto}\n\n⚠️ Esto reemplazará TODA la información actual.`)) {
                     return;
                 }
 
                 App.showToast('📥 Importando datos...');
 
-                // ✅ Guardar datos con verificación
+                // ✅ Guardar datos
                 let datosGuardados = 0;
 
                 try {
                     // Datos de usuario
-                    if (datos.userName !== undefined) {
-                        DB.set('userName', datos.userName);
+                    if (datosAImportar.userName !== undefined) {
+                        DB.set('userName', datosAImportar.userName);
                         datosGuardados++;
+                        console.log('✅ userName:', datosAImportar.userName);
                     }
                     
-                    if (datos.theme) {
-                        DB.set('theme', datos.theme);
+                    if (datosAImportar.theme) {
+                        DB.set('theme', datosAImportar.theme);
                         datosGuardados++;
+                        console.log('✅ theme:', datosAImportar.theme);
                     }
 
                     // Colecciones principales
-                    const colecciones = [
-                        'roles', 'servicios', 'lineas', 'terminales', 
-                        'semanas', 'reservas', 'espejos', 'notas', 
-                        'tiempoExtra', 'avisos'
-                    ];
-
                     colecciones.forEach(coleccion => {
-                        if (Array.isArray(datos[coleccion])) {
-                            DB.save(coleccion, datos[coleccion]);
+                        if (Array.isArray(datosAImportar[coleccion])) {
+                            DB.save(coleccion, datosAImportar[coleccion]);
                             datosGuardados++;
-                            console.log(`✅ ${coleccion}: ${datos[coleccion].length} registros`);
+                            console.log(`✅ ${coleccion}: ${datosAImportar[coleccion].length} registros guardados`);
                         }
                     });
 
                     // ✅ Verificar que se guardaron los datos
                     const rolesGuardados = DB.load('roles');
-                    console.log('✅ Roles guardados en DB:', rolesGuardados.length);
-                    console.log('📊 Total de datos guardados:', datosGuardados);
+                    console.log('✅ Verificación - Roles en DB:', rolesGuardados.length);
+                    console.log('📊 Total de elementos guardados:', datosGuardados);
 
                     if (datosGuardados > 0) {
                         App.showToast(`✅ Importación exitosa (${datosGuardados} elementos)`);
                         
-                        // ✅ Esperar más tiempo para asegurar que todo se guardó
+                        // ✅ Esperar para asegurar que todo se guardó
                         setTimeout(() => {
-                            console.log(' Recargando app...');
+                            console.log('🔄 Recargando app...');
                             window.location.reload();
-                        }, 2000); // 2 segundos de espera
+                        }, 2000);
                     } else {
                         throw new Error('No se guardaron datos');
                     }
@@ -370,8 +390,8 @@ const Bd = {
                 }
 
             } catch (parseError) {
-                console.error('❌ Error al parsear JSON:', parseError);
-                App.showToast('❌ Archivo JSON inválido o corrupto');
+                console.error('❌ Error al procesar archivo:', parseError);
+                App.showToast('❌ ' + parseError.message);
             }
         };
 
