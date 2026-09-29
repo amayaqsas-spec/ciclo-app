@@ -1,344 +1,333 @@
 // ============================================
-// BD.JS - Módulo de Base de Datos
+// BD.JS - Módulo Base de Datos con Skeuomorphism
 // ============================================
 
-const BD = {
-    clavesSistema: ['theme', 'auth', 'currentUser', 'isAdmin'],
-
+const Bd = {
     render() {
-        const nombreActual = DB.get('userName', Auth.getUserName(Auth.currentUser));
+        const userName = DB.get('userName', Auth.currentUser ? Auth.getUserName(Auth.currentUser) : 'Usuario');
+        const userEmail = Auth.currentUser ? Auth.currentUser.email : 'usuario@correo.com';
         
-        return `
-            <div class="view active">
-                <h2 class="page-title">
-                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                    Base de Datos
-                </h2>
+        // Calcular estadísticas
+        const roles = DB.load('roles');
+        const servicios = DB.load('servicios');
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        const semanas = DB.load('semanas');
+        const reservas = DB.load('reservas');
+        const espejos = DB.load('espejos');
+        const notas = DB.load('notas');
+        const tiempoExtra = DB.load('tiempoExtra');
+        const avisos = DB.load('avisos');
+        
+        const totalRegistros = roles.length + servicios.length + lineas.length + 
+                              terminales.length + semanas.length + reservas.length + 
+                              espejos.length + notas.length + tiempoExtra.length + avisos.length;
 
-                <div class="bd-section">
-                    <h3 class="bd-section-title">👤 Perfil de Usuario</h3>
-                    <div class="bd-card">
-                        <div class="bd-info">
-                            <h3>Nombre de Usuario</h3>
-                            <p>Este nombre aparecerá en el saludo del inicio (ej: "¡Hola, Juan!")</p>
+        return `
+            <div class="view active ske-bd">
+                <!-- HEADER SKEUOMÓRFICO -->
+                <div class="ske-bd-header">
+                    <div class="ske-bd-icono">
+                        <svg viewBox="0 0 24 24">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                        </svg>
+                    </div>
+                    <div class="ske-bd-texto">
+                        <h2 class="ske-bd-titulo">Base de Datos</h2>
+                        <p class="ske-bd-subtitulo">Gestiona y respalda tu información</p>
+                    </div>
+                </div>
+
+                <!-- PERFIL DE USUARIO -->
+                <div class="ske-bd-section">
+                    <div class="ske-bd-section-header">
+                        <div class="ske-bd-section-icono">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
                         </div>
-                        <div style="display:flex;gap:8px;width:100%;margin-top:10px;">
-                            <input type="text" id="inputUserName" value="${nombreActual}" placeholder="Tu nombre" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--primary-soft);background:var(--bg);color:var(--text);">
-                            <button class="bd-btn bd-btn-export" id="btnGuardarNombre" style="padding:8px 16px;">Guardar</button>
+                        <h3>Perfil de Usuario</h3>
+                    </div>
+                    
+                    <div class="ske-bd-profile-card">
+                        <div class="ske-bd-profile-email">${userEmail}</div>
+                        
+                        <div class="ske-bd-input-row">
+                            <div class="ske-bd-input-group">
+                                <label>Nombre de Usuario</label>
+                                <input type="text" id="bdUserName" value="${userName}" placeholder="Tu nombre">
+                                <span class="ske-bd-input-hint">Este nombre aparecerá en el saludo del inicio</span>
+                            </div>
+                            <button class="ske-bd-btn-save" id="btnSaveUserName">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Guardar
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="bd-info-card">
-                    <p style="font-size:12px;color:var(--text-soft);line-height:1.5;">
-                        Gestiona los datos de tu aplicación. Puedes exportar una copia de seguridad, 
-                        restaurar datos desde un archivo o reiniciar la aplicación completamente.
-                    </p>
-                </div>
-
-                <div class="bd-acciones">
-                    <div class="bd-card bd-card-export">
-                        <div class="bd-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- GESTIÓN DE DATOS -->
+                <div class="ske-bd-section">
+                    <div class="ske-bd-section-header">
+                        <div class="ske-bd-section-icono">
+                            <svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="7 10 12 15 17 10"/>
                                 <line x1="12" y1="15" x2="12" y2="3"/>
                             </svg>
                         </div>
-                        <div class="bd-info">
-                            <h3>Exportar</h3>
-                            <p>Descargar copia de seguridad</p>
-                        </div>
-                        <button class="bd-btn bd-btn-export" id="btnExportar">Exportar</button>
+                        <h3>Gestión de Datos</h3>
                     </div>
+                    
+                    <p class="ske-bd-section-desc">
+                        Gestiona los datos de tu aplicación. Puedes exportar una copia de seguridad, 
+                        restaurar datos desde un archivo o reiniciar la aplicación completamente.
+                    </p>
 
-                    <div class="bd-card bd-card-import">
-                        <div class="bd-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="17 8 12 3 7 8"/>
-                                <line x1="12" y1="3" x2="12" y2="15"/>
-                            </svg>
+                    <div class="ske-bd-actions-grid">
+                        <div class="ske-bd-action-card ske-bd-action-export">
+                            <div class="ske-bd-action-icono">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </div>
+                            <div class="ske-bd-action-info">
+                                <h4>Exportar</h4>
+                                <p>Descargar copia de seguridad</p>
+                            </div>
+                            <button class="ske-bd-action-btn" id="btnExportar">
+                                Exportar
+                            </button>
                         </div>
-                        <div class="bd-info">
-                            <h3>Importar</h3>
-                            <p>Restaurar desde archivo</p>
-                        </div>
-                        <button class="bd-btn bd-btn-import" id="btnImportar">Importar</button>
-                        <input type="file" id="inputFileImport" accept=".json" style="display:none;">
-                    </div>
 
-                    <div class="bd-card bd-card-reset">
-                        <div class="bd-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                <line x1="10" y1="11" x2="10" y2="17"/>
-                                <line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
+                        <div class="ske-bd-action-card ske-bd-action-import">
+                            <div class="ske-bd-action-icono">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <div class="ske-bd-action-info">
+                                <h4>Importar</h4>
+                                <p>Restaurar desde archivo</p>
+                            </div>
+                            <button class="ske-bd-action-btn" id="btnImportar">
+                                Importar
+                            </button>
+                            <input type="file" id="inputImportar" accept=".json" style="display:none;">
                         </div>
-                        <div class="bd-info">
-                            <h3>Resetear</h3>
-                            <p>Borrar todos los datos</p>
+
+                        <div class="ske-bd-action-card ske-bd-action-reset">
+                            <div class="ske-bd-action-icono">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="1 4 1 10 7 10"/>
+                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                                </svg>
+                            </div>
+                            <div class="ske-bd-action-info">
+                                <h4>Reiniciar</h4>
+                                <p>Borrar todos los datos</p>
+                            </div>
+                            <button class="ske-bd-action-btn" id="btnReiniciar">
+                                Reiniciar
+                            </button>
                         </div>
-                        <button class="bd-btn bd-btn-reset" id="btnResetear">Resetear</button>
                     </div>
                 </div>
 
-                <div class="bd-stats">
-                    <h3>Resumen de datos</h3>
-                    <div id="bdStatsContent"></div>
+                <!-- ESTADÍSTICAS -->
+                <div class="ske-bd-section">
+                    <div class="ske-bd-section-header">
+                        <div class="ske-bd-section-icono">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/>
+                            </svg>
+                        </div>
+                        <h3>Estadísticas</h3>
+                    </div>
+                    
+                    <div class="ske-bd-stats-grid">
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${roles.length}</div>
+                            <div class="ske-bd-stat-label">Roles</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${servicios.length}</div>
+                            <div class="ske-bd-stat-label">Servicios</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${lineas.length}</div>
+                            <div class="ske-bd-stat-label">Líneas</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${terminales.length}</div>
+                            <div class="ske-bd-stat-label">Terminales</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${semanas.length}</div>
+                            <div class="ske-bd-stat-label">Semanas</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${reservas.length}</div>
+                            <div class="ske-bd-stat-label">Reservas</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${espejos.length}</div>
+                            <div class="ske-bd-stat-label">Espejos</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${notas.length}</div>
+                            <div class="ske-bd-stat-label">Notas</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${tiempoExtra.length}</div>
+                            <div class="ske-bd-stat-label">Tiempo Extra</div>
+                        </div>
+                        <div class="ske-bd-stat-item">
+                            <div class="ske-bd-stat-number">${avisos.length}</div>
+                            <div class="ske-bd-stat-label">Avisos</div>
+                        </div>
+                    </div>
+
+                    <div class="ske-bd-total-stats">
+                        <div class="ske-bd-total-label">Total de Registros</div>
+                        <div class="ske-bd-total-number">${totalRegistros}</div>
+                    </div>
+                </div>
+
+                <!-- INFORMACIÓN -->
+                <div class="ske-bd-section ske-bd-info-section">
+                    <div class="ske-bd-info-icono">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </div>
+                    <div class="ske-bd-info-content">
+                        <h4>Información Importante</h4>
+                        <p>Los datos se almacenan localmente en tu dispositivo. Te recomendamos exportar una copia de seguridad regularmente para evitar pérdida de información.</p>
+                    </div>
                 </div>
             </div>
         `;
     },
 
     init() {
-        document.getElementById('btnGuardarNombre').addEventListener('click', () => {
-            const nuevoNombre = document.getElementById('inputUserName').value.trim();
-            if (nuevoNombre) {
-                DB.set('userName', nuevoNombre);
-                App.showToast('✅ Nombre actualizado.');
-                document.getElementById('menuUserName').textContent = nuevoNombre;
-                if (Views.current === 'home') {
-                    setTimeout(() => Views.load('home'), 500);
-                }
+        // Guardar nombre de usuario
+        document.getElementById('btnSaveUserName')?.addEventListener('click', () => {
+            const newName = document.getElementById('bdUserName').value.trim();
+            if (newName) {
+                DB.set('userName', newName);
+                document.getElementById('menuUserName').textContent = newName;
+                App.showToast('✅ Nombre actualizado');
             }
         });
 
-        document.getElementById('btnExportar').addEventListener('click', () => this.exportar());
-        document.getElementById('btnImportar').addEventListener('click', () => {
-            document.getElementById('inputFileImport').click();
+        // Exportar
+        document.getElementById('btnExportar')?.addEventListener('click', () => this.exportarDatos());
+
+        // Importar
+        document.getElementById('btnImportar')?.addEventListener('click', () => {
+            document.getElementById('inputImportar').click();
         });
-        document.getElementById('inputFileImport').addEventListener('change', (e) => this.importar(e));
-        document.getElementById('btnResetear').addEventListener('click', () => this.resetear());
-        
-        this.mostrarEstadisticas();
+        document.getElementById('inputImportar')?.addEventListener('change', (e) => this.importarDatos(e));
+
+        // Reiniciar
+        document.getElementById('btnReiniciar')?.addEventListener('click', () => this.reiniciarDatos());
     },
 
-    exportar() {
-        const modal = App.showModal(`
-            <h3>📤 Exportar Base de Datos</h3>
-            <p style="color:var(--text-soft);font-size:13px;margin-bottom:16px;line-height:1.5;">
-                Se generará un archivo <strong>JSON</strong> con todos los datos de tu aplicación.
-            </p>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancelExport">Cancelar</button>
-                <button class="btn-primary" id="btnConfirmExport" style="background:var(--primary);">📥 Descargar</button>
-            </div>
-        `);
-
-        document.getElementById('btnCancelExport').addEventListener('click', () => modal.remove());
-        document.getElementById('btnConfirmExport').addEventListener('click', () => {
-            modal.remove();
-            this.ejecutarExportacion();
-        });
-    },
-
-    ejecutarExportacion() {
-        const datos = {};
-        
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!this.clavesSistema.includes(key) && !key.startsWith('firebase')) {
-                try {
-                    datos[key] = JSON.parse(localStorage.getItem(key));
-                } catch (e) {
-                    datos[key] = localStorage.getItem(key);
-                }
-            }
-        }
-
-        datos._meta = {
+    exportarDatos() {
+        const datos = {
             version: '1.0',
-            fechaExportacion: new Date().toISOString(),
-            app: 'CICLO'
+            fecha: new Date().toISOString(),
+            userName: DB.get('userName', ''),
+            theme: DB.get('theme', 'lavender'),
+            roles: DB.load('roles'),
+            servicios: DB.load('servicios'),
+            lineas: DB.load('lineas'),
+            terminales: DB.load('terminales'),
+            semanas: DB.load('semanas'),
+            reservas: DB.load('reservas'),
+            espejos: DB.load('espejos'),
+            notas: DB.load('notas'),
+            tiempoExtra: DB.load('tiempoExtra'),
+            avisos: DB.load('avisos')
         };
 
-        const jsonStr = JSON.stringify(datos, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+        const dataStr = JSON.stringify(datos, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
         
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ciclo_backup_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ciclo-backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
         URL.revokeObjectURL(url);
-
-        App.showToast('✅ Base de datos exportada correctamente');
+        App.showToast('✅ Copia de seguridad exportada');
     },
 
-    importar(event) {
-        const file = event.target.files[0];
+    importarDatos(e) {
+        const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = (event) => {
             try {
-                const datos = JSON.parse(e.target.result);
-                this.confirmarImportacion(datos);
-            } catch (err) {
-                App.showToast('❌ Archivo no válido');
+                const datos = JSON.parse(event.target.result);
+                
+                if (confirm('¿Restaurar datos? Esto reemplazará toda la información actual.')) {
+                    if (datos.userName) DB.set('userName', datos.userName);
+                    if (datos.theme) DB.set('theme', datos.theme);
+                    if (datos.roles) DB.save('roles', datos.roles);
+                    if (datos.servicios) DB.save('servicios', datos.servicios);
+                    if (datos.lineas) DB.save('lineas', datos.lineas);
+                    if (datos.terminales) DB.save('terminales', datos.terminales);
+                    if (datos.semanas) DB.save('semanas', datos.semanas);
+                    if (datos.reservas) DB.save('reservas', datos.reservas);
+                    if (datos.espejos) DB.save('espejos', datos.espejos);
+                    if (datos.notas) DB.save('notas', datos.notas);
+                    if (datos.tiempoExtra) DB.save('tiempoExtra', datos.tiempoExtra);
+                    if (datos.avisos) DB.save('avisos', datos.avisos);
+
+                    App.showToast('✅ Datos restaurados correctamente');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (error) {
+                App.showToast('❌ Error al importar: archivo inválido');
             }
         };
         reader.readAsText(file);
-        
-        event.target.value = '';
     },
 
-    confirmarImportacion(datos) {
-        const totalRegistros = Object.keys(datos).filter(k => !this.clavesSistema.includes(k) && k !== '_meta').length;
-        
-        const modal = App.showModal(`
-            <h3>📥 Importar Base de Datos</h3>
-            <div style="background:var(--bg-soft);padding:12px;border-radius:var(--radius-xs);margin-bottom:14px;">
-                <p style="font-size:12px;color:var(--text);margin-bottom:6px;">
-                    <strong>Archivo detectado:</strong>
-                </p>
-                <p style="font-size:11px;color:var(--text-soft);">
-                    📦 ${totalRegistros} secciones de datos<br>
-                    📅 Exportado: ${datos._meta?.fechaExportacion ? new Date(datos._meta.fechaExportacion).toLocaleString() : 'Desconocido'}
-                </p>
-            </div>
-            <p style="color:#ff9800;font-size:12px;font-weight:600;margin-bottom:14px;">
-                ⚠️ Esto REEMPLAZARÁ los datos actuales. ¿Continuar?
-            </p>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancelImport">Cancelar</button>
-                <button class="btn-primary" id="btnConfirmImport" style="background:#ff9800;">Sí, importar</button>
-            </div>
-        `);
-
-        document.getElementById('btnCancelImport').addEventListener('click', () => modal.remove());
-        document.getElementById('btnConfirmImport').addEventListener('click', () => {
-            modal.remove();
-            this.ejecutarImportacion(datos);
-        });
-    },
-
-    ejecutarImportacion(datos) {
-        let contador = 0;
-        
-        Object.keys(datos).forEach(key => {
-            if (!this.clavesSistema.includes(key) && key !== '_meta') {
-                try {
-                    const valor = datos[key];
-                    const valorStr = typeof valor === 'string' ? valor : JSON.stringify(valor);
-                    localStorage.setItem(key, valorStr);
-                    contador++;
-                    console.log(`✅ Importado: ${key}`);
-                } catch (e) {
-                    console.error(`❌ Error al importar ${key}:`, e);
-                }
-            }
-        });
-
-        App.showToast(`✅ ${contador} secciones importadas correctamente`);
-        
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
-    },
-
-    resetear() {
-        const modal = App.showModal(`
-            <h3>🗑️ Resetear Aplicación</h3>
-            <div style="background:rgba(220,53,69,0.1);border:1px solid rgba(220,53,69,0.3);padding:12px;border-radius:var(--radius-xs);margin-bottom:14px;">
-                <p style="color:#dc3545;font-size:12px;font-weight:600;margin-bottom:8px;">
-                    🚨 ACCIÓN IRREVERSIBLE
-                </p>
-                <p style="color:var(--text-soft);font-size:12px;line-height:1.5;">
-                    Se eliminarán <strong>TODOS</strong> los datos de la aplicación.
-                </p>
-            </div>
-            <p style="font-size:12px;color:var(--text);margin-bottom:10px;">
-                Para confirmar, escribe <strong style="color:#dc3545;">BORRAR</strong>:
-            </p>
-            <div class="input-group">
-                <input type="text" id="inputConfirmReset" placeholder="Escribe BORRAR" style="text-transform:uppercase;">
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancelReset">Cancelar</button>
-                <button class="btn-primary" id="btnConfirmReset" style="background:#dc3545;" disabled>️ Resetear todo</button>
-            </div>
-        `);
-
-        const inputConfirm = document.getElementById('inputConfirmReset');
-        const btnConfirm = document.getElementById('btnConfirmReset');
-
-        inputConfirm.addEventListener('input', () => {
-            btnConfirm.disabled = inputConfirm.value.trim().toUpperCase() !== 'BORRAR';
-        });
-
-        document.getElementById('btnCancelReset').addEventListener('click', () => modal.remove());
-        btnConfirm.addEventListener('click', () => {
-            if (inputConfirm.value.trim().toUpperCase() === 'BORRAR') {
-                modal.remove();
-                this.ejecutarReset();
-            }
-        });
-    },
-
-    ejecutarReset() {
-        const clavesAEliminar = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (!this.clavesSistema.includes(key) && !key.startsWith('firebase')) {
-                clavesAEliminar.push(key);
+    reiniciarDatos() {
+        if (confirm('️ ¿Estás seguro? Se borrarán TODOS los datos de la aplicación.')) {
+            if (confirm('Esta acción no se puede deshacer. ¿Continuar?')) {
+                const keys = ['roles', 'servicios', 'lineas', 'terminales', 'semanas', 
+                             'reservas', 'espejos', 'notas', 'tiempoExtra', 'avisos'];
+                
+                keys.forEach(key => DB.save(key, []));
+                DB.set('userName', '');
+                DB.set('theme', 'lavender');
+                
+                App.showToast(' Aplicación reiniciada');
+                setTimeout(() => location.reload(), 1500);
             }
         }
-
-        clavesAEliminar.forEach(key => localStorage.removeItem(key));
-
-        App.showToast('🗑️ Aplicación reseteada completamente');
-        
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
-    },
-
-    mostrarEstadisticas() {
-        const statsContent = document.getElementById('bdStatsContent');
-        const secciones = [
-            { key: 'lineas', label: 'Líneas' },
-            { key: 'terminales', label: 'Terminales' },
-            { key: 'semanas', label: 'Días' },
-            { key: 'reservas', label: 'Reservas' },
-            { key: 'servicios', label: 'Servicios' },
-            { key: 'roles', label: 'Roles' },
-            { key: 'notas', label: 'Notas' },
-            { key: 'tiempoExtra', label: 'Tiempo Extra' },
-            { key: 'espejos', label: 'Espejos' },
-            { key: 'avisos', label: 'Documentos' }
-        ];
-
-        let html = '';
-        let total = 0;
-
-        secciones.forEach(sec => {
-            const data = DB.load(sec.key);
-            const count = Array.isArray(data) ? data.length : 0;
-            total += count;
-            
-            html += `
-                <div class="bd-stat-row">
-                    <span class="bd-stat-label">${sec.label}</span>
-                    <span class="bd-stat-value">${count}</span>
-                </div>
-            `;
-        });
-
-        html += `
-            <div class="bd-stat-row bd-stat-total">
-                <span class="bd-stat-label">Total de registros</span>
-                <span class="bd-stat-value">${total}</span>
-            </div>
-        `;
-
-        statsContent.innerHTML = html;
     }
 };
 
-export default BD;
+export default Bd;

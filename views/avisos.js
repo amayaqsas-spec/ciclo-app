@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos (Firestore - Versión Final)
+// AVISOS.JS - Módulo de Documentos con Skeuomorphism
 // ============================================
 
 const Avisos = {
@@ -11,23 +11,37 @@ const Avisos = {
         const isAdmin = Auth.isAdmin;
         
         return `
-            <div class="view active">
-                <div class="crud-header">
-                    <h2 class="page-title" style="margin:0;">
-                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        Documentos
-                    </h2>
+            <div class="view active ske-avisos">
+                <!-- HEADER SKEUOMÓRFICO -->
+                <div class="ske-avisos-header">
+                    <div class="ske-avisos-icono">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="ske-avisos-texto">
+                        <h2 class="ske-avisos-titulo">Documentos</h2>
+                        <p class="ske-avisos-subtitulo">Gestiona y comparte archivos</p>
+                    </div>
                     ${isAdmin ? `
-                        <button class="btn-add" id="btnAddAviso">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Nuevo
+                        <button class="ske-avisos-btn-nuevo" id="btnAddAviso">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            <span>Nuevo</span>
                         </button>
                     ` : ''}
                 </div>
+
+                <!-- CONTENEDOR DE LISTA -->
                 <div id="avisoList">
-                    <div style="text-align:center; padding:40px; color:var(--text-soft);">
-                        <div class="spinner" style="border-color:var(--primary-soft); border-top-color:var(--primary); width:32px; height:32px; margin:0 auto 10px;"></div>
-                        Cargando documentos...
+                    <div class="ske-avisos-loading">
+                        <div class="spinner" style="border-color:var(--primary-soft); border-top-color:var(--primary); width:32px; height:32px;"></div>
+                        <p>Cargando documentos...</p>
                     </div>
                 </div>
             </div>
@@ -59,11 +73,17 @@ const Avisos = {
             
             if (documentos.length === 0) {
                 list.innerHTML = `
-                    <div class="aviso-empty">
-                        <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                        <p>No hay documentos registrados</p>
+                    <div class="ske-avisos-empty">
+                        <div class="ske-avisos-empty-icono">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                        </div>
+                        <h3>Sin documentos</h3>
+                        <p>No hay documentos registrados aún</p>
                     </div>
                 `;
                 return;
@@ -78,9 +98,16 @@ const Avisos = {
         } catch (error) {
             console.error('Error al cargar:', error);
             list.innerHTML = `
-                <div class="aviso-empty">
-                    <p>Error al cargar documentos</p>
-                    <p style="font-size:11px;color:var(--text-soft);margin-top:8px;">Verifica tu conexión a internet</p>
+                <div class="ske-avisos-empty">
+                    <div class="ske-avisos-empty-icono">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h3>Error de conexión</h3>
+                    <p>Verifica tu conexión a internet</p>
                 </div>
             `;
         }
@@ -90,40 +117,52 @@ const Avisos = {
         const list = document.getElementById('avisoList');
         const isAdmin = Auth.isAdmin;
 
-        list.innerHTML = documentos.map(doc => {
+        list.innerHTML = `<div class="ske-avisos-lista">` + documentos.map(doc => {
             const leido = this.estaLeido(doc.id);
             
             const titulo = doc.titulo || doc.título || 'Sin título';
-            const texto = doc.texto || doc.descripcion || '';
-            const link = doc.url || doc.link || doc.enlace || '';
-            const fecha = doc.fecha || '';
+            const texto = doc.texto || doc.descripcion || doc.descripción || doc.description || '';
+            const link = doc.url || doc.link || doc.enlace || doc.enlance || doc.drive || '';
+            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString() : '');
             
             return `
-                <div class="item-card ${!leido ? 'aviso-nuevo' : ''}">
-                    <div class="item-header">
-                        <div class="item-title">
-                            ${titulo}
-                            ${!leido && !isAdmin ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+                <div class="ske-avisos-card ${!leido ? 'ske-avisos-nuevo' : ''}">
+                    <div class="ske-avisos-card-indicador"></div>
+                    <div class="ske-avisos-card-contenido">
+                        <div class="ske-avisos-card-header">
+                            <div class="ske-avisos-card-titulo">
+                                <h3>${titulo}</h3>
+                                ${!leido && !isAdmin ? '<span class="ske-avisos-badge-nuevo">NUEVO</span>' : ''}
+                            </div>
+                            <span class="ske-avisos-card-fecha">${fecha}</span>
                         </div>
-                        <div class="item-date">${fecha}</div>
-                    </div>
-                    ${texto ? `<div class="item-desc">${texto}</div>` : ''}
-                    <div class="item-actions">
-                        ${link ? `<a href="${link}" target="_blank" class="btn-pdf">📄 Ver Documento</a>` : ''}
-                        ${isAdmin ? `
-                            <button class="btn-edit" data-id="${doc.id}">Editar</button>
-                            <button class="btn-remove" data-id="${doc.id}">Eliminar</button>
-                        ` : ''}
+                        ${texto ? `<div class="ske-avisos-card-desc">${texto}</div>` : ''}
+                        <div class="ske-avisos-card-acciones">
+                            ${link ? `<a href="${link}" target="_blank" class="ske-avisos-btn ske-avisos-btn-ver">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                Ver Documento
+                            </a>` : '<span class="ske-avisos-sin-enlace">Sin enlace</span>'}
+                            ${isAdmin ? `
+                                <button class="ske-avisos-btn ske-avisos-btn-editar" data-id="${doc.id}">
+                                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    Editar
+                                </button>
+                                <button class="ske-avisos-btn ske-avisos-btn-eliminar" data-id="${doc.id}">
+                                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    Eliminar
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             `;
-        }).join('');
+        }).join('') + `</div>`;
 
         if (isAdmin) {
-            list.querySelectorAll('.btn-edit').forEach(btn => {
+            list.querySelectorAll('.ske-avisos-btn-editar').forEach(btn => {
                 btn.addEventListener('click', () => this.openModal(btn.dataset.id));
             });
-            list.querySelectorAll('.btn-remove').forEach(btn => {
+            list.querySelectorAll('.ske-avisos-btn-eliminar').forEach(btn => {
                 btn.addEventListener('click', () => this.eliminarDocumento(btn.dataset.id));
             });
         }
@@ -158,27 +197,51 @@ const Avisos = {
             return;
         }
 
-        const modal = App.showModal(`
-            <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
-            <div class="modal-scroll-content">
-                <div class="input-group">
-                    <label>Título *</label>
-                    <input type="text" id="docTitulo" placeholder="Ej: Calendario de Pagos">
+        const modalOverlay = App.showModal(`
+            <div class="ske-avisos-modal-inner">
+                <div class="ske-avisos-modal-header">
+                    <div class="ske-avisos-modal-icono">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3>${editId ? 'Editar' : 'Nuevo'} Documento</h3>
+                    <p class="ske-avisos-modal-subtitulo">Completa la información del archivo</p>
                 </div>
-                <div class="input-group">
-                    <label>Descripción</label>
-                    <textarea id="docTexto" rows="3" placeholder="Detalles..."></textarea>
+                <div class="ske-avisos-modal-body">
+                    <div class="ske-avisos-input-group">
+                        <label>Título del Documento *</label>
+                        <input type="text" id="docTitulo" placeholder="Ej: Calendario de Pagos">
+                    </div>
+                    <div class="ske-avisos-input-group">
+                        <label>Descripción</label>
+                        <textarea id="docTexto" rows="3" placeholder="Detalles adicionales..."></textarea>
+                    </div>
+                    <div class="ske-avisos-input-group">
+                        <label>URL / Enlace *</label>
+                        <input type="text" id="docUrl" placeholder="https://drive.google.com/...">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>URL / Enlace *</label>
-                    <input type="text" id="docUrl" placeholder="https://drive.google.com/...">
+                <div class="ske-avisos-modal-footer">
+                    <button class="ske-avisos-btn-modal ske-avisos-btn-cancelar" id="btnCancel">Cancelar</button>
+                    <button class="ske-avisos-btn-modal ske-avisos-btn-guardar" id="btnSave">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        ${editId ? 'Actualizar' : 'Guardar'}
+                    </button>
                 </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancel">Cancelar</button>
-                <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
             </div>
         `);
+
+        // Aplicar clases skeuomórficas al modal generado
+        modalOverlay.classList.add('ske-avisos-modal-overlay');
+        modalOverlay.querySelector('.modal').classList.add('ske-avisos-modal');
 
         if (editId) {
             this.getCollection().doc(editId).get().then(doc => {
@@ -186,22 +249,26 @@ const Avisos = {
                     const data = doc.data();
                     document.getElementById('docTitulo').value = data.titulo || '';
                     document.getElementById('docTexto').value = data.texto || '';
-                    document.getElementById('docUrl').value = data.url || '';
+                    document.getElementById('docUrl').value = data.url || data.link || '';
                 }
             });
         }
 
-        document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
-        document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modal));
+        document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
+        document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modalOverlay));
     },
 
-    async guardarDocumento(editId, modal) {
+    async guardarDocumento(editId, modalOverlay) {
         const titulo = document.getElementById('docTitulo').value.trim();
         const texto = document.getElementById('docTexto').value.trim();
         const url = document.getElementById('docUrl').value.trim();
 
-        if (!titulo || !url) {
-            App.showToast('Título y URL son obligatorios');
+        if (!titulo) {
+            App.showToast('⚠️ El título es obligatorio');
+            return;
+        }
+        if (!url) {
+            App.showToast('⚠️ El enlace es obligatorio');
             return;
         }
 
@@ -211,24 +278,28 @@ const Avisos = {
                 texto,
                 url,
                 tipo: 'google_drive',
-                uploadedBy: Auth.currentUser.email,
-                timestamp: window.firebase.firestore.FieldValue.serverTimestamp(),
-                fecha: new Date().toLocaleDateString()
+                updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: Auth.currentUser?.email || 'admin'
             };
 
             if (editId) {
                 await this.getCollection().doc(editId).update(data);
+                App.showToast('✅ Documento actualizado');
             } else {
+                data.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
+                data.fecha = new Date().toLocaleDateString();
+                data.creadoPor = Auth.currentUser?.email || 'admin';
+                
                 await this.getCollection().add(data);
+                App.showToast('✅ Documento guardado');
             }
 
-            modal.remove();
-            App.showToast(editId ? 'Actualizado' : 'Guardado');
+            modalOverlay.remove();
             await this.cargarDocumentos();
             
         } catch (error) {
             console.error('Error al guardar:', error);
-            App.showToast('Error: ' + error.message);
+            App.showToast('❌ Error: ' + error.message);
         }
     },
 
@@ -237,10 +308,10 @@ const Avisos = {
         
         try {
             await this.getCollection().doc(docId).delete();
-            App.showToast('Documento eliminado');
+            App.showToast('🗑️ Documento eliminado');
             await this.cargarDocumentos();
         } catch (error) {
-            App.showToast('Error: ' + error.message);
+            App.showToast('❌ Error: ' + error.message);
         }
     }
 };

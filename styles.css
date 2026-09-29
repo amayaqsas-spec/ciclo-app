@@ -772,3 +772,7487 @@ html, body {
     
     .benefits-grid { grid-template-columns: 1fr 1fr; }
 }
+/* ============================================
+   SKEUOMORPHISM - MÓDULO INICIO
+   ============================================ */
+
+/* Importar tipografías elegantes */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+/* Aplicar tipografía al módulo inicio */
+.ske-home {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    color: var(--text);
+}
+
+.ske-home h1, .ske-home h2, .ske-home h3, .ske-home h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+.ske-home .ske-time-value,
+.ske-home .ske-rest-value,
+.ske-home .ske-clock-time,
+.ske-home .ske-train-num {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* ===== TARJETA DE SALUDO SKEUOMÓRFICA ===== */
+.ske-greeting-card {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+    /* Efecto relieve 3D */
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-greeting-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-greeting-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Marco del avatar con efecto biselado */
+.ske-avatar-frame {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.ske-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ske-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    stroke: white;
+    fill: none;
+    stroke-width: 1.5;
+}
+
+/* Botón de cámara con efecto botón físico */
+.ske-avatar-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(145deg, #ffffff, #e0e0e0);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+}
+
+.ske-avatar-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 5px 12px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-avatar-btn:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-avatar-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* Texto saludo */
+.ske-greeting-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.ske-greeting-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-greeting-subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 12px 0;
+    letter-spacing: 0.2px;
+}
+
+/* Chips con efecto relieve */
+.ske-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ske-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.ske-chip svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-chip-soft {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.ske-chip-primary {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    color: var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* FAB Notificación con efecto botón físico */
+.ske-fab-notification {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(145deg, #ffffff, #e8e8e8);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+    z-index: 2;
+}
+
+.ske-fab-notification:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.35),
+        0 3px 6px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-fab-notification:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-fab-notification svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(145deg, #ff5252, #d32f2f);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid white;
+    box-shadow: 
+        0 3px 8px rgba(211, 47, 47, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== SECCIONES SKEUOMÓRFICAS ===== */
+.ske-section {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Iconos circulares con relieve */
+.ske-icon-circle {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-icon-circle svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-icon-small {
+    width: 30px;
+    height: 30px;
+}
+
+.ske-icon-small svg {
+    width: 15px;
+    height: 15px;
+}
+
+.ske-icon-warning {
+    background: linear-gradient(145deg, #ff5252, #d32f2f);
+    box-shadow: 
+        0 4px 10px rgba(211, 47, 47, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    flex: 1;
+    letter-spacing: -0.3px;
+}
+
+.ske-counter {
+    background: linear-gradient(145deg, #ff5252, #d32f2f);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 3px 8px rgba(211, 47, 47, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== LISTA SKEUOMÓRFICA ===== */
+.ske-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ske-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    border-left: 4px solid #d32f2f;
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+
+.ske-list-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 5px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-list-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ske-list-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-list-item-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-soft);
+}
+
+.ske-list-item-meta {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-left: 12px;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ===== INFO GRID ===== */
+.ske-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.ske-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-info-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.ske-info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== NÚMERO DE SERVICIO ===== */
+.ske-service-number {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    letter-spacing: 1px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== GARAGE ===== */
+.ske-garage-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-garage-badge svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-garage-yes {
+    background: linear-gradient(145deg, #66bb6a, #43a047);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(67, 160, 71, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-garage-no {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(211, 47, 47, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== TRENES ===== */
+.ske-trains-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.ske-train-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    padding: 14px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-train-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-train-num {
+    display: inline-block;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 6px;
+    box-shadow: 
+        0 2px 4px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-train-times {
+    display: flex;
+    gap: 10px;
+}
+
+.ske-time-box {
+    flex: 1;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-time-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+
+.ske-time-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+}
+
+/* ===== DESCANSO ===== */
+.ske-rest-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-rest-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rest-times {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-rest-item {
+    text-align: center;
+    flex: 1;
+}
+
+.ske-rest-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+
+.ske-rest-value {
+    display: block;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+}
+
+.ske-rest-separator {
+    font-size: 26px;
+    color: var(--primary);
+    font-weight: 400;
+}
+
+/* ===== RELOJ ===== */
+.ske-clock-container {
+    text-align: center;
+    padding: 22px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 14px;
+    margin-bottom: 14px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.7),
+        0 2px 4px rgba(0, 0, 0, 0.05);
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ske-clock-time {
+    font-size: 48px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.ske-clock-waiting {
+    color: var(--text-light);
+}
+
+.ske-clock-active {
+    color: var(--primary);
+    animation: skePulse 1s ease-in-out infinite;
+}
+
+.ske-clock-finished {
+    color: #d32f2f;
+}
+
+@keyframes skePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.ske-clock-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.ske-atraso-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(145deg, #ffa726, #f57c00);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(245, 124, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+    z-index: 10;
+}
+
+/* ===== BOTÓN ATRASO ===== */
+.ske-btn-warning {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(145deg, #ffa726, #f57c00);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 
+        0 4px 12px rgba(245, 124, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-btn-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 16px rgba(245, 124, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-warning:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(245, 124, 0, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-btn-warning svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== EMPTY CARD ===== */
+.ske-empty-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 36px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-empty-icon svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-empty-text {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-soft);
+    line-height: 1.5;
+    margin: 0 0 8px 0;
+}
+
+.ske-empty-hint {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-light);
+    margin: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-greeting-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .ske-greeting-title {
+        font-size: 22px;
+    }
+    
+    .ske-badges-row {
+        justify-content: center;
+    }
+    
+    .ske-info-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .ske-clock-time {
+        font-size: 40px;
+    }
+    
+    .ske-rest-value {
+        font-size: 22px;
+    }
+    
+    .ske-fab-notification {
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+    }
+    
+    .ske-service-number {
+        font-size: 24px;
+    }
+}
+/* ============================================
+   MÓDULO INSTALACIÓN - SKEUOMORPHISM
+   ============================================ */
+
+.ske-instalacion {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Header */
+.ske-instalacion-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    padding: 24px 20px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-instalacion-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-instalacion-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-instalacion-icono svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-instalacion-titulo {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-instalacion-subtitulo {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Beneficios */
+.ske-beneficios-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-beneficios-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 14px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-beneficio-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-beneficio-item:last-child {
+    margin-bottom: 0;
+}
+
+.ske-beneficio-icono {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-beneficio-icono svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-beneficio-texto {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ske-beneficio-texto strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-beneficio-texto span {
+    font-size: 12px;
+    color: var(--text-soft);
+}
+
+/* Botones de instalación */
+.ske-botones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-btn-instalar {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.ske-btn-instalar svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-btn-android {
+    background: linear-gradient(145deg, #66bb6a, #43a047);
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(67, 160, 71, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-android:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(67, 160, 71, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-android:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(67, 160, 71, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-btn-ios {
+    background: linear-gradient(145deg, #5c5c5c, #3a3a3a);
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.ske-btn-ios:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.ske-btn-ios:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.ske-btn-desktop {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-desktop:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-desktop:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Modales */
+.ske-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ske-modal-overlay.show {
+    display: flex;
+}
+
+.ske-modal {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeModalIn 0.3s ease;
+}
+
+@keyframes skeModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ske-modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.ske-modal-icono {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.ske-modal-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-modal-icono-android {
+    background: linear-gradient(145deg, #66bb6a, #43a047);
+}
+
+.ske-modal-icono-ios {
+    background: linear-gradient(145deg, #5c5c5c, #3a3a3a);
+}
+
+.ske-modal-icono-desktop {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+}
+
+.ske-modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-modal-contenido {
+    margin-bottom: 20px;
+}
+
+.ske-modal-contenido > p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.ske-modal-pasos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ske-modal-paso {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-modal-paso-numero {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 
+        0 3px 8px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-modal-paso span:last-child {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+}
+
+.ske-modal-paso strong {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.ske-modal-nota {
+    font-size: 12px;
+    color: var(--text-soft);
+    font-style: italic;
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+.ske-modal-acciones {
+    display: flex;
+    gap: 10px;
+}
+
+.ske-btn-modal {
+    flex: 1;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-btn-modal svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-btn-modal-cancelar {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    color: var(--text);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-btn-modal-cancelar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-btn-modal-cancelar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-btn-modal-aceptar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-modal-aceptar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-modal-aceptar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-btn-modal-cerrar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-btn-modal-cerrar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-btn-modal-cerrar:active {
+    transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .ske-instalacion-titulo {
+        font-size: 20px;
+    }
+    
+    .ske-instalacion-icono {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .ske-instalacion-icono svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .ske-modal {
+        padding: 20px;
+    }
+    
+    .ske-modal-icono {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .ske-modal-icono svg {
+        width: 32px;
+        height: 32px;
+    }
+}
+/* ============================================
+ANIMACIÓN DEL ÍCONO DE INSTALACIÓN
+============================================ */
+.instalacion-icono-principal {
+    animation: instalacionFloat 3s ease-in-out infinite;
+}
+
+.instalacion-icono-principal svg {
+    animation: instalacionPulse 2s ease-in-out infinite;
+}
+
+@keyframes instalacionFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes instalacionPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Animación adicional para el botón de instalación */
+.btn-instalar-android,
+.btn-instalar-ios,
+.btn-instalar-desktop {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-instalar-android::before,
+.btn-instalar-ios::before,
+.btn-instalar-desktop::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-instalar-android:active::before,
+.btn-instalar-ios:active::before,
+.btn-instalar-desktop:active::before {
+    width: 300px;
+    height: 300px;
+}
+/* ============================================
+   TIEMPO EXTRA - SKEUOMORPHISM
+   ============================================ */
+
+/* Importar tipografías */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-te {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-te h1, .ske-te h2, .ske-te h3, .ske-te h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-te-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-te-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-te-header-icono {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-te-header-icono svg {
+    width: 26px;
+    height: 26px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-te-header-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-te-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 2px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-te-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Botón Nuevo - Efecto botón físico */
+.ske-te-btn-nuevo {
+    background: linear-gradient(145deg, #ffffff, #e8e8e8);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    padding: 10px 16px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.ske-te-btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-te-btn-nuevo:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-nuevo svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== ESTADÍSTICAS ===== */
+.ske-te-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.ske-te-stat-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+
+.ske-te-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.ske-te-stat-numero {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+
+.ske-te-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ske-te-stat-pendiente .ske-te-stat-numero {
+    color: #ff9800;
+}
+
+.ske-te-stat-cobrado .ske-te-stat-numero {
+    color: #4caf50;
+}
+
+.ske-te-stat-total .ske-te-stat-numero {
+    color: var(--primary);
+}
+
+/* ===== LISTA ===== */
+.ske-te-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ===== TARJETA SKEUOMÓRFICA ===== */
+.ske-te-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+}
+
+.ske-te-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-te-card-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.ske-te-pendiente .ske-te-card-indicador {
+    background: linear-gradient(90deg, #ff9800, #f57c00);
+}
+
+.ske-te-cobrado .ske-te-card-indicador {
+    background: linear-gradient(90deg, #4caf50, #388e3c);
+}
+
+.ske-te-card-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+.ske-te-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 10px;
+}
+
+.ske-te-card-titulo {
+    flex: 1;
+    min-width: 0;
+}
+
+.ske-te-card-titulo h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-te-card-servicio {
+    display: inline-block;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 4px;
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-te-card-fecha {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-te-card-nota {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin: 0 0 12px 0;
+    padding: 8px 10px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-soft);
+    line-height: 1.4;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.04),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.ske-te-card-acciones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ske-te-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.ske-te-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-te-btn:active {
+    transform: translateY(1px);
+}
+
+/* Botón Cobrar */
+.ske-te-btn-cobrar {
+    background: linear-gradient(145deg, #4caf50, #388e3c);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(76, 175, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-cobrar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(76, 175, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-cobrado-activo {
+    background: linear-gradient(145deg, #9e9e9e, #757575);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Botón Editar */
+.ske-te-btn-editar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-editar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Eliminar */
+.ske-te-btn-eliminar {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(239, 83, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-eliminar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(239, 83, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-te-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-te-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-te-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-te-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-te-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ===== MODAL SKEUOMÓRFICO ===== */
+.ske-te-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ske-te-modal-overlay.show {
+    display: flex;
+}
+
+.ske-te-modal {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 20px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeTeModalIn 0.3s ease;
+}
+
+@keyframes skeTeModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ske-te-modal-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    padding: 24px 20px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-te-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-te-modal-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-te-modal-icono svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-te-modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-te-modal-body {
+    padding: 20px;
+}
+
+.ske-te-input-group {
+    margin-bottom: 14px;
+}
+
+.ske-te-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-te-input-group input,
+.ske-te-input-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-te-input-group input:focus,
+.ske-te-input-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-te-input-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.ske-te-modal-footer {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.ske-te-btn-modal {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-te-btn-modal svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-te-btn-cancelar {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    color: var(--text);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-te-btn-cancelar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-te-btn-cancelar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-te-btn-guardar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-guardar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-te-btn-guardar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-te-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-te-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-te-btn-nuevo {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .ske-te-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .ske-te-stat-numero {
+        font-size: 22px;
+    }
+    
+    .ske-te-card-acciones {
+        flex-direction: column;
+    }
+    
+    .ske-te-btn {
+        width: 100%;
+    }
+    
+    .ske-te-modal-footer {
+        flex-direction: column;
+    }
+}
+/* ============================================
+   SERVICIOS BÚSQUEDA - SKEUOMORPHISM
+   ============================================ */
+
+/* Importar tipografías */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-servicios {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-servicios h1, .ske-servicios h2, .ske-servicios h3, .ske-servicios h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-servicios-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-servicios-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-servicios-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-servicios-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicios-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-servicios-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-servicios-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* ===== FORMULARIO ===== */
+.ske-servicios-form-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-servicios-input-group {
+    margin-bottom: 16px;
+}
+
+.ske-servicios-input-group:last-of-type {
+    margin-bottom: 18px;
+}
+
+.ske-servicios-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-servicios-label svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicios-select,
+.ske-servicios-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-servicios-select:focus,
+.ske-servicios-input:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-servicios-select:disabled,
+.ske-servicios-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ske-servicios-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239B7FD4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px;
+}
+
+/* ===== BOTÓN BUSCAR ===== */
+.ske-servicios-btn-buscar {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.ske-servicios-btn-buscar svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicios-btn-buscar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-servicios-btn-buscar:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-servicios-btn-buscar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ===== RESULTADO ===== */
+.ske-servicios-resultado {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeServiciosFadeIn 0.4s ease;
+}
+
+@keyframes skeServiciosFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ske-servicios-resultado-header {
+    margin-bottom: 18px;
+}
+
+.ske-servicios-numero-badge {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-servicios-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ske-servicios-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-servicios-info-tag svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== GARAGE ===== */
+.ske-servicios-garage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicios-garage svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-garage-yes {
+    background: linear-gradient(145deg, #66bb6a, #43a047);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(67, 160, 71, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-garage-no {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(211, 47, 47, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== TRENES ===== */
+.ske-servicios-trenes {
+    margin-bottom: 18px;
+}
+
+.ske-servicios-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 14px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicios-section-title svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicios-trenes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-servicios-tren-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    padding: 14px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 
+        0 3px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-servicios-tren-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicios-tren-num {
+    display: inline-block;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 6px;
+    box-shadow: 
+        0 2px 4px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-servicios-tren-times {
+    display: flex;
+    gap: 10px;
+}
+
+.ske-servicios-time-box {
+    flex: 1;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-servicios-time-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+
+.ske-servicios-time-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+    font-family: 'Inter', monospace;
+}
+
+/* ===== DESCANSO ===== */
+.ske-servicios-descanso {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-servicios-descanso-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicios-icono-small {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-servicios-icono-small svg {
+    width: 16px;
+    height: 16px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicios-descanso-times {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-servicios-descanso-item {
+    text-align: center;
+    flex: 1;
+}
+
+.ske-servicios-descanso-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+}
+
+.ske-servicios-descanso-value {
+    display: block;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+    font-family: 'Inter', monospace;
+}
+
+.ske-servicios-descanso-separator {
+    font-size: 26px;
+    color: var(--primary);
+    font-weight: 400;
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-servicios-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-servicios-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-servicios-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-servicios-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicios-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-servicios-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-servicios-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-servicios-info-row {
+        flex-direction: column;
+    }
+    
+    .ske-servicios-tren-times {
+        flex-direction: column;
+    }
+    
+    .ske-servicios-descanso-times {
+        flex-direction: column;
+    }
+    
+    .ske-servicios-descanso-separator {
+        transform: rotate(90deg);
+    }
+}
+/* ============================================
+   RESERVAS BÚSQUEDA - SKEUOMORPHISM
+   ============================================ */
+
+/* Importar tipografías */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-reservas {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-reservas h1, .ske-reservas h2, .ske-reservas h3, .ske-reservas h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-reservas-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-reservas-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-reservas-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-reservas-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-reservas-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-reservas-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-reservas-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* ===== FORMULARIO ===== */
+.ske-reservas-form-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-reservas-input-group {
+    margin-bottom: 16px;
+}
+
+.ske-reservas-input-group:last-of-type {
+    margin-bottom: 18px;
+}
+
+.ske-reservas-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-reservas-label svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-reservas-select,
+.ske-reservas-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-reservas-select:focus,
+.ske-reservas-input:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-reservas-select:disabled,
+.ske-reservas-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ske-reservas-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239B7FD4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px;
+}
+
+/* ===== BOTÓN BUSCAR ===== */
+.ske-reservas-btn-buscar {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.ske-reservas-btn-buscar svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-reservas-btn-buscar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-reservas-btn-buscar:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-reservas-btn-buscar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ===== RESULTADO ===== */
+.ske-reservas-resultado {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeReservasFadeIn 0.4s ease;
+}
+
+@keyframes skeReservasFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ske-reservas-resultado-header {
+    margin-bottom: 18px;
+}
+
+.ske-reservas-tipo-badge {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-reservas-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ske-reservas-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-reservas-info-tag svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== HORARIOS ===== */
+.ske-reservas-horarios {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 18px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-reservas-horario-box {
+    flex: 1;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-reservas-horario-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+}
+
+.ske-reservas-horario-valor {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+    font-family: 'Inter', monospace;
+}
+
+.ske-reservas-horario-arrow {
+    font-size: 28px;
+    color: var(--primary);
+    font-weight: 400;
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-reservas-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-reservas-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-reservas-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-reservas-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-reservas-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-reservas-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-reservas-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-reservas-info-row {
+        flex-direction: column;
+    }
+    
+    .ske-reservas-horarios {
+        flex-direction: column;
+    }
+    
+    .ske-reservas-horario-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .ske-reservas-horario-valor {
+        font-size: 24px;
+    }
+}
+/* ============================================
+   ESPEJO - SKEUOMORPHISM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-espejo {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-espejo h1, .ske-espejo h2, .ske-espejo h3, .ske-espejo h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-espejo-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-espejo-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-espejo-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-espejo-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-espejo-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-espejo-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-espejo-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* ===== FORMULARIO ===== */
+.ske-espejo-form-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-espejo-input-group {
+    margin-bottom: 16px;
+}
+
+.ske-espejo-input-group:last-of-type {
+    margin-bottom: 18px;
+}
+
+.ske-espejo-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-espejo-label svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-espejo-select,
+.ske-espejo-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-espejo-select:focus,
+.ske-espejo-input:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-espejo-select:disabled,
+.ske-espejo-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ske-espejo-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239B7FD4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px;
+}
+
+/* ===== BOTÓN BUSCAR ===== */
+.ske-espejo-btn-buscar {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+.ske-espejo-btn-buscar svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-espejo-btn-buscar:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-espejo-btn-buscar:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-espejo-btn-buscar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ===== RESULTADO ===== */
+.ske-espejo-resultado {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeEspejoFadeIn 0.4s ease;
+}
+
+@keyframes skeEspejoFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ske-espejo-resultado-header {
+    margin-bottom: 18px;
+}
+
+.ske-espejo-numero-badge {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-espejo-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ske-espejo-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-espejo-info-tag svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== FLECHAS IDA/REGRESO ===== */
+.ske-espejo-flechas-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-espejo-flecha-box {
+    flex: 1;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-espejo-ida {
+    border-left: 4px solid var(--primary);
+}
+
+.ske-espejo-regreso {
+    border-right: 4px solid var(--accent);
+}
+
+.ske-espejo-flecha-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-espejo-flecha-numero {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-espejo-flecha-horarios {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ske-espejo-horario-item {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.ske-espejo-horario-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+
+.ske-espejo-horario-valor {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'Inter', monospace;
+}
+
+.ske-espejo-flecha-centro {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-espejo-flecha-centro svg {
+    width: 22px;
+    height: 22px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-espejo-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-espejo-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-espejo-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-espejo-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-espejo-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-espejo-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-espejo-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-espejo-info-row {
+        flex-direction: column;
+    }
+    
+    .ske-espejo-flechas-container {
+        flex-direction: column;
+    }
+    
+    .ske-espejo-flecha-centro {
+        transform: rotate(90deg);
+    }
+    
+    .ske-espejo-flecha-numero {
+        font-size: 20px;
+    }
+    
+    .ske-espejo-numero-badge {
+        font-size: 20px;
+    }
+}
+/* ============================================
+   NOTAS - SKEUOMORPHISM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-notas {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-notas h1, .ske-notas h2, .ske-notas h3, .ske-notas h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-notas-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-notas-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-notas-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-notas-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-notas-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-notas-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-notas-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Botón Nueva - Efecto botón físico */
+.ske-notas-btn-nuevo {
+    background: linear-gradient(145deg, #ffffff, #e8e8e8);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    padding: 10px 16px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.ske-notas-btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-notas-btn-nuevo:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ske-notas-btn-nuevo svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== LISTA ===== */
+.ske-notas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ===== TARJETA SKEUOMÓRFICA ===== */
+.ske-notas-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+}
+
+.ske-notas-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-notas-card-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.ske-notas-card-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+.ske-notas-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.ske-notas-card-titulo {
+    flex: 1;
+    min-width: 0;
+}
+
+.ske-notas-card-titulo h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-notas-card-fecha {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-notas-card-texto {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0 0 12px 0;
+    padding: 10px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    border-left: 3px solid var(--primary-soft);
+    line-height: 1.5;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.04),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.ske-notas-card-texto::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ske-notas-card-texto::-webkit-scrollbar-thumb {
+    background: var(--primary-soft);
+    border-radius: 4px;
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.ske-notas-card-acciones {
+    display: flex;
+    gap: 8px;
+}
+
+.ske-notas-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.ske-notas-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-notas-btn:active {
+    transform: translateY(1px);
+}
+
+/* Botón Editar */
+.ske-notas-btn-editar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-notas-btn-editar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Eliminar */
+.ske-notas-btn-eliminar {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(239, 83, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-notas-btn-eliminar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(239, 83, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-notas-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-notas-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-notas-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-notas-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-notas-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ===== MODAL SKEUOMÓRFICO ===== */
+.ske-notas-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ske-notas-modal-overlay.show {
+    display: flex;
+}
+
+.ske-notas-modal {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 20px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeNotasModalIn 0.3s ease;
+}
+
+@keyframes skeNotasModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ske-notas-modal-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    padding: 24px 20px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-notas-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-notas-modal-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-notas-modal-icono svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-notas-modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-notas-modal-body {
+    padding: 20px;
+}
+
+.ske-notas-input-group {
+    margin-bottom: 14px;
+}
+
+.ske-notas-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-notas-input-group input,
+.ske-notas-input-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-notas-input-group input:focus,
+.ske-notas-input-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-notas-input-group textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+.ske-notas-modal-footer {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.ske-notas-btn-modal {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-notas-btn-modal svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-notas-btn-cancelar {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    color: var(--text);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-notas-btn-cancelar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-notas-btn-cancelar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-notas-btn-guardar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-notas-btn-guardar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-notas-btn-guardar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-notas-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-notas-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-notas-btn-nuevo {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .ske-notas-card-acciones {
+        flex-direction: column;
+    }
+    
+    .ske-notas-btn {
+        width: 100%;
+    }
+    
+    .ske-notas-modal-footer {
+        flex-direction: column;
+    }
+}
+/* ============================================
+   MI ROL - SKEUOMORPHISM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-rol {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-rol h1, .ske-rol h2, .ske-rol h3, .ske-rol h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-rol-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-rol-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-rol-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-rol-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-rol-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-rol-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-rol-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Botón Nuevo */
+.ske-rol-btn-nuevo {
+    background: linear-gradient(145deg, #ffffff, #e8e8e8);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    padding: 10px 16px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.ske-rol-btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-rol-btn-nuevo:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-nuevo svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== LISTA DE ROLES ===== */
+.ske-rol-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ===== TARJETA DE ROL ===== */
+.ske-rol-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+}
+
+.ske-rol-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-rol-card-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.ske-rol-activo .ske-rol-card-indicador {
+    background: linear-gradient(90deg, #4caf50, #388e3c);
+}
+
+.ske-rol-card-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+.ske-rol-card-header {
+    margin-bottom: 12px;
+}
+
+.ske-rol-card-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ske-rol-card-titulo h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-rol-badge-activo {
+    background: linear-gradient(145deg, #4caf50, #388e3c);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(76, 175, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rol-card-info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ske-rol-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-rol-info-tag svg {
+    width: 13px;
+    height: 13px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.ske-rol-card-acciones {
+    display: flex;
+    gap: 8px;
+}
+
+.ske-rol-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.ske-rol-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-rol-btn:active {
+    transform: translateY(1px);
+}
+
+.ske-rol-btn-ver {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-ver:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-editar {
+    background: linear-gradient(145deg, #ff9800, #f57c00);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(255, 152, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-editar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(255, 152, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-eliminar {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(239, 83, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-eliminar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(239, 83, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* ===== ESTADO VACÍO ===== */
+.ske-rol-empty {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-rol-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-rol-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-rol-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rol-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ===== MODAL SKEUOMÓRFICO ===== */
+.ske-rol-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ske-rol-modal-overlay.show {
+    display: flex;
+}
+
+.ske-rol-modal {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 20px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    animation: skeRolModalIn 0.3s ease;
+}
+
+.ske-rol-modal-grande {
+    max-width: 600px;
+}
+
+@keyframes skeRolModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ske-rol-modal-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    padding: 24px 20px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-rol-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-rol-modal-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-rol-modal-icono svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-rol-modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px 0;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rol-modal-subtitulo {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-rol-modal-body {
+    padding: 20px;
+}
+
+/* ===== INPUTS SKEUOMÓRFICOS ===== */
+.ske-rol-input-group {
+    margin-bottom: 14px;
+}
+
+.ske-rol-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-rol-input-group input,
+.ske-rol-input-group select {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-rol-input-group input:focus,
+.ske-rol-input-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-rol-input-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239B7FD4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px;
+}
+
+.ske-rol-input-group input:disabled,
+.ske-rol-input-group select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== INFO TAGS PASO 2 ===== */
+.ske-rol-paso2-info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.ske-rol-paso2-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-rol-paso2-tag svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== DÍAS DE DESCANSO ===== */
+.ske-rol-dias-descanso {
+    margin-bottom: 16px;
+}
+
+.ske-rol-dias-descanso > label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.ske-rol-descansos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.ske-rol-descanso-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+}
+
+.ske-rol-descanso-checkbox:hover {
+    border-color: var(--primary-soft);
+}
+
+.ske-rol-descanso-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ske-rol-checkmark {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(255, 255, 255, 0.5);
+    transition: all 0.2s;
+}
+
+.ske-rol-checkmark::after {
+    content: '';
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.ske-rol-descanso-checkbox input:checked + .ske-rol-checkmark {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-color: var(--primary);
+    box-shadow: 
+        0 3px 8px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-rol-descanso-checkbox input:checked + .ske-rol-checkmark::after {
+    opacity: 1;
+}
+
+.ske-rol-descanso-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* ===== CALENDARIO ===== */
+.ske-rol-calendario-scroll {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-rol-calendario-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ske-rol-calendario-scroll::-webkit-scrollbar-track {
+    background: var(--bg-soft);
+    border-radius: 10px;
+}
+
+.ske-rol-calendario-scroll::-webkit-scrollbar-thumb {
+    background: var(--primary-soft);
+    border-radius: 10px;
+}
+
+.ske-rol-semana-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-rol-semana-activa {
+    border: 2px solid var(--primary);
+    box-shadow: 
+        0 0 0 3px var(--primary-soft),
+        0 6px 16px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.ske-rol-semana-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--bg-soft);
+}
+
+.ske-rol-semana-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rol-badge-semana-actual {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    animation: skeRolPulse 2s ease-in-out infinite;
+    font-family: 'Poppins', sans-serif;
+}
+
+@keyframes skeRolPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.ske-rol-dias-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.ske-rol-dia {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    min-height: 75px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+}
+
+.ske-rol-dia-hoy {
+    background: linear-gradient(145deg, #FF9800, #F57C00);
+    border: 2px solid #FF9800;
+    box-shadow: 
+        0 4px 12px rgba(255, 152, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.ske-rol-dia-descanso {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    opacity: 0.7;
+    border: 2px dashed var(--primary-soft);
+}
+
+.ske-rol-dia-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.ske-rol-dia-nombre {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-nombre {
+    color: white;
+}
+
+.ske-rol-dia-numero {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-numero {
+    color: white;
+}
+
+.ske-rol-dia-input {
+    width: 100%;
+    padding: 4px 2px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: auto;
+    outline: none;
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ske-rol-dia-input:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.06),
+        0 0 0 2px var(--primary-soft);
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-input {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.ske-rol-dia-badge-descanso {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-light);
+    margin-top: auto;
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-badge-descanso {
+    color: white;
+}
+
+.ske-rol-dia-servicio {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: auto;
+    padding: 3px 2px;
+    background: var(--surface);
+    border-radius: 5px;
+    width: 100%;
+    text-align: center;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ske-rol-dia-hoy .ske-rol-dia-servicio {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* ===== BOTONES MODAL ===== */
+.ske-rol-modal-footer {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.ske-rol-btn-modal {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-rol-btn-modal svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-rol-btn-cancelar {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    color: var(--text);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-rol-btn-cancelar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-rol-btn-cancelar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-rol-btn-siguiente,
+.ske-rol-btn-guardar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-siguiente:hover,
+.ske-rol-btn-guardar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-rol-btn-siguiente:active,
+.ske-rol-btn-guardar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== INFO TAGS PASO 3 ===== */
+.ske-rol-paso3-info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.ske-rol-paso3-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-rol-paso3-tag svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-rol-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-rol-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-rol-btn-nuevo {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .ske-rol-card-acciones {
+        flex-direction: column;
+    }
+    
+    .ske-rol-btn {
+        width: 100%;
+    }
+    
+    .ske-rol-modal-footer {
+        flex-direction: column;
+    }
+    
+    .ske-rol-dias-grid {
+        gap: 4px;
+    }
+    
+    .ske-rol-dia {
+        min-height: 65px;
+        padding: 6px 2px;
+    }
+    
+    .ske-rol-dia-nombre {
+        font-size: 7px;
+    }
+    
+    .ske-rol-dia-numero {
+        font-size: 12px;
+    }
+    
+    .ske-rol-dia-input {
+        font-size: 9px;
+    }
+    
+    .ske-rol-descansos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+/* ============================================
+   DOCUMENTOS (AVISOS) - SKEUOMORPHISM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-avisos {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-avisos h1, .ske-avisos h2, .ske-avisos h3, .ske-avisos h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-avisos-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-avisos-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-avisos-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-avisos-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-avisos-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-avisos-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-avisos-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* Botón Nuevo - Efecto botón físico */
+.ske-avisos-btn-nuevo {
+    background: linear-gradient(145deg, #ffffff, #e8e8e8);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    padding: 10px 16px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.ske-avisos-btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.ske-avisos-btn-nuevo:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-nuevo svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+/* ===== LISTA Y TARJETAS ===== */
+.ske-avisos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-avisos-card {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+}
+
+.ske-avisos-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-avisos-card-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.ske-avisos-nuevo .ske-avisos-card-indicador {
+    background: linear-gradient(90deg, #ff9800, #f57c00);
+}
+
+.ske-avisos-card-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+.ske-avisos-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ske-avisos-card-titulo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ske-avisos-card-titulo h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-avisos-badge-nuevo {
+    background: linear-gradient(145deg, #ff5252, #d32f2f);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(211, 47, 47, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    animation: skeAvisosPulse 1.5s ease-in-out infinite;
+    font-family: 'Poppins', sans-serif;
+}
+
+@keyframes skeAvisosPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.ske-avisos-card-fecha {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-light);
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-avisos-card-desc {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0 0 12px 0;
+    padding: 10px 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    border-left: 3px solid var(--primary-soft);
+    line-height: 1.5;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.04),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.ske-avisos-card-acciones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ske-avisos-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.2px;
+    text-decoration: none;
+}
+
+.ske-avisos-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-avisos-btn:active {
+    transform: translateY(1px);
+}
+
+/* Botón Ver */
+.ske-avisos-btn-ver {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-ver:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Editar */
+.ske-avisos-btn-editar {
+    background: linear-gradient(145deg, #ff9800, #f57c00);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(255, 152, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-editar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(255, 152, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Eliminar */
+.ske-avisos-btn-eliminar {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    box-shadow: 
+        0 4px 10px rgba(239, 83, 80, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-eliminar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 14px rgba(239, 83, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-sin-enlace {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== ESTADO VACÍO / CARGA ===== */
+.ske-avisos-empty,
+.ske-avisos-loading {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-avisos-loading p {
+    margin-top: 12px;
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.ske-avisos-empty-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-avisos-empty-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--text-light);
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.ske-avisos-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-avisos-empty p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ===== MODAL SKEUOMÓRFICO ===== */
+.ske-avisos-modal-overlay {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px);
+}
+
+.ske-avisos-modal {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft)) !important;
+    border-radius: 20px !important;
+    max-width: 420px !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    animation: skeAvisosModalIn 0.3s ease;
+}
+
+@keyframes skeAvisosModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ske-avisos-modal-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ske-avisos-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-avisos-modal-icono {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-avisos-modal-icono svg {
+    width: 32px;
+    height: 32px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-avisos-modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px 0;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-avisos-modal-subtitulo {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-avisos-modal-body {
+    padding: 20px;
+}
+
+.ske-avisos-input-group {
+    margin-bottom: 14px;
+}
+
+.ske-avisos-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-avisos-input-group input,
+.ske-avisos-input-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-avisos-input-group input:focus,
+.ske-avisos-input-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-avisos-input-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.ske-avisos-modal-footer {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.ske-avisos-btn-modal {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-avisos-btn-modal svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-avisos-btn-cancelar {
+    background: linear-gradient(145deg, var(--bg-soft), var(--bg));
+    color: var(--text);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-avisos-btn-cancelar:hover {
+    transform: translateY(-1px);
+}
+
+.ske-avisos-btn-cancelar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-avisos-btn-guardar {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-guardar:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 8px 20px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-avisos-btn-guardar:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-avisos-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .ske-avisos-titulo {
+        font-size: 18px;
+    }
+    
+    .ske-avisos-btn-nuevo {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .ske-avisos-card-acciones {
+        flex-direction: column;
+    }
+    
+    .ske-avisos-btn {
+        width: 100%;
+    }
+    
+    .ske-avisos-modal-footer {
+        flex-direction: column;
+    }
+}
+/* ============================================
+   APARIENCIA - SKEUOMORPHISM
+   ============================================ */
+.ske-apariencia {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-apariencia-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-apariencia-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-apariencia-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-apariencia-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-apariencia-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-apariencia-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-apariencia-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+.ske-apariencia-section {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-apariencia-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-theme-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.ske-theme-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+
+.ske-theme-card:active {
+    transform: scale(0.96);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-theme-card.selected {
+    border-color: var(--primary);
+    box-shadow: 
+        0 0 0 3px var(--primary-soft),
+        0 6px 16px rgba(155, 127, 212, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-theme-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-theme-preview {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ske-theme-preview div {
+    flex: 1;
+}
+
+.ske-theme-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+@media (max-width: 480px) {
+    .ske-theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .ske-theme-card {
+        padding: 12px;
+    }
+    
+    .ske-theme-preview {
+        height: 28px;
+    }
+}
+/* ============================================
+   BASE DE DATOS - SKEUOMORPHISM
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.ske-bd {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.ske-bd h1, .ske-bd h2, .ske-bd h3, .ske-bd h4 {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ===== HEADER SKEUOMÓRFICO ===== */
+.ske-bd-header {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ske-bd-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.ske-bd-icono {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.ske-bd-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-bd-texto {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.ske-bd-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 3px 0;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-bd-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+/* ===== SECCIONES ===== */
+.ske-bd-section {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-bd-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ske-bd-section-icono {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-bd-section-icono svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-bd-section-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-bd-section-desc {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    border-left: 3px solid var(--primary-soft);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.04),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ===== PERFIL DE USUARIO ===== */
+.ske-bd-profile-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-bd-profile-email {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-bottom: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ske-bd-profile-email::before {
+    content: '📧';
+    font-size: 14px;
+}
+
+.ske-bd-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.ske-bd-input-group {
+    flex: 1;
+}
+
+.ske-bd-input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.ske-bd-input-group input {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-bd-input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-bd-input-hint {
+    display: block;
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 6px;
+    font-style: italic;
+}
+
+.ske-bd-btn-save {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+        0 4px 12px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+}
+
+.ske-bd-btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-bd-btn-save:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 6px rgba(155, 127, 212, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ske-bd-btn-save svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+/* ===== GRID DE ACCIONES ===== */
+.ske-bd-actions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-bd-action-card {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+}
+
+.ske-bd-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-bd-action-icono {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-bd-action-icono svg {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-bd-action-export .ske-bd-action-icono {
+    background: linear-gradient(145deg, #9B7FD4, #7C5CBF);
+}
+
+.ske-bd-action-import .ske-bd-action-icono {
+    background: linear-gradient(145deg, #4CAF50, #388E3C);
+}
+
+.ske-bd-action-reset .ske-bd-action-icono {
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+}
+
+.ske-bd-action-info {
+    flex: 1;
+}
+
+.ske-bd-action-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-bd-action-info p {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+.ske-bd-action-btn {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-bd-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-bd-action-btn:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== ESTADÍSTICAS ===== */
+.ske-bd-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.ske-bd-stat-item {
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+}
+
+.ske-bd-stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-bd-stat-number {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-bd-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ske-bd-total-stats {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 
+        0 6px 16px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-bd-total-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ske-bd-total-number {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ===== INFORMACIÓN ===== */
+.ske-bd-info-section {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    border-left: 4px solid var(--primary);
+}
+
+.ske-bd-info-icono {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 4px 10px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ske-bd-info-icono svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-bd-info-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 6px 0;
+    letter-spacing: -0.3px;
+}
+
+.ske-bd-info-content p {
+    font-size: 12px;
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .ske-bd-input-row {
+        flex-direction: column;
+    }
+    
+    .ske-bd-btn-save {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .ske-bd-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .ske-bd-stat-number {
+        font-size: 22px;
+    }
+    
+    .ske-bd-action-card {
+        padding: 12px;
+    }
+    
+    .ske-bd-action-icono {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .ske-bd-action-icono svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+/* ============================================
+MÓDULO APP - DISEÑO PROFESIONAL
+============================================ */
+
+.ske-app-info {
+    padding-bottom: 20px;
+}
+
+/* Header mejorado */
+.ske-app-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 24px rgba(155, 127, 212, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.ske-app-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-30%, -30%); }
+}
+
+.ske-app-icono {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ske-app-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-app-texto {
+    flex: 1;
+    z-index: 1;
+}
+
+.ske-app-titulo {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.5px;
+}
+
+.ske-app-subtitulo {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+/* Secciones profesionales */
+.ske-app-section {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ske-app-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--bg-soft);
+}
+
+.ske-app-section-icono {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ske-app-section-icono svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-app-icono-benefits { background: linear-gradient(135deg, #4CAF50, #388E3C); }
+.ske-app-icono-design { background: linear-gradient(135deg, #FF9800, #F57C00); }
+.ske-app-icono-code { background: linear-gradient(135deg, #2196F3, #1976D2); }
+.ske-app-icono-social { background: linear-gradient(135deg, #E91E63, #C2185B); }
+.ske-app-icono-contact { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+
+.ske-app-section-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+/* Beneficios - Lista vertical */
+.ske-app-benefits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-app-benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--bg), var(--bg-soft));
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s;
+}
+
+.ske-app-benefit-item:active {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ske-app-benefit-icono {
+    font-size: 28px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.ske-app-benefit-content {
+    flex: 1;
+}
+
+.ske-app-benefit-content strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.ske-app-benefit-content p {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Disclaimer */
+.ske-app-disclaimer {
+    background: linear-gradient(135deg, #FFF3CD, #FFE69C);
+    border-left: 4px solid #FFC107;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.ske-app-disclaimer-icono {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #FFC107, #FF9800);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.ske-app-disclaimer-icono svg {
+    width: 22px;
+    height: 22px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-app-disclaimer-texto {
+    flex: 1;
+}
+
+.ske-app-disclaimer-texto h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #856404;
+    margin: 0 0 6px 0;
+}
+
+.ske-app-disclaimer-texto p {
+    font-size: 12px;
+    color: #856404;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Créditos - Logos tamaño mediano */
+.ske-app-credit-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--bg), var(--bg-soft));
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ske-app-credit-logo-large {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.ske-app-logo-img-large {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.ske-app-credit-info {
+    flex: 1;
+}
+
+.ske-app-credit-info p {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Redes Sociales - Botón profesional */
+.ske-app-social-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #000000, #ff0050, #00f2ea);
+    color: white;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+}
+
+.ske-app-social-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Contacto - Botón profesional */
+.ske-app-contact-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 6px 20px rgba(155, 127, 212, 0.4);
+    transition: all 0.3s;
+}
+
+.ske-app-contact-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 10px rgba(155, 127, 212, 0.4);
+}
+
+/* Footer */
+.ske-app-footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 10px;
+}
+
+.ske-app-footer p {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+/* ============================================
+RESPONSIVE - MÓVIL
+============================================ */
+@media (max-width: 480px) {
+    .ske-app-header {
+        padding: 20px 16px;
+    }
+    
+    .ske-app-titulo {
+        font-size: 20px;
+    }
+    
+    .ske-app-section {
+        padding: 16px;
+    }
+    
+    .ske-app-credit-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .ske-app-credit-logo-large {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .ske-app-benefit-item {
+        padding: 12px;
+    }
+    
+    .ske-app-benefit-icono {
+        font-size: 24px;
+    }
+}
+/* ============================================
+BOTONES DE MODO LABORAL/DOMINGO - SKEUOMORPHISM
+============================================ */
+.ske-modo-dia-container {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ske-modo-dia-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.ske-modo-dia-botones {
+    display: flex;
+    gap: 10px;
+}
+
+.ske-modo-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    background: linear-gradient(145deg, var(--bg), var(--bg-soft));
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.ske-modo-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-modo-btn:active {
+    transform: scale(0.96);
+}
+
+.ske-modo-btn-activo {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 4px 12px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ske-modo-btn-activo svg {
+    stroke: white;
+}
+
+/* Badge de tipo de día en header de servicio */
+.ske-tipo-dia-badge {
+    background: linear-gradient(145deg, var(--primary), var(--accent));
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 
+        0 3px 8px rgba(155, 127, 212, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Servicio no existe */
+.ske-servicio-no-existe {
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    border: 2px solid #ff9800;
+    box-shadow: 
+        0 6px 16px rgba(255, 152, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    margin-bottom: 14px;
+}
+
+.ske-servicio-no-existe-icono {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    background: linear-gradient(145deg, #ff9800, #f57c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 6px 16px rgba(255, 152, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.ske-servicio-no-existe-icono svg {
+    width: 36px;
+    height: 36px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-servicio-no-existe h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ske-servicio-no-existe p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0 0 8px 0;
+    line-height: 1.5;
+}
+
+.ske-servicio-no-existe-hint {
+    font-size: 11px;
+    color: var(--text-light);
+    font-style: italic;
+    margin: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .ske-modo-dia-botones {
+        flex-direction: column;
+    }
+    
+    .ske-modo-btn {
+        width: 100%;
+    }
+}
+/* ============================================
+   TIEMPO EXTRA - SELECT SKEUOMÓRFICO
+   ============================================ */
+.ske-te-input-group select {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(145deg, var(--surface), var(--bg-soft));
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B7FD4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+}
+
+.ske-te-input-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.06),
+        0 0 0 3px var(--primary-soft);
+}
+
+.ske-te-input-group select option {
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px;
+}
+
+/* Badge de tipo en las tarjetas */
+.ske-te-card-titulo h3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ske-te-card-titulo h3::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+}
+
+.ske-te-card-titulo h3:has(:contains("110"))::before {
+    background: #FF9800;
+}
+
+.ske-te-card-titulo h3:has(:contains("Suplementario"))::before {
+    background: #4CAF50;
+}
