@@ -11,7 +11,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- ✅ Meta tags para iOS (ACTUALIZADAS) -->
+    <!-- ✅ Meta tags para iOS (ACTUALIZADAS - sin advertencia deprecated) -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -57,7 +57,7 @@
     <script>
         (function() {
             function initSplash() {
-                console.log(' Iniciando splash...');
+                console.log('🎬 Iniciando splash...');
                 setTimeout(function() {
                     console.log('⏳ Ocultando splash (2s)');
                     var splash = document.getElementById('splashScreen');
@@ -69,7 +69,7 @@
                         if (wave) wave.classList.add('active');
                         
                         setTimeout(function() {
-                            console.log(' Mostrando auth (2.6s)');
+                            console.log('🔐 Mostrando auth (2.6s)');
                             var auth = document.getElementById('authContainer');
                             if (auth) {
                                 auth.classList.add('show');
@@ -203,11 +203,87 @@
                     });
                 
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    console.log('🔄 Service Worker cambiado, recargando...');
+                    console.log(' Service Worker cambiado, recargando...');
                     window.location.reload();
                 });
             });
         }
+    </script>
+
+    <!-- ✅ SCRIPT: Botón ojito para ver contraseña (Login y Registro) -->
+    <script>
+    (function() {
+        function agregarBotonOjito() {
+            // Buscar todos los inputs de tipo password
+            const inputsPassword = document.querySelectorAll('input[type="password"]');
+            
+            inputsPassword.forEach(input => {
+                // Evitar agregar duplicados
+                if (input.parentElement.classList.contains('password-wrapper')) return;
+                
+                // Crear contenedor
+                const wrapper = document.createElement('div');
+                wrapper.className = 'password-wrapper';
+                
+                // Mover el input dentro del wrapper
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+                
+                // Crear botón del ojito
+                const btnOjo = document.createElement('button');
+                btnOjo.type = 'button';
+                btnOjo.className = 'btn-ver-password';
+                btnOjo.setAttribute('aria-label', 'Ver contraseña');
+                btnOjo.innerHTML = `
+                    <svg class="icono-ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                    <svg class="icono-ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                `;
+                
+                wrapper.appendChild(btnOjo);
+                
+                // Evento click para alternar visibilidad
+                btnOjo.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const esPassword = input.type === 'password';
+                    input.type = esPassword ? 'text' : 'password';
+                    
+                    // Alternar íconos
+                    const ojoCerrado = btnOjo.querySelector('.icono-ojo-cerrado');
+                    const ojoAbierto = btnOjo.querySelector('.icono-ojo-abierto');
+                    
+                    if (esPassword) {
+                        ojoCerrado.style.display = 'none';
+                        ojoAbierto.style.display = 'block';
+                    } else {
+                        ojoCerrado.style.display = 'block';
+                        ojoAbierto.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Ejecutar inmediatamente
+        agregarBotonOjito();
+        
+        // También ejecutar cuando cambie el DOM (por si el login/registro se renderiza después)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    setTimeout(agregarBotonOjito, 100);
+                }
+            });
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
+    })();
     </script>
 </body>
 </html>
