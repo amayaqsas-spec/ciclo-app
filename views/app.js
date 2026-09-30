@@ -31,14 +31,19 @@ const AppInfo = {
                     </div>
                     <div class="ske-app-benefits-list">
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">📅</div>
+                            <div class="ske-app-benefit-icono"></div>
                             <div class="ske-app-benefit-content">
                                 <strong>Gestión de Roles</strong>
                                 <p>Organiza tus turnos y horarios de manera eficiente</p>
                             </div>
                         </div>
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">️</div>
+                            <div class="ske-app-benefit-icono">
+                                <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
                             <div class="ske-app-benefit-content">
                                 <strong>Control de Tiempo</strong>
                                 <p>Monitorea tu descanso y tiempo extra en tiempo real</p>
@@ -63,13 +68,6 @@ const AppInfo = {
                             <div class="ske-app-benefit-content">
                                 <strong>Personalización</strong>
                                 <p>Múltiples temas y colores a tu elección</p>
-                            </div>
-                        </div>
-                        <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">📱</div>
-                            <div class="ske-app-benefit-content">
-                                <strong>100% Offline</strong>
-                                <p>Funciona sin internet, tus datos están locales</p>
                             </div>
                         </div>
                     </div>
@@ -171,7 +169,7 @@ const AppInfo = {
 
                 <!-- VERSIÓN -->
                 <div class="ske-app-footer">
-                    <p>CICLO v2.0 • Desarrollado por amayasily</p>
+                    <p>CICLO v1.0 • Desarrollado por amayasily</p>
                 </div>
             </div>
         `;
