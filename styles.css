@@ -8393,3 +8393,89 @@ BOTONES DE MODO LABORAL/DOMINGO - SKEUOMORPHISM
     width: 20px;
     height: 20px;
 }
+/* ============================================
+   CAMPANITA DE NOTIFICACIÓN EN HEADER
+   ============================================ */
+
+.header-bell {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.header-bell svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--text);
+    fill: none;
+    stroke-width: 2;
+    transition: all 0.2s;
+}
+
+.header-bell:hover svg {
+    stroke: var(--primary);
+    transform: scale(1.1);
+}
+
+.header-bell:active svg {
+    transform: scale(0.95);
+}
+
+/* Animación de campana cuando hay notificaciones */
+.header-bell.has-notifications svg {
+    animation: bellRing 2s ease-in-out infinite;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0); }
+    10%, 30% { transform: rotate(-10deg); }
+    20%, 40% { transform: rotate(10deg); }
+    50% { transform: rotate(0); }
+}
+
+/* Badge rojo con número */
+.bell-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(145deg, #ef5350, #d32f2f);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 
+        0 2px 6px rgba(239, 83, 80, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Poppins', sans-serif;
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@media (max-width: 360px) {
+    .header-bell {
+        padding: 6px;
+        margin-right: 10px;
+    }
+    
+    .header-bell svg {
+        width: 20px;
+        height: 20px;
+    }
+}

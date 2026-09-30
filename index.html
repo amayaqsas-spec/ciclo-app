@@ -11,7 +11,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- ✅ Meta tags para iOS (ACTUALIZADAS - sin advertencia deprecated) -->
+    <!-- ✅ Meta tags para iOS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -64,7 +64,7 @@
                     if (splash) splash.classList.add('hide');
                     
                     setTimeout(function() {
-                        console.log(' Activando wave (2.1s)');
+                        console.log('🌊 Activando wave (2.1s)');
                         var wave = document.getElementById('wave');
                         if (wave) wave.classList.add('active');
                         
@@ -133,6 +133,14 @@
                 </button>
                 <span class="header-title wave-title">CICLO</span>
             </div>
+            <!-- ✅ CAMPANITA DE NOTIFICACIÓN -->
+            <button class="header-bell" id="btnNotificaciones" title="Documentos nuevos">
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="bell-badge" id="bellBadge" style="display:none;">0</span>
+            </button>
         </header>
 
         <div class="app-content" id="viewContainer"></div>
@@ -173,12 +181,10 @@
                     .then((registration) => {
                         console.log('✅ Service Worker registrado:', registration.scope);
                         
-                        // ✅ Verificar actualizaciones cada hora
                         setInterval(() => {
                             registration.update();
                         }, 60 * 60 * 1000);
                         
-                        // ✅ Escuchar cuando hay una nueva versión disponible
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
                             console.log('🔄 Nueva versión detectada');
@@ -203,33 +209,28 @@
                     });
                 
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    console.log(' Service Worker cambiado, recargando...');
+                    console.log('🔄 Service Worker cambiado, recargando...');
                     window.location.reload();
                 });
             });
         }
     </script>
 
-    <!-- ✅ SCRIPT: Botón ojito para ver contraseña (Login y Registro) -->
+    <!-- ✅ SCRIPT: Botón ojito para ver contraseña -->
     <script>
     (function() {
         function agregarBotonOjito() {
-            // Buscar todos los inputs de tipo password
             const inputsPassword = document.querySelectorAll('input[type="password"]');
             
             inputsPassword.forEach(input => {
-                // Evitar agregar duplicados
                 if (input.parentElement.classList.contains('password-wrapper')) return;
                 
-                // Crear contenedor
                 const wrapper = document.createElement('div');
                 wrapper.className = 'password-wrapper';
                 
-                // Mover el input dentro del wrapper
                 input.parentNode.insertBefore(wrapper, input);
                 wrapper.appendChild(input);
                 
-                // Crear botón del ojito
                 const btnOjo = document.createElement('button');
                 btnOjo.type = 'button';
                 btnOjo.className = 'btn-ver-password';
@@ -247,7 +248,6 @@
                 
                 wrapper.appendChild(btnOjo);
                 
-                // Evento click para alternar visibilidad
                 btnOjo.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -255,7 +255,6 @@
                     const esPassword = input.type === 'password';
                     input.type = esPassword ? 'text' : 'password';
                     
-                    // Alternar íconos
                     const ojoCerrado = btnOjo.querySelector('.icono-ojo-cerrado');
                     const ojoAbierto = btnOjo.querySelector('.icono-ojo-abierto');
                     
@@ -270,10 +269,8 @@
             });
         }
         
-        // Ejecutar inmediatamente
         agregarBotonOjito();
         
-        // También ejecutar cuando cambie el DOM (por si el login/registro se renderiza después)
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.addedNodes.length > 0) {

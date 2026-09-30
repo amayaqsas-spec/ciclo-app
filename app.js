@@ -8,60 +8,28 @@ const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase 
 // TEMAS (15 temas en total)
 // ============================================
 const themes = {
-    // === TEMAS ORIGINALES (6) ===
     lavender: { '--bg': '#F0E6F6', '--bg-soft': '#E8D5F5', '--surface': '#F5EEFA', '--primary': '#9B7FD4', '--primary-soft': '#B8A5E0', '--accent': '#7C5CBF', '--text': '#3D2E5C', '--text-soft': '#7A6B8E', '--text-light': '#A89BBE', '--clay-shadow': '8px 8px 16px #D4C4E0, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #D4C4E0, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #D4C4E0, inset -4px -4px 8px #FFFFFF' },
     ocean: { '--bg': '#E6F4F6', '--bg-soft': '#D5EEF5', '--surface': '#EEF8FA', '--primary': '#5FB8D4', '--primary-soft': '#8CCCE0', '--accent': '#3D9ABF', '--text': '#2E4A5C', '--text-soft': '#6B828E', '--text-light': '#9BB0BE', '--clay-shadow': '8px 8px 16px #C4DCE0, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C4DCE0, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C4DCE0, inset -4px -4px 8px #FFFFFF' },
     mint: { '--bg': '#E6F6EE', '--bg-soft': '#D5F5E8', '--surface': '#EEFAF4', '--primary': '#5FD4A8', '--primary-soft': '#8CE0C0', '--accent': '#3DBF8A', '--text': '#2E5C4A', '--text-soft': '#6B8E7A', '--text-light': '#9BBEA8', '--clay-shadow': '8px 8px 16px #C4E0D4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C4E0D4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C4E0D4, inset -4px -4px 8px #FFFFFF' },
     peach: { '--bg': '#F6EEE6', '--bg-soft': '#F5E0D5', '--surface': '#FAF4EE', '--primary': '#D49B7F', '--primary-soft': '#E0B8A5', '--accent': '#BF7C5C', '--text': '#5C3D2E', '--text-soft': '#8E7A6B', '--text-light': '#BEA89B', '--clay-shadow': '8px 8px 16px #E0D4C4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0D4C4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0D4C4, inset -4px -4px 8px #FFFFFF' },
     night: { '--bg': '#2A2438', '--bg-soft': '#352F44', '--surface': '#3D3650', '--primary': '#5C5470', '--primary-soft': '#7A7290', '--accent': '#DBD8E3', '--text': '#FFFFFF', '--text-soft': '#C8C4D4', '--text-light': '#9A96A8', '--clay-shadow': '8px 8px 16px #1A1528, -8px -8px 16px #3A3448', '--clay-shadow-sm': '4px 4px 8px #1A1528, -4px -4px 8px #3A3448', '--clay-inset': 'inset 4px 4px 8px #1A1528, inset -4px -4px 8px #3A3448' },
     orange: { '--bg': '#EEEEEE', '--bg-soft': '#E0E0E0', '--surface': '#F5F5F5', '--primary': '#FD7014', '--primary-soft': '#FF8C3A', '--accent': '#FF6B00', '--text': '#222831', '--text-soft': '#5A6070', '--text-light': '#8A90A0', '--clay-shadow': '8px 8px 16px #C8C8C8, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C8C8C8, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C8C8C8, inset -4px -4px 8px #FFFFFF' },
-
-    // === NUEVOS TEMAS (9) ===
-    
-    // 1. Berry (Berry Pink + Aqua Teal)
     berry: { '--bg': '#F9FDFD', '--bg-soft': '#F0E8F0', '--surface': '#FFFFFF', '--primary': '#DE539D', '--primary-soft': '#E87FB5', '--accent': '#4EBFC1', '--text': '#3D2E3D', '--text-soft': '#7A6B7A', '--text-light': '#A89BA8', '--clay-shadow': '8px 8px 16px #E0D4DC, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0D4DC, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0D4DC, inset -4px -4px 8px #FFFFFF' },
-    
-    // 2. Pastas (Pastas Caseras)
     pastas: { '--bg': '#FFF8F0', '--bg-soft': '#FFF0E0', '--surface': '#FFFAF5', '--primary': '#D7561F', '--primary-soft': '#E87840', '--accent': '#2A8528', '--text': '#3D2E1E', '--text-soft': '#7A6B5B', '--text-light': '#A89B8B', '--clay-shadow': '8px 8px 16px #E8D4C4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E8D4C4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E8D4C4, inset -4px -4px 8px #FFFFFF' },
-    
-    // 3. Cosméticos
     cosmeticos: { '--bg': '#FDEAEC', '--bg-soft': '#F5D5D8', '--surface': '#FFF0F2', '--primary': '#D44771', '--primary-soft': '#E06B8F', '--accent': '#AF334F', '--text': '#2C2C2C', '--text-soft': '#6B6B6B', '--text-light': '#9B9B9B', '--clay-shadow': '8px 8px 16px #E0C4C8, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0C4C8, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0C4C8, inset -4px -4px 8px #FFFFFF' },
-    
-    // 4. Mascotas
     mascotas: { '--bg': '#FFF1D6', '--bg-soft': '#FFE8C0', '--surface': '#FFF8E8', '--primary': '#FF4D50', '--primary-soft': '#FF7A7C', '--accent': '#00BEB2', '--text': '#3D2E1E', '--text-soft': '#7A6B5B', '--text-light': '#A89B8B', '--clay-shadow': '8px 8px 16px #E8DCC4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E8DCC4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E8DCC4, inset -4px -4px 8px #FFFFFF' },
-    
-    // 5. Orquídea (Crema de cielo + Orquídea)
     orquidea: { '--bg': '#E8F1F5', '--bg-soft': '#D8E5EC', '--surface': '#F0F5F8', '--primary': '#E2A5B4', '--primary-soft': '#EBC0CB', '--accent': '#C98A9B', '--text': '#3D2E3D', '--text-soft': '#7A6B7A', '--text-light': '#A89BA8', '--clay-shadow': '8px 8px 16px #D4DCE0, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #D4DCE0, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #D4DCE0, inset -4px -4px 8px #FFFFFF' },
-    
-    // 6. Panadería
     panaderia: { '--bg': '#FAF7CA', '--bg-soft': '#F5F0B8', '--surface': '#FFFDE0', '--primary': '#D2AF3B', '--primary-soft': '#DFC060', '--accent': '#04624A', '--text': '#3D2E1E', '--text-soft': '#7A6B5B', '--text-light': '#A89B8B', '--clay-shadow': '8px 8px 16px #E8E0C4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E8E0C4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E8E0C4, inset -4px -4px 8px #FFFFFF' },
-    
-    // 7. Marino (Deep Navy + Cherry Red + Soft Butter)
     marino: { '--bg': '#FFEEB5', '--bg-soft': '#F5E5A0', '--surface': '#FFF5D0', '--primary': '#1A2D54', '--primary-soft': '#2E4570', '--accent': '#DD083D', '--text': '#1A2D54', '--text-soft': '#4A5D7A', '--text-light': '#7A8D9B', '--clay-shadow': '8px 8px 16px #E0DCC4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0DCC4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0DCC4, inset -4px -4px 8px #FFFFFF' },
-    
-    // 8. Bosque (Forest Teal + Honey Gold + Mist Gray)
     bosque: { '--bg': '#F9FDFD', '--bg-soft': '#E8F0F0', '--surface': '#F0F8F8', '--primary': '#006E59', '--primary-soft': '#208E75', '--accent': '#F7BD53', '--text': '#1E3D3D', '--text-soft': '#5B7A7A', '--text-light': '#8B9B9B', '--clay-shadow': '8px 8px 16px #D4E0E0, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #D4E0E0, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #D4E0E0, inset -4px -4px 8px #FFFFFF' },
-    
-    // 9. Vino (Butter Yellow + Wine Red + Dusty Coral)
     vino: { '--bg': '#FFF8E8', '--bg-soft': '#FFF0D8', '--surface': '#FFFAF0', '--primary': '#792447', '--primary-soft': '#9B4065', '--accent': '#D05755', '--text': '#3D1E2E', '--text-soft': '#7A5B6B', '--text-light': '#A88B9B', '--clay-shadow': '8px 8px 16px #E0D4D8, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0D4D8, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0D4D8, inset -4px -4px 8px #FFFFFF' }
 };
 
 const themeNames = {
-    lavender: 'Lavanda', 
-    ocean: 'Océano', 
-    mint: 'Menta', 
-    peach: 'Durazno',
-    night: 'Noche', 
-    orange: 'Naranja',
-    berry: 'Berry',
-    pastas: 'Pastas',
-    cosmeticos: 'Cosméticos',
-    mascotas: 'Mascotas',
-    orquidea: 'Orquídea',
-    panaderia: 'Panadería',
-    marino: 'Marino',
-    bosque: 'Bosque',
-    vino: 'Vino'
+    lavender: 'Lavanda', ocean: 'Océano', mint: 'Menta', peach: 'Durazno',
+    night: 'Noche', orange: 'Naranja', berry: 'Berry', pastas: 'Pastas',
+    cosmeticos: 'Cosméticos', mascotas: 'Mascotas', orquidea: 'Orquídea',
+    panaderia: 'Panadería', marino: 'Marino', bosque: 'Bosque', vino: 'Vino'
 };
 
 // ============================================
@@ -326,7 +294,6 @@ const Views = {
     initApariencia() {
         const savedTheme = DB.get('theme', 'lavender');
         
-        // ✅ Si el tema guardado ya no existe, usar Lavanda
         if (!themes[savedTheme]) {
             DB.set('theme', 'lavender');
             this.applyTheme('lavender', false);
@@ -379,7 +346,7 @@ const Views = {
 // ============================================
 const App = {
     init() {
-        console.log(' App.init() llamado');
+        console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
             console.error('❌ Firebase no está inicializado. Revisa index.html');
@@ -389,7 +356,7 @@ const App = {
         const auth = firebase.auth();
 
         auth.onAuthStateChanged(user => {
-            console.log(' Auth state changed:', user ? user.email : 'null');
+            console.log('🔐 Auth state changed:', user ? user.email : 'null');
 
             if (user) {
                 Auth.currentUser = user;
@@ -420,6 +387,9 @@ const App = {
                 Views.load('home', false);
 
                 this.initBackNavigation();
+
+                // ✅ CAMPANITA DE NOTIFICACIÓN DE DOCUMENTOS
+                this.inicializarCampanita();
 
                 const waveTitle = document.querySelector('.wave-title');
                 if (waveTitle && !waveTitle.classList.contains('wave-applied')) {
@@ -469,9 +439,49 @@ const App = {
         }
     },
 
+    // ✅ FUNCIÓN CAMPANITA DE NOTIFICACIÓN
+    inicializarCampanita() {
+        const btnNotificaciones = document.getElementById('btnNotificaciones');
+        const bellBadge = document.getElementById('bellBadge');
+
+        if (!btnNotificaciones || !bellBadge) return;
+
+        // Función para actualizar el badge
+        const actualizarBadge = () => {
+            const avisosNoLeidos = DB.get('avisosNoLeidos', 0);
+            
+            if (avisosNoLeidos > 0) {
+                bellBadge.textContent = avisosNoLeidos > 99 ? '99+' : avisosNoLeidos;
+                bellBadge.style.display = 'flex';
+                btnNotificaciones.classList.add('has-notifications');
+            } else {
+                bellBadge.style.display = 'none';
+                btnNotificaciones.classList.remove('has-notifications');
+            }
+        };
+
+        // Actualizar al cargar
+        actualizarBadge();
+
+        // Click en la campanita - ir a documentos
+        btnNotificaciones.addEventListener('click', () => {
+            Views.load('avisos', true);
+        });
+
+        // Actualizar badge cuando cambie la vista
+        const observer = new MutationObserver(() => {
+            setTimeout(actualizarBadge, 500);
+        });
+
+        observer.observe(document.getElementById('viewContainer'), { 
+            childList: true, 
+            subtree: true 
+        });
+    },
+
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log('🔙 Botón back presionado');
+            console.log(' Botón back presionado');
             this.handleBackButton();
         });
 
@@ -480,7 +490,7 @@ const App = {
 
     handleBackButton() {
         console.log('📜 Historial actual:', navigationHistory);
-        console.log(' Vista actual:', Views.current);
+        console.log('📍 Vista actual:', Views.current);
 
         if (navigationHistory.length > 1) {
             navigationHistory.pop();
@@ -505,7 +515,7 @@ const App = {
                     backPressTimer = null;
                 }, 2000);
             } else {
-                console.log('👋 Saliendo de la app');
+                console.log(' Saliendo de la app');
                 
                 if (navigator.app) {
                     navigator.app.exitApp();

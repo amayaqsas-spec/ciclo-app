@@ -51,11 +51,42 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
+        // ✅ Marcar todos los documentos como leídos al entrar al módulo
+        this.marcarTodosComoLeidos();
+        
         if (isAdmin) {
             document.getElementById('btnAddAviso')?.addEventListener('click', () => this.openModal());
         }
         
         this.cargarDocumentos();
+    },
+
+    // ✅ NUEVA FUNCIÓN: Marcar todos como leídos
+    async marcarTodosComoLeidos() {
+        try {
+            const leidos = DB.get('docsLeidos', []);
+            const snapshot = await this.getCollection().get();
+            
+            const todosIds = [];
+            snapshot.forEach((doc) => {
+                todosIds.push(doc.id);
+            });
+            
+            // Marcar todos como leídos
+            const nuevosLeidos = [...new Set([...leidos, ...todosIds])];
+            DB.set('docsLeidos', nuevosLeidos);
+            DB.set('avisosNoLeidos', 0);
+            
+            // Actualizar badge en el header
+            const bellBadge = document.getElementById('bellBadge');
+            const btnNotificaciones = document.getElementById('btnNotificaciones');
+            if (bellBadge) bellBadge.style.display = 'none';
+            if (btnNotificaciones) btnNotificaciones.classList.remove('has-notifications');
+            
+            console.log('✅ Documentos marcados como leídos:', todosIds.length);
+        } catch (error) {
+            console.error('Error al marcar como leídos:', error);
+        }
     },
 
     async cargarDocumentos() {
@@ -239,7 +270,6 @@ const Avisos = {
             </div>
         `);
 
-        // Aplicar clases skeuomórficas al modal generado
         modalOverlay.classList.add('ske-avisos-modal-overlay');
         modalOverlay.querySelector('.modal').classList.add('ske-avisos-modal');
 
