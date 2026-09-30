@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos con Skeuomorphism
+// AVISOS.JS - Módulo de Documentos
 // ============================================
 
 const Avisos = {
@@ -61,7 +61,7 @@ const Avisos = {
         this.cargarDocumentos();
     },
 
-    // ✅ NUEVA FUNCIÓN: Marcar todos como leídos
+    // ✅ Marcar todos como leídos (para la campanita)
     async marcarTodosComoLeidos() {
         try {
             const leidos = DB.get('docsLeidos', []);
@@ -72,12 +72,10 @@ const Avisos = {
                 todosIds.push(doc.id);
             });
             
-            // Marcar todos como leídos
             const nuevosLeidos = [...new Set([...leidos, ...todosIds])];
             DB.set('docsLeidos', nuevosLeidos);
             DB.set('avisosNoLeidos', 0);
             
-            // Actualizar badge en el header
             const bellBadge = document.getElementById('bellBadge');
             const btnNotificaciones = document.getElementById('btnNotificaciones');
             if (bellBadge) bellBadge.style.display = 'none';
@@ -89,17 +87,26 @@ const Avisos = {
         }
     },
 
+    // ✅ Cargar documentos SIN orderBy (más confiable)
     async cargarDocumentos() {
         const list = document.getElementById('avisoList');
         
         try {
-            const snapshot = await this.getCollection()
-                .orderBy('timestamp', 'desc')
-                .get();
+            // ✅ Cargar todos los documentos sin orderBy
+            const snapshot = await this.getCollection().get();
             
             const documentos = [];
             snapshot.forEach(doc => {
                 documentos.push({ id: doc.id, ...doc.data() });
+            });
+            
+            console.log('📄 Total de documentos cargados:', documentos.length);
+            
+            // ✅ Ordenar en el cliente por fecha (más reciente primero)
+            documentos.sort((a, b) => {
+                const fechaA = a.fecha || a.createdAt || '';
+                const fechaB = b.fecha || b.createdAt || '';
+                return fechaB.localeCompare(fechaA);
             });
             
             if (documentos.length === 0) {
@@ -127,7 +134,7 @@ const Avisos = {
             this.renderizarLista(documentos);
             
         } catch (error) {
-            console.error('Error al cargar:', error);
+            console.error('❌ Error al cargar:', error);
             list.innerHTML = `
                 <div class="ske-avisos-empty">
                     <div class="ske-avisos-empty-icono">
@@ -288,6 +295,7 @@ const Avisos = {
         document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modalOverlay));
     },
 
+    // ✅ Guardar documento - CORREGIDO
     async guardarDocumento(editId, modalOverlay) {
         const titulo = document.getElementById('docTitulo').value.trim();
         const texto = document.getElementById('docTexto').value.trim();
@@ -308,23 +316,21 @@ const Avisos = {
                 texto,
                 url,
                 tipo: 'google_drive',
-                updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
-                updatedBy: Auth.currentUser?.email || 'admin'
+                fecha: new Date().toLocaleDateString('es-MX'),
+                creadoPor: Auth.currentUser?.email || 'admin'
             };
 
             if (editId) {
                 await this.getCollection().doc(editId).update(data);
                 App.showToast('✅ Documento actualizado');
             } else {
-                data.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
-                data.fecha = new Date().toLocaleDateString();
-                data.creadoPor = Auth.currentUser?.email || 'admin';
-                
                 await this.getCollection().add(data);
                 App.showToast('✅ Documento guardado');
             }
 
             modalOverlay.remove();
+            
+            // ✅ Recargar lista después de guardar
             await this.cargarDocumentos();
             
         } catch (error) {
