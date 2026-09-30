@@ -92,7 +92,6 @@ const Avisos = {
         const list = document.getElementById('avisoList');
         
         try {
-            // ✅ Cargar todos los documentos sin orderBy
             const snapshot = await this.getCollection().get();
             
             const documentos = [];
@@ -330,8 +329,14 @@ const Avisos = {
 
             modalOverlay.remove();
             
-            // ✅ Recargar lista después de guardar
             await this.cargarDocumentos();
+            
+            // ✅ Recalcular campanita para todos los usuarios
+            if (window.App && window.App.inicializarCampanita) {
+                setTimeout(() => {
+                    window.App.inicializarCampanita();
+                }, 1000);
+            }
             
         } catch (error) {
             console.error('Error al guardar:', error);

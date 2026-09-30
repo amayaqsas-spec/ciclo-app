@@ -439,49 +439,71 @@ const App = {
         }
     },
 
-    // ✅ FUNCIÓN CAMPANITA DE NOTIFICACIÓN
-    inicializarCampanita() {
+    // ✅ FUNCIÓN CAMPANITA DE NOTIFICACIÓN - CORREGIDA
+    async inicializarCampanita() {
         const btnNotificaciones = document.getElementById('btnNotificaciones');
         const bellBadge = document.getElementById('bellBadge');
 
         if (!btnNotificaciones || !bellBadge) return;
 
-        // Función para actualizar el badge
-        const actualizarBadge = () => {
-            const avisosNoLeidos = DB.get('avisosNoLeidos', 0);
-            
-            if (avisosNoLeidos > 0) {
-                bellBadge.textContent = avisosNoLeidos > 99 ? '99+' : avisosNoLeidos;
-                bellBadge.style.display = 'flex';
-                btnNotificaciones.classList.add('has-notifications');
-            } else {
-                bellBadge.style.display = 'none';
-                btnNotificaciones.classList.remove('has-notifications');
+        // ✅ Función para calcular documentos no leídos desde Firebase
+        const calcularNoLeidos = async () => {
+            try {
+                const leidos = DB.get('docsLeidos', []);
+                
+                // ✅ Consultar Firebase para obtener todos los documentos
+                const snapshot = await window.firebase.firestore().collection('avisos').get();
+                
+                let noLeidos = 0;
+                snapshot.forEach((doc) => {
+                    if (!leidos.includes(doc.id)) {
+                        noLeidos++;
+                    }
+                });
+                
+                DB.set('avisosNoLeidos', noLeidos);
+                
+                // ✅ Actualizar el badge
+                if (noLeidos > 0) {
+                    bellBadge.textContent = noLeidos > 99 ? '99+' : noLeidos;
+                    bellBadge.style.display = 'flex';
+                    btnNotificaciones.classList.add('has-notifications');
+                } else {
+                    bellBadge.style.display = 'none';
+                    btnNotificaciones.classList.remove('has-notifications');
+                }
+                
+                console.log(' Documentos no leídos:', noLeidos);
+            } catch (error) {
+                console.error('Error al calcular no leídos:', error);
             }
         };
 
-        // Actualizar al cargar
-        actualizarBadge();
+        // ✅ Calcular al cargar
+        await calcularNoLeidos();
 
-        // Click en la campanita - ir a documentos
+        // ✅ Click en la campanita - ir a documentos
         btnNotificaciones.addEventListener('click', () => {
             Views.load('avisos', true);
         });
 
-        // Actualizar badge cuando cambie la vista
+        // ✅ Recalcular cada vez que cambie la vista
         const observer = new MutationObserver(() => {
-            setTimeout(actualizarBadge, 500);
+            setTimeout(calcularNoLeidos, 1000);
         });
 
         observer.observe(document.getElementById('viewContainer'), { 
             childList: true, 
             subtree: true 
         });
+
+        // ✅ Recalcular cada 2 minutos (por si suben documentos nuevos)
+        setInterval(calcularNoLeidos, 2 * 60 * 1000);
     },
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -496,7 +518,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('↩️ Volviendo a:', vistaAnterior);
+            console.log('️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             
@@ -515,7 +537,7 @@ const App = {
                     backPressTimer = null;
                 }, 2000);
             } else {
-                console.log(' Saliendo de la app');
+                console.log('👋 Saliendo de la app');
                 
                 if (navigator.app) {
                     navigator.app.exitApp();
@@ -579,4 +601,4 @@ if (document.readyState === 'loading') {
     startApp();
 }
 
-console.log('📜 app.js cargado correctamente');
+console.log(' app.js cargado correctamente');
