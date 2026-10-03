@@ -1,15 +1,14 @@
 // ============================================
-// TERMINAL.JS - Módulo de Registro de Terminales con Firebase
+// TERMINAL.JS - Módulo de Registro de Terminales con Firebase (DEBUG MEJORADO)
 // ============================================
 
 const Terminal = {
     render() {
-        // ✅ Usar datos de localStorage (que ya están actualizados)
         const terminales = DB.load('terminales');
         const lineas = DB.load('lineas');
 
-        console.log('📋 Renderizando terminales:', terminales.length);
-        console.log('📋 Líneas disponibles:', lineas.length);
+        console.log('📋 Renderizando terminales:', terminales);
+        console.log('📋 Líneas disponibles:', lineas);
 
         return `
             <div class="view active ske-registro">
@@ -41,7 +40,7 @@ const Terminal = {
                         <div class="ske-registro-lista">
                             ${terminales.map(t => {
                                 const linea = lineas.find(l => l.id === t.lineaId);
-                                console.log(`🔍 Terminal: ${t.nombre}, lineaId: ${t.lineaId}, Línea encontrada: ${linea ? linea.nombre : '❌ NO'}`);
+                                console.log(`🔍 Terminal: ${t.nombre}, lineaId: "${t.lineaId}", Línea encontrada: ${linea ? linea.nombre : '❌ NO'}`);
                                 return `
                                     <div class="ske-registro-card">
                                         <div class="ske-registro-card-info">
@@ -63,17 +62,14 @@ const Terminal = {
     },
 
     async init() {
-        // ✅ 1. Cargar datos desde Firebase (actualiza localStorage)
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('lineas');
 
         console.log('✅ Datos cargados en init()');
 
-        // ✅ 2. Renderizar la vista
         const container = document.getElementById('viewContainer');
         container.innerHTML = this.render();
 
-        // ✅ 3. Attachar eventos
         document.getElementById('btnAddTerminal')?.addEventListener('click', () => this.openModal());
 
         document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
@@ -89,15 +85,17 @@ const Terminal = {
         const terminales = DB.load('terminales');
         const terminal = editId ? terminales.find(t => t.id === editId) : null;
         
-        // ✅ Cargar líneas desde Firebase
         await DB_FIREBASE.load('lineas');
         const lineas = DB.load('lineas');
 
         console.log('📋 Líneas en modal:', lineas);
+        console.log(' Terminal a editar:', terminal);
 
-        const lineaOptions = lineas.length > 0
-            ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
-            : '<option value="">Primero registra una línea</option>';
+        const lineasValidas = lineas.filter(l => l.id && l.id !== 'undefined');
+        
+        const lineaOptions = lineasValidas.length > 0
+            ? '<option value="">Selecciona una línea</option>' + lineasValidas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
+            : '<option value="">Primero registra una línea válida</option>';
 
         const modalOverlay = App.showModal(`
             <div class="ske-registro-modal-inner">
@@ -125,13 +123,21 @@ const Terminal = {
 
         document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
         document.getElementById('btnSave').addEventListener('click', async () => {
-            const lineaId = document.getElementById('terminalLinea').value;
+            const selectLinea = document.getElementById('terminalLinea');
+            const lineaId = selectLinea.value;
             const nombre = document.getElementById('terminalNombre').value.trim();
 
             console.log('💾 Guardando terminal:', { lineaId, nombre });
+            console.log('🔍 Valor del select:', selectLinea.value);
+            console.log('🔍 Texto seleccionado:', selectLinea.options[selectLinea.selectedIndex]?.text);
 
-            if (!lineaId || !nombre) {
-                App.showToast('⚠️ Completa todos los campos');
+            if (!lineaId || lineaId === '' || lineaId === 'undefined') {
+                App.showToast('️ Selecciona una línea válida');
+                return;
+            }
+
+            if (!nombre) {
+                App.showToast('⚠️ El nombre es obligatorio');
                 return;
             }
 
@@ -141,6 +147,7 @@ const Terminal = {
                 const idx = terminales.findIndex(t => t.id === editId);
                 if (idx !== -1) {
                     terminales[idx] = { ...terminales[idx], lineaId, nombre };
+                    console.log('✅ Terminal actualizada:', terminales[idx]);
                 }
             } else {
                 terminales.push({
@@ -149,17 +156,16 @@ const Terminal = {
                     nombre,
                     createdAt: Date.now()
                 });
+                console.log('✅ Terminal creada:', terminales[terminales.length - 1]);
             }
 
-            console.log(' Terminales a guardar:', terminales);
+            console.log(' Todas las terminales:', terminales);
 
-            // ✅ Guardar local y en Firebase
             await DB_FIREBASE.sync('terminales', terminales);
 
             modalOverlay.remove();
             App.showToast(editId ? '✅ Terminal actualizada' : '✅ Terminal guardada');
 
-            // ✅ Recargar la vista
             await this.init();
         });
     },
@@ -169,12 +175,10 @@ const Terminal = {
 
         let terminales = DB.load('terminales').filter(t => t.id !== id);
 
-        // ✅ Guardar local y en Firebase
         await DB_FIREBASE.sync('terminales', terminales);
 
-        App.showToast('️ Terminal eliminada');
+        App.showToast('🗑️ Terminal eliminada');
 
-        // ✅ Recargar la vista
         await this.init();
     }
 };
