@@ -85,6 +85,7 @@ const Views = {
         { 
             id: 'registro', 
             label: 'Registro', 
+            adminOnly: true, // ✅ Solo visible para el administrador
             icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
             submenu: [
                 { id: 'registro-linea', label: 'Línea' },
@@ -105,6 +106,9 @@ const Views = {
         let html = '<div class="nav-section-title">Principal</div>';
 
         this.menuItems.forEach(item => {
+            // ✅ Ocultar módulos adminOnly para usuarios normales
+            if (item.adminOnly && !Auth.isAdmin) return;
+            
             if (item.id === 'apariencia') {
                 html += '<div class="nav-section-title">Configuración</div>';
             }
@@ -181,7 +185,7 @@ const Views = {
     },
 
     async load(viewId, addToHistory = true) {
-        console.log('📂 Cargando vista:', viewId);
+        console.log(' Cargando vista:', viewId);
 
         const currentModule = this.getCurrentModule();
         if (currentModule && typeof currentModule.onLeave === 'function') {
@@ -439,19 +443,17 @@ const App = {
         }
     },
 
-    // ✅ FUNCIÓN CAMPANITA DE NOTIFICACIÓN - CORREGIDA
+    // ✅ FUNCIÓN CAMPANITA DE NOTIFICACIÓN
     async inicializarCampanita() {
         const btnNotificaciones = document.getElementById('btnNotificaciones');
         const bellBadge = document.getElementById('bellBadge');
 
         if (!btnNotificaciones || !bellBadge) return;
 
-        // ✅ Función para calcular documentos no leídos desde Firebase
         const calcularNoLeidos = async () => {
             try {
                 const leidos = DB.get('docsLeidos', []);
                 
-                // ✅ Consultar Firebase para obtener todos los documentos
                 const snapshot = await window.firebase.firestore().collection('avisos').get();
                 
                 let noLeidos = 0;
@@ -463,7 +465,6 @@ const App = {
                 
                 DB.set('avisosNoLeidos', noLeidos);
                 
-                // ✅ Actualizar el badge
                 if (noLeidos > 0) {
                     bellBadge.textContent = noLeidos > 99 ? '99+' : noLeidos;
                     bellBadge.style.display = 'flex';
@@ -479,15 +480,12 @@ const App = {
             }
         };
 
-        // ✅ Calcular al cargar
         await calcularNoLeidos();
 
-        // ✅ Click en la campanita - ir a documentos
         btnNotificaciones.addEventListener('click', () => {
             Views.load('avisos', true);
         });
 
-        // ✅ Recalcular cada vez que cambie la vista
         const observer = new MutationObserver(() => {
             setTimeout(calcularNoLeidos, 1000);
         });
@@ -497,7 +495,6 @@ const App = {
             subtree: true 
         });
 
-        // ✅ Recalcular cada 2 minutos (por si suben documentos nuevos)
         setInterval(calcularNoLeidos, 2 * 60 * 1000);
     },
 
@@ -518,7 +515,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('️ Volviendo a:', vistaAnterior);
+            console.log('↩️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             
