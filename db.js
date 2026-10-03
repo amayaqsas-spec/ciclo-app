@@ -3,14 +3,22 @@
 // ============================================
 
 const DB = {
-    // ✅ Obtener un valor del localStorage
+    // ✅ Obtener un valor del localStorage (con soporte para imágenes base64)
     get(key, defaultValue = null) {
         try {
             const value = localStorage.getItem(`ciclo_${key}`);
             if (value === null) return defaultValue;
+            
+            // ✅ Si el valor empieza con "data:image" o "data:audio", devolverlo como texto plano
+            if (typeof value === 'string' && (value.startsWith('data:image') || value.startsWith('data:audio'))) {
+                return value;
+            }
+            
             return JSON.parse(value);
         } catch (error) {
-            console.error(`❌ Error al obtener ${key}:`, error);
+            // ✅ Si falla JSON.parse, devolver el valor raw (texto plano)
+            const value = localStorage.getItem(`ciclo_${key}`);
+            if (value !== null) return value;
             return defaultValue;
         }
     },
@@ -44,7 +52,7 @@ const DB = {
             localStorage.setItem(`ciclo_${key}`, JSON.stringify(value));
             return true;
         } catch (error) {
-            console.error(`❌ Error al guardar ${key}:`, error);
+            console.error(` Error al guardar ${key}:`, error);
             return false;
         }
     },
@@ -102,7 +110,7 @@ const DB_FIREBASE = {
             console.log(`✅ ${coleccion} guardado en Firebase:`, datos.length, 'registros');
             return true;
         } catch (error) {
-            console.error(`❌ Error al guardar ${coleccion} en Firebase:`, error);
+            console.error(` Error al guardar ${coleccion} en Firebase:`, error);
             return false;
         }
     },
@@ -111,7 +119,7 @@ const DB_FIREBASE = {
     async loadFromFirebase(coleccion) {
         try {
             if (!window.firebase || !window.firebase.firestore) {
-                console.warn('️ Firebase no disponible');
+                console.warn('⚠️ Firebase no disponible');
                 return [];
             }
             
@@ -123,11 +131,11 @@ const DB_FIREBASE = {
                 console.log(`✅ ${coleccion} cargado desde Firebase:`, data.datos?.length || 0, 'registros');
                 return data.datos || [];
             } else {
-                console.log(`️ ${coleccion} no existe en Firebase (se usará caché local)`);
+                console.log(`⚠️ ${coleccion} no existe en Firebase (se usará caché local)`);
                 return [];
             }
         } catch (error) {
-            console.error(`❌ Error al cargar ${coleccion} desde Firebase:`, error);
+            console.error(` Error al cargar ${coleccion} desde Firebase:`, error);
             return [];
         }
     },
