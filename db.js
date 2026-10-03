@@ -1,5 +1,5 @@
 // ============================================
-// DB.JS - Módulo de Base de Datos Local
+// DB.JS - Módulo de Base de Datos Local y Firebase
 // ============================================
 
 const DB = {
@@ -21,7 +21,7 @@ const DB = {
             localStorage.setItem(`ciclo_${key}`, JSON.stringify(value));
             return true;
         } catch (error) {
-            console.error(` Error al guardar ${key}:`, error);
+            console.error(`❌ Error al guardar ${key}:`, error);
             return false;
         }
     },
@@ -74,12 +74,17 @@ const DB = {
 };
 
 // ============================================
-// DB_FIREBASE - Sincronización en la nube
+// DB_FIREBASE - Sincronización en la nube (CON MANEJO DE ERRORES SEGURO)
 // ============================================
 const DB_FIREBASE = {
     // ✅ Guardar colección en Firebase
     async saveToFirebase(coleccion, datos) {
         try {
+            if (!window.firebase || !window.firebase.firestore) {
+                console.warn('⚠️ Firebase no disponible');
+                return false;
+            }
+            
             const db = window.firebase.firestore();
             await db.collection('datos_globales').doc(coleccion).set({
                 datos: datos,
@@ -97,6 +102,11 @@ const DB_FIREBASE = {
     // ✅ Cargar colección desde Firebase
     async loadFromFirebase(coleccion) {
         try {
+            if (!window.firebase || !window.firebase.firestore) {
+                console.warn('⚠️ Firebase no disponible');
+                return [];
+            }
+            
             const db = window.firebase.firestore();
             const doc = await db.collection('datos_globales').doc(coleccion).get();
             
@@ -105,7 +115,7 @@ const DB_FIREBASE = {
                 console.log(`✅ ${coleccion} cargado desde Firebase:`, data.datos?.length || 0, 'registros');
                 return data.datos || [];
             } else {
-                console.log(`⚠️ ${coleccion} no existe en Firebase`);
+                console.log(`⚠️ ${coleccion} no existe en Firebase (se usará caché local)`);
                 return [];
             }
         } catch (error) {
@@ -116,33 +126,39 @@ const DB_FIREBASE = {
 
     // ✅ Sincronizar: guardar local y en Firebase
     async sync(coleccion, datos) {
-        // Guardar local
+        // 1. Siempre guardar local primero (para que sea inmediato y no bloquee la UI)
         DB.save(coleccion, datos);
         
-        // Guardar en Firebase (solo si es admin)
+        // 2. Intentar guardar en Firebase en segundo plano (solo si es admin)
         if (Auth.isAdmin) {
             await this.saveToFirebase(coleccion, datos);
         }
     },
 
-    // ✅ Cargar desde Firebase o local (fallback)
+    // ✅ Cargar desde Firebase o local (fallback seguro)
     async load(coleccion) {
-        // Intentar cargar desde Firebase
-        const datosFirebase = await this.loadFromFirebase(coleccion);
-        
-        if (datosFirebase.length > 0) {
-            // Guardar localmente para cache
-            DB.save(coleccion, datosFirebase);
-            return datosFirebase;
-        } else {
-            // Fallback a datos locales
-            console.log(`⚠️ Usando datos locales para ${coleccion}`);
+        try {
+            // Intentar cargar desde Firebase
+            const datosFirebase = await this.loadFromFirebase(coleccion);
+            
+            if (datosFirebase && datosFirebase.length > 0) {
+                // Guardar localmente para caché offline
+                DB.save(coleccion, datosFirebase);
+                return datosFirebase;
+            } else {
+                // Fallback a datos locales si Firebase está vacío o falla
+                console.log(`⚠️ Usando datos locales para ${coleccion}`);
+                return DB.load(coleccion);
+            }
+        } catch (error) {
+            console.error(`❌ Error crítico en load(${coleccion}):`, error);
+            // Último recurso: devolver datos locales para que la app nunca se quede en blanco
             return DB.load(coleccion);
         }
     }
 };
 
-// Hacer DB_FIREBASE disponible globalmente
+// Hacer DB_FIREBASE disponible globalmente en toda la app
 window.DB_FIREBASE = DB_FIREBASE;
 
 export default DB;
