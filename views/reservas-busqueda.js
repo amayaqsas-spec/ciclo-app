@@ -1,9 +1,10 @@
 // ============================================
-// RESERVAS-BUSQUEDA.JS - Módulo Corregido con Firebase
+// RESERVAS-BUSQUEDA.JS - Módulo Corregido con Firebase (TIMING FIX)
 // ============================================
 
 const ReservasBusqueda = {
     render() {
+        // ✅ Usar datos locales (que Firebase ya actualizó en background)
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
@@ -58,12 +59,27 @@ const ReservasBusqueda = {
     },
 
     async init() {
-        // ✅ Carga desde Firebase
-        const lineas = await DB_FIREBASE.load('lineas');
-        const terminales = await DB_FIREBASE.load('terminales');
-        const reservas = await DB_FIREBASE.load('reservas');
-        const turnos = await DB_FIREBASE.load('turnos') || [];
-        const semanas = await DB_FIREBASE.load('semanas') || [];
+        // ✅ 1. Primero cargar TODOS los datos desde Firebase
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('reservas');
+        await DB_FIREBASE.load('turnos');
+        await DB_FIREBASE.load('semanas');
+
+        // ✅ 2. AHORA SÍ leer del localStorage (que ya está actualizado)
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        const reservas = DB.load('reservas');
+        const turnos = DB.load('turnos') || [];
+        const semanas = DB.load('semanas') || [];
+
+        console.log('📊 Datos cargados:', {
+            lineas: lineas.length,
+            terminales: terminales.length,
+            reservas: reservas.length,
+            turnos: turnos.length,
+            semanas: semanas.length
+        });
 
         const selectLinea = document.getElementById('rbLinea');
         const selectTerminal = document.getElementById('rbTerminal');
@@ -94,13 +110,17 @@ const ReservasBusqueda = {
             resultadoDiv.innerHTML = '';
 
             if (lineaId) {
+                // ✅ Buscar terminales que tengan reservas para esta línea
                 const terminalesConReservas = reservas.filter(r => r.lineaId === lineaId).map(r => r.terminalId).filter((v, i, arr) => v && arr.indexOf(v) === i);
+                
                 if (terminalesConReservas.length > 0) {
+                    // Mostrar solo terminales con reservas
                     terminalesConReservas.forEach(termId => {
                         const terminal = terminales.find(t => t.id === termId);
                         selectTerminal.innerHTML += `<option value="${termId}">${terminal ? terminal.nombre : termId}</option>`;
                     });
                 } else {
+                    // Si no hay reservas, mostrar todas las terminales de esa línea
                     terminales.filter(t => t.lineaId === lineaId).forEach(t => {
                         selectTerminal.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
                     });
@@ -122,7 +142,13 @@ const ReservasBusqueda = {
 
             if (terminalId) {
                 const lineaId = selectLinea.value;
-                const turnoIds = [...new Set(reservas.filter(r => r.lineaId === lineaId && r.terminalId === terminalId).map(r => r.turnoId).filter(v => v))];
+                
+                // ✅ Buscar turnos únicos que tengan reservas
+                const turnoIds = [...new Set(
+                    reservas.filter(r => r.lineaId === lineaId && r.terminalId === terminalId)
+                        .map(r => r.turnoId)
+                        .filter(v => v)
+                )];
 
                 if (turnoIds.length > 0) {
                     turnoIds.forEach(turnoId => {
@@ -149,7 +175,13 @@ const ReservasBusqueda = {
             if (turnoId) {
                 const lineaId = selectLinea.value;
                 const terminalId = selectTerminal.value;
-                const semanaIds = [...new Set(reservas.filter(r => r.lineaId === lineaId && r.terminalId === terminalId && r.turnoId === turnoId).map(r => r.semanaId).filter(v => v))];
+                
+                // ✅ Buscar semanas/tipos de día únicos
+                const semanaIds = [...new Set(
+                    reservas.filter(r => r.lineaId === lineaId && r.terminalId === terminalId && r.turnoId === turnoId)
+                        .map(r => r.semanaId)
+                        .filter(v => v)
+                )];
 
                 if (semanaIds.length > 0) {
                     semanaIds.forEach(semanaId => {
@@ -184,7 +216,7 @@ const ReservasBusqueda = {
             const tipoReserva = inputTipoReserva.value.trim().toUpperCase();
 
             if (!lineaId || !terminalId || !turnoId || !semanaId || !tipoReserva) {
-                App.showToast('⚠️ Completa todos los campos');
+                App.showToast('️ Completa todos los campos');
                 return;
             }
 
@@ -194,7 +226,11 @@ const ReservasBusqueda = {
             const semana = semanas.find(s => s.id === semanaId);
 
             const reserva = reservas.find(r => {
-                return r.lineaId === lineaId && r.terminalId === terminalId && r.turnoId === turnoId && r.semanaId === semanaId && r.tipo.toUpperCase() === tipoReserva;
+                return r.lineaId === lineaId && 
+                       r.terminalId === terminalId && 
+                       r.turnoId === turnoId && 
+                       r.semanaId === semanaId && 
+                       r.tipo.toUpperCase() === tipoReserva;
             });
 
             if (reserva) {
