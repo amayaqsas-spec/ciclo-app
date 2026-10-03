@@ -8479,3 +8479,255 @@ BOTONES DE MODO LABORAL/DOMINGO - SKEUOMORPHISM
         height: 20px;
     }
 }
+/* ============================================
+   MÓDULO DE REGISTRO (LÍNEAS, TERMINALES, ETC.)
+   ============================================ */
+.ske-registro {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--text);
+}
+
+.ske-registro-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--clay-shadow-sm);
+}
+
+.ske-registro-icono {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-soft);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ske-registro-icono svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2;
+}
+
+.ske-registro-texto {
+    flex: 1;
+}
+
+.ske-registro-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px 0;
+}
+
+.ske-registro-subtitulo {
+    font-size: 14px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+.ske-registro-btn-nuevo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--clay-shadow-sm);
+}
+
+.ske-registro-btn-nuevo:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--clay-shadow);
+}
+
+.ske-registro-btn-nuevo svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+
+.ske-registro-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ske-registro-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--clay-shadow-sm);
+    transition: all 0.2s;
+}
+
+.ske-registro-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--clay-shadow);
+}
+
+.ske-registro-card-info strong {
+    display: block;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.ske-registro-card-info p {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin: 0;
+}
+
+.ske-registro-card-acciones {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.ske-registro-btn-editar,
+.ske-registro-btn-eliminar {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ske-registro-btn-editar {
+    background: var(--bg-soft);
+    color: var(--primary);
+}
+
+.ske-registro-btn-editar:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.ske-registro-btn-eliminar {
+    background: var(--bg-soft);
+    color: #ef5350;
+}
+
+.ske-registro-btn-eliminar:hover {
+    background: #ef5350;
+    color: white;
+}
+
+.ske-registro-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-soft);
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--clay-shadow-sm);
+}
+
+/* Modal de Registro */
+.ske-registro-modal-inner {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--clay-shadow);
+    color: var(--text);
+}
+
+.ske-registro-modal-header {
+    margin-bottom: 20px;
+}
+
+.ske-registro-modal-header h3 {
+    font-size: 20px;
+    color: var(--text);
+    margin: 0 0 8px 0;
+}
+
+.ske-registro-input-group {
+    margin-bottom: 16px;
+}
+
+.ske-registro-input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    margin-bottom: 6px;
+}
+
+.ske-registro-input-group input,
+.ske-registro-input-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--bg-soft);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.ske-registro-input-group input:focus,
+.ske-registro-input-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.ske-registro-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.ske-registro-btn-modal {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ske-registro-btn-modal#btnCancel {
+    background: var(--bg-soft);
+    color: var(--text-soft);
+}
+
+.ske-registro-btn-modal#btnCancel:hover {
+    background: var(--bg);
+}
+
+.ske-registro-btn-guardar {
+    background: var(--primary);
+    color: white;
+}
+
+.ske-registro-btn-guardar:hover {
+    background: var(--accent);
+}
