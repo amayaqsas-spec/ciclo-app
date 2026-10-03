@@ -4,9 +4,12 @@
 
 const Terminal = {
     render() {
-        // Render rápido usando caché local (que DB_FIREBASE ya actualizó)
+        // ✅ Usar datos de localStorage (que ya están actualizados)
         const terminales = DB.load('terminales');
         const lineas = DB.load('lineas');
+
+        console.log('📋 Renderizando terminales:', terminales.length);
+        console.log('📋 Líneas disponibles:', lineas.length);
 
         return `
             <div class="view active ske-registro">
@@ -38,6 +41,7 @@ const Terminal = {
                         <div class="ske-registro-lista">
                             ${terminales.map(t => {
                                 const linea = lineas.find(l => l.id === t.lineaId);
+                                console.log(`🔍 Terminal: ${t.nombre}, lineaId: ${t.lineaId}, Línea encontrada: ${linea ? linea.nombre : '❌ NO'}`);
                                 return `
                                     <div class="ske-registro-card">
                                         <div class="ske-registro-card-info">
@@ -59,20 +63,23 @@ const Terminal = {
     },
 
     async init() {
-        // ✅ Cargar datos desde Firebase (actualiza caché local)
+        // ✅ 1. Cargar datos desde Firebase (actualiza localStorage)
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('lineas');
-        
-        // Renderizar la vista con los datos actualizados
+
+        console.log('✅ Datos cargados en init()');
+
+        // ✅ 2. Renderizar la vista
         const container = document.getElementById('viewContainer');
         container.innerHTML = this.render();
-        
+
+        // ✅ 3. Attachar eventos
         document.getElementById('btnAddTerminal')?.addEventListener('click', () => this.openModal());
-        
+
         document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
             btn.addEventListener('click', () => this.openModal(btn.dataset.id));
         });
-        
+
         document.querySelectorAll('.ske-registro-btn-eliminar').forEach(btn => {
             btn.addEventListener('click', () => this.eliminar(btn.dataset.id));
         });
@@ -81,8 +88,13 @@ const Terminal = {
     async openModal(editId = null) {
         const terminales = DB.load('terminales');
         const terminal = editId ? terminales.find(t => t.id === editId) : null;
-        const lineas = await DB_FIREBASE.load('lineas');
         
+        // ✅ Cargar líneas desde Firebase
+        await DB_FIREBASE.load('lineas');
+        const lineas = DB.load('lineas');
+
+        console.log('📋 Líneas en modal:', lineas);
+
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
             : '<option value="">Primero registra una línea</option>';
@@ -116,6 +128,8 @@ const Terminal = {
             const lineaId = document.getElementById('terminalLinea').value;
             const nombre = document.getElementById('terminalNombre').value.trim();
 
+            console.log('💾 Guardando terminal:', { lineaId, nombre });
+
             if (!lineaId || !nombre) {
                 App.showToast('⚠️ Completa todos los campos');
                 return;
@@ -137,38 +151,16 @@ const Terminal = {
                 });
             }
 
+            console.log(' Terminales a guardar:', terminales);
+
             // ✅ Guardar local y en Firebase
             await DB_FIREBASE.sync('terminales', terminales);
 
             modalOverlay.remove();
             App.showToast(editId ? '✅ Terminal actualizada' : '✅ Terminal guardada');
-            
-            // Recargar vista
-            const container = document.getElementById('viewContainer');
-            container.innerHTML = this.render();
-            this.init(); // Re-attach events
-            
-            setTimeout(() => {
-                App.showModal(`
-                    <div class="ske-registro-modal-inner">
-                        <div class="ske-registro-modal-header">
-                            <h3>ℹ️ Información Importante</h3>
-                        </div>
-                        <div class="ske-registro-modal-body">
-                            <p style="color:var(--text-soft);font-size:13px;line-height:1.6;">
-                                Si hay más turnos por terminal, hay que registrar cada uno por separado en el módulo <strong>Registro > Turno</strong>.
-                            </p>
-                        </div>
-                        <div class="ske-registro-modal-footer">
-                            <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnOk" style="width:100%">Entendido</button>
-                        </div>
-                    </div>
-                `);
-                document.getElementById('btnOk').addEventListener('click', () => {
-                    const modalEl = document.querySelector('.modal-overlay');
-                    if (modalEl) modalEl.remove();
-                });
-            }, 300);
+
+            // ✅ Recargar la vista
+            await this.init();
         });
     },
 
@@ -176,16 +168,14 @@ const Terminal = {
         if (!confirm('¿Eliminar esta terminal?')) return;
 
         let terminales = DB.load('terminales').filter(t => t.id !== id);
-        
+
         // ✅ Guardar local y en Firebase
         await DB_FIREBASE.sync('terminales', terminales);
 
-        App.showToast('🗑️ Terminal eliminada');
-        
-        // Recargar vista
-        const container = document.getElementById('viewContainer');
-        container.innerHTML = this.render();
-        this.init();
+        App.showToast('️ Terminal eliminada');
+
+        // ✅ Recargar la vista
+        await this.init();
     }
 };
 
