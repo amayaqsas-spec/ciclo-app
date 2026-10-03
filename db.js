@@ -70,8 +70,16 @@ const DB = {
             console.error('❌ Error al limpiar la base de datos:', error);
             return false;
         }
+    },
+
+    // ✅ Generar ID único
+    generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 };
+
+// ✅ Hacer DB disponible globalmente
+window.DB = DB;
 
 // ============================================
 // DB_FIREBASE - Sincronización en la nube (CON MANEJO DE ERRORES SEGURO)
@@ -103,7 +111,7 @@ const DB_FIREBASE = {
     async loadFromFirebase(coleccion) {
         try {
             if (!window.firebase || !window.firebase.firestore) {
-                console.warn('⚠️ Firebase no disponible');
+                console.warn('️ Firebase no disponible');
                 return [];
             }
             
@@ -115,7 +123,7 @@ const DB_FIREBASE = {
                 console.log(`✅ ${coleccion} cargado desde Firebase:`, data.datos?.length || 0, 'registros');
                 return data.datos || [];
             } else {
-                console.log(`⚠️ ${coleccion} no existe en Firebase (se usará caché local)`);
+                console.log(`️ ${coleccion} no existe en Firebase (se usará caché local)`);
                 return [];
             }
         } catch (error) {
@@ -126,10 +134,10 @@ const DB_FIREBASE = {
 
     // ✅ Sincronizar: guardar local y en Firebase
     async sync(coleccion, datos) {
-        // 1. Siempre guardar local primero (para que sea inmediato y no bloquee la UI)
+        // 1. Siempre guardar local primero
         DB.save(coleccion, datos);
         
-        // 2. Intentar guardar en Firebase en segundo plano (solo si es admin)
+        // 2. Intentar guardar en Firebase (solo si es admin)
         if (Auth.isAdmin) {
             await this.saveToFirebase(coleccion, datos);
         }
@@ -138,27 +146,21 @@ const DB_FIREBASE = {
     // ✅ Cargar desde Firebase o local (fallback seguro)
     async load(coleccion) {
         try {
-            // Intentar cargar desde Firebase
             const datosFirebase = await this.loadFromFirebase(coleccion);
             
             if (datosFirebase && datosFirebase.length > 0) {
-                // Guardar localmente para caché offline
                 DB.save(coleccion, datosFirebase);
                 return datosFirebase;
             } else {
-                // Fallback a datos locales si Firebase está vacío o falla
                 console.log(`⚠️ Usando datos locales para ${coleccion}`);
                 return DB.load(coleccion);
             }
         } catch (error) {
             console.error(`❌ Error crítico en load(${coleccion}):`, error);
-            // Último recurso: devolver datos locales para que la app nunca se quede en blanco
             return DB.load(coleccion);
         }
     }
 };
 
-// Hacer DB_FIREBASE disponible globalmente en toda la app
+// ✅ Hacer DB_FIREBASE disponible globalmente
 window.DB_FIREBASE = DB_FIREBASE;
-
-export default DB;
