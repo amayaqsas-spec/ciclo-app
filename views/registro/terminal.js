@@ -1,63 +1,123 @@
 // ============================================
-// TERMINAL.JS - Módulo de Registro de Terminales
+// TERMINAL.JS - Módulo de Registro de Terminales con Firebase
 // ============================================
 
 const Terminal = {
     render() {
+        // Render rápido usando caché local (que DB_FIREBASE ya actualizó)
         const terminales = DB.load('terminales');
+        const lineas = DB.load('lineas');
 
         return `
-            <div class="view active">
-                <div class="crud-header">
-                    <h2 class="page-title" style="margin:0;">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                        Terminales
-                    </h2>
-                    <button class="btn-add" id="btnAddTerminal">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nuevo
+            <div class="view active ske-registro">
+                <div class="ske-registro-header">
+                    <div class="ske-registro-icono">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                    </div>
+                    <div class="ske-registro-texto">
+                        <h2 class="ske-registro-titulo">Registro de Terminales</h2>
+                        <p class="ske-registro-subtitulo">${terminales.length} terminales registradas</p>
+                    </div>
+                    <button class="ske-registro-btn-nuevo" id="btnAddTerminal">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Nueva</span>
                     </button>
                 </div>
-                <div id="terminalList"></div>
+
+                <div id="terminalList">
+                    ${terminales.length === 0 ? `
+                        <div class="ske-registro-empty">
+                            <p>No hay terminales registradas</p>
+                        </div>
+                    ` : `
+                        <div class="ske-registro-lista">
+                            ${terminales.map(t => {
+                                const linea = lineas.find(l => l.id === t.lineaId);
+                                return `
+                                    <div class="ske-registro-card">
+                                        <div class="ske-registro-card-info">
+                                            <strong>${t.nombre || 'Sin nombre'}</strong>
+                                            <p>${linea ? linea.nombre : 'Sin línea asignada'}</p>
+                                        </div>
+                                        <div class="ske-registro-card-acciones">
+                                            <button class="ske-registro-btn-editar" data-id="${t.id}">Editar</button>
+                                            <button class="ske-registro-btn-eliminar" data-id="${t.id}">Eliminar</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
             </div>
         `;
     },
 
-    init() {
-        document.getElementById('btnAddTerminal').addEventListener('click', () => this.openModal());
-        this.renderList();
+    async init() {
+        // ✅ Cargar datos desde Firebase (actualiza caché local)
+        await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('lineas');
+        
+        // Renderizar la vista con los datos actualizados
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = this.render();
+        
+        document.getElementById('btnAddTerminal')?.addEventListener('click', () => this.openModal());
+        
+        document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
+            btn.addEventListener('click', () => this.openModal(btn.dataset.id));
+        });
+        
+        document.querySelectorAll('.ske-registro-btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', () => this.eliminar(btn.dataset.id));
+        });
     },
 
-    openModal(editId = null) {
-        const data = editId ? DB.load('terminales').find(t => t.id === editId) : null;
-        const lineas = DB.load('lineas');
+    async openModal(editId = null) {
+        const terminales = DB.load('terminales');
+        const terminal = editId ? terminales.find(t => t.id === editId) : null;
+        const lineas = await DB_FIREBASE.load('lineas');
+        
         const lineaOptions = lineas.length > 0
-            ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${data && data.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
+            ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
             : '<option value="">Primero registra una línea</option>';
 
-        const modal = App.showModal(`
-            <h3>${editId ? 'Editar' : 'Nueva'} Terminal</h3>
-            <div class="input-group">
-                <label>Línea</label>
-                <select id="terminalLinea">${lineaOptions}</select>
-            </div>
-            <div class="input-group">
-                <label>Nombre de Terminal</label>
-                <input type="text" id="terminalNombre" value="${data ? data.nombre : ''}" placeholder="Ej. Cuatro Caminos">
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancel">Cancelar</button>
-                <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
+        const modalOverlay = App.showModal(`
+            <div class="ske-registro-modal-inner">
+                <div class="ske-registro-modal-header">
+                    <h3>${editId ? 'Editar' : 'Nueva'} Terminal</h3>
+                </div>
+                <div class="ske-registro-modal-body">
+                    <div class="ske-registro-input-group">
+                        <label>Línea *</label>
+                        <select id="terminalLinea" class="ske-registro-select">${lineaOptions}</select>
+                    </div>
+                    <div class="ske-registro-input-group">
+                        <label>Nombre de Terminal *</label>
+                        <input type="text" id="terminalNombre" class="ske-registro-input" value="${terminal ? terminal.nombre : ''}" placeholder="Ej. Cuatro Caminos">
+                    </div>
+                </div>
+                <div class="ske-registro-modal-footer">
+                    <button class="ske-registro-btn-modal" id="btnCancel">Cancelar</button>
+                    <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnSave">
+                        ${editId ? 'Actualizar' : 'Guardar'}
+                    </button>
+                </div>
             </div>
         `);
 
-        document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
-        document.getElementById('btnSave').addEventListener('click', () => {
+        document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
+        document.getElementById('btnSave').addEventListener('click', async () => {
             const lineaId = document.getElementById('terminalLinea').value;
             const nombre = document.getElementById('terminalNombre').value.trim();
 
             if (!lineaId || !nombre) {
-                App.showToast('Completa todos los campos');
+                App.showToast('⚠️ Completa todos los campos');
                 return;
             }
 
@@ -77,19 +137,31 @@ const Terminal = {
                 });
             }
 
-            DB.save('terminales', terminales);
-            modal.remove();
-            this.renderList();
-            App.showToast(editId ? 'Terminal actualizada' : 'Terminal guardada');
+            // ✅ Guardar local y en Firebase
+            await DB_FIREBASE.sync('terminales', terminales);
+
+            modalOverlay.remove();
+            App.showToast(editId ? '✅ Terminal actualizada' : '✅ Terminal guardada');
+            
+            // Recargar vista
+            const container = document.getElementById('viewContainer');
+            container.innerHTML = this.render();
+            this.init(); // Re-attach events
             
             setTimeout(() => {
                 App.showModal(`
-                    <h3>ℹ️ Información Importante</h3>
-                    <p style="color:var(--text-soft);font-size:13px;line-height:1.6;margin-bottom:16px;">
-                        Si hay más turnos por terminal, hay que registrar cada uno por separado en el módulo <strong>Registro > Turno</strong>.
-                    </p>
-                    <div class="modal-actions">
-                        <button class="btn-primary" id="btnOk" style="background:var(--primary);">Entendido</button>
+                    <div class="ske-registro-modal-inner">
+                        <div class="ske-registro-modal-header">
+                            <h3>ℹ️ Información Importante</h3>
+                        </div>
+                        <div class="ske-registro-modal-body">
+                            <p style="color:var(--text-soft);font-size:13px;line-height:1.6;">
+                                Si hay más turnos por terminal, hay que registrar cada uno por separado en el módulo <strong>Registro > Turno</strong>.
+                            </p>
+                        </div>
+                        <div class="ske-registro-modal-footer">
+                            <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnOk" style="width:100%">Entendido</button>
+                        </div>
                     </div>
                 `);
                 document.getElementById('btnOk').addEventListener('click', () => {
@@ -100,52 +172,20 @@ const Terminal = {
         });
     },
 
-    renderList() {
-        const list = document.getElementById('terminalList');
-        const terminales = DB.load('terminales');
-        const lineas = DB.load('lineas');
+    async eliminar(id) {
+        if (!confirm('¿Eliminar esta terminal?')) return;
 
-        if (terminales.length === 0) {
-            list.innerHTML = `
-                <div class="aviso-empty">
-                    <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    </svg>
-                    <p>No hay terminales registradas</p>
-                </div>
-            `;
-            return;
-        }
+        let terminales = DB.load('terminales').filter(t => t.id !== id);
+        
+        // ✅ Guardar local y en Firebase
+        await DB_FIREBASE.sync('terminales', terminales);
 
-        list.innerHTML = terminales.map(t => {
-            const linea = lineas.find(l => l.id === t.lineaId);
-            return `
-                <div class="item-card">
-                    <div class="item-header">
-                        <div class="item-title">${t.nombre}</div>
-                    </div>
-                    <div class="item-desc">${linea ? linea.nombre : 'Sin línea'}</div>
-                    <div class="item-actions">
-                        <button class="btn-edit" data-id="${t.id}">Editar</button>
-                        <button class="btn-remove" data-id="${t.id}">Eliminar</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        list.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', () => this.openModal(btn.dataset.id));
-        });
-        list.querySelectorAll('.btn-remove').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (confirm('¿Eliminar esta terminal?')) {
-                    let data = DB.load('terminales').filter(t => t.id !== btn.dataset.id);
-                    DB.save('terminales', data);
-                    this.renderList();
-                    App.showToast('Terminal eliminada');
-                }
-            });
-        });
+        App.showToast('🗑️ Terminal eliminada');
+        
+        // Recargar vista
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = this.render();
+        this.init();
     }
 };
 
