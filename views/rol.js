@@ -1,5 +1,5 @@
 // ============================================
-// ROL.JS - Módulo Mi Rol con calendario en 2 pasos (Estilo Skeuomorfismo)
+// ROL.JS - Módulo Mi Rol con Firebase
 // ============================================
 
 const Rol = {
@@ -7,23 +7,13 @@ const Rol = {
         return `
             <div class="view active ske-rol">
                 <div class="ske-rol-header">
-                    <div class="ske-rol-icono">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </div>
+                    <div class="ske-rol-icono"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                     <div class="ske-rol-texto">
                         <h2 class="ske-rol-titulo">Mi Rol</h2>
                         <p class="ske-rol-subtitulo">Gestiona tus roles y calendarios</p>
                     </div>
                     <button class="ske-rol-btn-nuevo" id="btnAddRol">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         <span>Nuevo</span>
                     </button>
                 </div>
@@ -32,21 +22,19 @@ const Rol = {
         `;
     },
 
-    init() {
+    async init() {
         const btnAddRol = document.getElementById('btnAddRol');
         if (btnAddRol) {
-            btnAddRol.addEventListener('click', () => this.paso1());
+            btnAddRol.addEventListener('click', async () => { await this.paso1(); });
         }
-        this.renderList();
+        await this.renderList();
     },
 
-    // ============================================
-    // PASO 1: Datos básicos
-    // ============================================
-    paso1(editId = null) {
+    async paso1(editId = null) {
         const data = editId ? DB.load('roles').find(r => r.id === editId) : null;
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
+        // ✅ Carga desde Firebase
+        const lineas = await DB_FIREBASE.load('lineas');
+        const terminales = await DB_FIREBASE.load('terminales');
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${data && data.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -69,14 +57,7 @@ const Rol = {
 
         const modalElement = App.showModal(`
             <div class="ske-rol-modal-header">
-                <div class="ske-rol-modal-icono">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                </div>
+                <div class="ske-rol-modal-icono"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                 <h3>${editId ? 'Editar' : 'Nuevo'} Rol - Paso 1</h3>
                 <p class="ske-rol-modal-subtitulo">Completa los datos básicos</p>
             </div>
@@ -87,9 +68,7 @@ const Rol = {
                 </div>
                 <div class="ske-rol-input-group">
                     <label>Terminal *</label>
-                    <select id="rolTerminal" class="ske-rol-select">
-                        <option value="">Selecciona línea primero</option>
-                    </select>
+                    <select id="rolTerminal" class="ske-rol-select"><option value="">Selecciona línea primero</option></select>
                 </div>
                 <div class="ske-rol-input-group">
                     <label>Número de Rol *</label>
@@ -97,9 +76,7 @@ const Rol = {
                 </div>
                 <div class="ske-rol-input-group">
                     <label>Días de Descanso</label>
-                    <div class="ske-rol-descansos-grid" id="descansosContainer">
-                        ${descansoCheckboxes}
-                    </div>
+                    <div class="ske-rol-descansos-grid" id="descansosContainer">${descansoCheckboxes}</div>
                 </div>
                 <div class="ske-rol-input-group">
                     <label>Semana de Inicio *</label>
@@ -112,13 +89,11 @@ const Rol = {
             <div class="ske-rol-modal-footer">
                 <button class="ske-rol-btn-modal ske-rol-btn-cancelar" id="btnCancelPaso1">Cancelar</button>
                 <button class="ske-rol-btn-modal ske-rol-btn-siguiente" id="btnCrearCalendario">
-                    Siguiente
-                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    Siguiente <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
             </div>
         `);
 
-        // Aplicar clases skeuomórficas al modal generado por App.showModal
         modalElement.querySelector('.modal').classList.add('ske-rol-modal');
         modalElement.classList.add('ske-rol-modal-overlay');
 
@@ -135,12 +110,10 @@ const Rol = {
                 ).join('');
         });
 
-        if (selectLinea.value) {
-            selectLinea.dispatchEvent(new Event('change'));
-        }
+        if (selectLinea.value) selectLinea.dispatchEvent(new Event('change'));
 
         document.getElementById('btnCancelPaso1').addEventListener('click', () => modalElement.remove());
-        document.getElementById('btnCrearCalendario').addEventListener('click', () => {
+        document.getElementById('btnCrearCalendario').addEventListener('click', async () => {
             const lineaId = selectLinea.value;
             const terminalId = selectTerminal.value;
             const numeroRol = document.getElementById('rolNumero').value.trim();
@@ -153,17 +126,15 @@ const Rol = {
             }
 
             modalElement.remove();
-            this.paso2(editId, { lineaId, terminalId, numeroRol: parseInt(numeroRol), semanaInicio, descansos }, data);
+            await this.paso2(editId, { lineaId, terminalId, numeroRol: parseInt(numeroRol), semanaInicio, descansos }, data);
         });
     },
 
-    // ============================================
-    // PASO 2: Calendario para asignar servicios
-    // ============================================
-    paso2(editId, datosBasicos, dataAnterior) {
+    async paso2(editId, datosBasicos, dataAnterior) {
         const { lineaId, terminalId, numeroRol, semanaInicio, descansos } = datosBasicos;
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
+        // ✅ Carga desde Firebase
+        const lineas = await DB_FIREBASE.load('lineas');
+        const terminales = await DB_FIREBASE.load('terminales');
         const linea = lineas.find(l => l.id === lineaId);
         const terminal = terminales.find(t => t.id === terminalId);
 
@@ -179,21 +150,13 @@ const Rol = {
             const numeroSemanaCiclico = ((semanaInicio - 1 + i) % 5) + 1;
             const fechaInicio = new Date(domingoInicio);
             fechaInicio.setDate(fechaInicio.getDate() + (i * 7));
-            
             const fechaFin = new Date(fechaInicio);
             fechaFin.setDate(fechaFin.getDate() + 6);
-            
             const mesInicio = meses[fechaInicio.getMonth()];
             const mesFin = meses[fechaFin.getMonth()];
             const mesTexto = mesInicio === mesFin ? mesInicio : `${mesInicio}-${mesFin}`;
 
-            htmlCalendario += `
-                <div class="ske-rol-semana-card">
-                    <div class="ske-rol-semana-header">
-                        <span class="ske-rol-semana-titulo">SEMANA ${numeroSemanaCiclico} - ${mesTexto}</span>
-                    </div>
-                    <div class="ske-rol-dias-grid">
-            `;
+            htmlCalendario += `<div class="ske-rol-semana-card"><div class="ske-rol-semana-header"><span class="ske-rol-semana-titulo">SEMANA ${numeroSemanaCiclico} - ${mesTexto}</span></div><div class="ske-rol-dias-grid">`;
 
             for (let diaIdx = 0; diaIdx < 7; diaIdx++) {
                 const diaNombre = diasSemana[diaIdx];
@@ -211,38 +174,22 @@ const Rol = {
                 const displayValor = valorGuardado ? valorGuardado : '<span style="color:var(--primary);font-size:22px;font-weight:800;">+</span>';
 
                 htmlCalendario += `
-                    <div class="ske-rol-dia ${esDescanso ? 'ske-rol-dia-descanso' : ''} ${esHoy ? 'ske-rol-dia-hoy' : ''}" 
-                         data-semana="${i}" data-dia="${diaIdx}" data-valor="${valorGuardado}">
+                    <div class="ske-rol-dia ${esDescanso ? 'ske-rol-dia-descanso' : ''} ${esHoy ? 'ske-rol-dia-hoy' : ''}" data-semana="${i}" data-dia="${diaIdx}" data-valor="${valorGuardado}">
                         <div class="ske-rol-dia-header">
                             <span class="ske-rol-dia-nombre">${diasCortos[diaIdx]}</span>
                             <span class="ske-rol-dia-numero">${diaNumero}</span>
                         </div>
-                        ${esDescanso ? 
-                            '<div class="ske-rol-descanso-badge">🛌</div>' :
-                            `<div class="ske-rol-dia-valor-display">${displayValor}</div>`
-                        }
+                        ${esDescanso ? '<div class="ske-rol-descanso-badge">🛌</div>' : `<div class="ske-rol-dia-valor-display">${displayValor}</div>`}
                     </div>
                 `;
             }
-
-            htmlCalendario += `
-                    </div>
-                </div>
-            `;
+            htmlCalendario += `</div></div>`;
         }
-
         htmlCalendario += '</div>';
 
         const modalElement = App.showModal(`
             <div class="ske-rol-modal-header">
-                <div class="ske-rol-modal-icono">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                </div>
+                <div class="ske-rol-modal-icono"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                 <h3>Paso 2 - Asignar Servicios</h3>
                 <p class="ske-rol-modal-subtitulo">Toca cada día para agregar el servicio</p>
             </div>
@@ -256,8 +203,7 @@ const Rol = {
             </div>
             <div class="ske-rol-modal-footer">
                 <button class="ske-rol-btn-modal ske-rol-btn-cancelar" id="btnVolverPaso1">
-                    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                    Atrás
+                    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Atrás
                 </button>
                 <button class="ske-rol-btn-modal ske-rol-btn-guardar" id="btnGuardarRol">${editId ? 'Actualizar' : 'Guardar'} Rol</button>
             </div>
@@ -266,7 +212,6 @@ const Rol = {
         modalElement.querySelector('.modal').classList.add('ske-rol-modal', 'ske-rol-modal-grande');
         modalElement.classList.add('ske-rol-modal-overlay');
 
-        // ✅ Lógica para abrir el modal al tocar un día
         document.querySelectorAll('.ske-rol-dia:not(.ske-rol-dia-descanso)').forEach(celda => {
             celda.addEventListener('click', () => {
                 const semIdx = parseInt(celda.dataset.semana);
@@ -274,7 +219,6 @@ const Rol = {
                 const currentVal = celda.dataset.valor || '';
                 const diaNombre = diasSemana[diaIdx];
                 
-                // Calcular fecha para mostrar en el modal
                 const fechaInicioSem = new Date(domingoInicio);
                 fechaInicioSem.setDate(fechaInicioSem.getDate() + (semIdx * 7));
                 const fechaDia = new Date(fechaInicioSem);
@@ -303,40 +247,28 @@ const Rol = {
                 document.getElementById('btnCancelModalDia').addEventListener('click', () => modalDiaElement.remove());
                 document.getElementById('btnSaveModalDia').addEventListener('click', () => {
                     const nuevoValor = document.getElementById('modalServicioInput').value.trim();
-                    
-                    // Actualizar la celda visualmente y en sus datos
                     celda.dataset.valor = nuevoValor;
                     const displayDiv = celda.querySelector('.ske-rol-dia-valor-display');
                     displayDiv.innerHTML = nuevoValor ? nuevoValor : '<span style="color:var(--primary);font-size:22px;font-weight:800;">+</span>';
-                    
                     modalDiaElement.remove();
                     App.showToast('Dato guardado');
                 });
             });
         });
 
-        document.getElementById('btnVolverPaso1').addEventListener('click', () => {
+        document.getElementById('btnVolverPaso1').addEventListener('click', async () => {
             modalElement.remove();
-            this.paso1(editId);
+            await this.paso1(editId);
         });
 
         document.getElementById('btnGuardarRol').addEventListener('click', () => {
             const semanasData = this.obtenerDatosCalendarioPaso2(semanaInicio, descansos, domingoInicio);
-
             let roles = DB.load('roles');
 
             if (editId) {
                 const idx = roles.findIndex(r => r.id === editId);
                 if (idx !== -1) {
-                    roles[idx] = { 
-                        ...roles[idx], 
-                        lineaId, 
-                        terminalId,
-                        numeroRol,
-                        descansos,
-                        semanaInicio,
-                        semanas: semanasData
-                    };
+                    roles[idx] = { ...roles[idx], lineaId, terminalId, numeroRol, descansos, semanaInicio, semanas: semanasData };
                 }
             } else {
                 roles.push({
@@ -366,7 +298,6 @@ const Rol = {
             const numeroSemanaCiclico = ((semanaInicio - 1 + i) % 5) + 1;
             const fechaInicio = new Date(domingoInicio);
             fechaInicio.setDate(fechaInicio.getDate() + (i * 7));
-            
             const fechaFin = new Date(fechaInicio);
             fechaFin.setDate(fechaFin.getDate() + 6);
 
@@ -374,21 +305,18 @@ const Rol = {
             for (let diaIdx = 0; diaIdx < 7; diaIdx++) {
                 const diaNombre = diasSemana[diaIdx];
                 const esDescanso = descansos.includes(diaNombre);
-                
-                // ✅ Leer el valor del atributo data-valor de la celda
                 const celda = document.querySelector(`.ske-rol-dia[data-semana="${i}"][data-dia="${diaIdx}"]`);
                 const valor = celda ? (celda.dataset.valor || '') : '';
                 
                 const fechaDia = new Date(fechaInicio);
                 fechaDia.setDate(fechaDia.getDate() + diaIdx);
-                const fechaDiaStr = this.getFechaLocal(fechaDia);
 
                 dias.push({
                     dia: diaNombre,
                     dato: valor,
                     esDescanso: esDescanso,
                     esFestivo: false,
-                    fecha: fechaDiaStr,
+                    fecha: this.getFechaLocal(fechaDia),
                     numeroDia: fechaDia.getDate()
                 });
             }
@@ -400,36 +328,28 @@ const Rol = {
                 dias: dias
             });
         }
-
         return semanas;
     },
 
     getDomingoDeEstaSemana(fecha) {
         const d = new Date(fecha);
-        const dia = d.getDay();
-        const diff = d.getDate() - dia;
+        const diff = d.getDate() - d.getDay();
         return new Date(d.setDate(diff));
     },
 
-    renderList() {
+    async renderList() {
         const list = document.getElementById('rolList');
         if (!list) return;
 
         const roles = DB.load('roles');
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
+        // ✅ Carga desde Firebase
+        const lineas = await DB_FIREBASE.load('lineas');
+        const terminales = await DB_FIREBASE.load('terminales');
 
         if (roles.length === 0) {
             list.innerHTML = `
                 <div class="ske-rol-empty">
-                    <div class="ske-rol-empty-icono">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/>
-                            <line x1="8" y1="2" x2="8" y2="6"/>
-                            <line x1="3" y1="10" x2="21" y2="10"/>
-                        </svg>
-                    </div>
+                    <div class="ske-rol-empty-icono"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                     <h3>Sin roles registrados</h3>
                     <p>Haz clic en "Nuevo" para crear tu rol</p>
                 </div>
@@ -446,34 +366,18 @@ const Rol = {
                     <div class="ske-rol-card-indicador"></div>
                     <div class="ske-rol-card-contenido">
                         <div class="ske-rol-card-header">
-                            <div class="ske-rol-card-titulo">
-                                <h3>Rol #${rol.numeroRol || 'N/A'}</h3>
-                            </div>
+                            <div class="ske-rol-card-titulo"><h3>Rol #${rol.numeroRol || 'N/A'}</h3></div>
                             <div class="ske-rol-card-info">
-                                <span class="ske-rol-info-tag">
-                                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                                    ${linea ? linea.nombre : 'Sin línea'}
-                                </span>
-                                <span class="ske-rol-info-tag">
-                                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    ${terminal ? terminal.nombre : 'Sin terminal'}
-                                </span>
+                                <span class="ske-rol-info-tag"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> ${linea ? linea.nombre : 'Sin línea'}</span>
+                                <span class="ske-rol-info-tag"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${terminal ? terminal.nombre : 'Sin terminal'}</span>
                             </div>
                         </div>
                         <div class="ske-rol-card-acciones">
                             <button class="ske-rol-btn ske-rol-btn-editar" data-id="${rol.id}">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                                Editar
+                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar
                             </button>
                             <button class="ske-rol-btn ske-rol-btn-eliminar" data-id="${rol.id}">
-                                <svg viewBox="0 0 24 24">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                </svg>
-                                Eliminar
+                                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Eliminar
                             </button>
                         </div>
                     </div>
@@ -483,7 +387,7 @@ const Rol = {
         }).join('') + `</div>`;
 
         list.querySelectorAll('.ske-rol-btn-editar').forEach(btn => {
-            btn.addEventListener('click', () => this.paso1(btn.dataset.id));
+            btn.addEventListener('click', async () => { await this.paso1(btn.dataset.id); });
         });
         list.querySelectorAll('.ske-rol-btn-eliminar').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -513,22 +417,11 @@ const Rol = {
         const hoyStr = this.getFechaLocal(hoy);
 
         if (semanas.length === 0) {
-            container.innerHTML = `
-                <div style="padding:20px;text-align:center;color:var(--text-soft);">
-                    <p>No hay semanas configuradas</p>
-                </div>
-            `;
+            container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-soft);"><p>No hay semanas configuradas</p></div>`;
             return;
         }
 
-        // ✅ MANTENER ORDEN CRONOLÓGICO (igual que Paso 2)
-        const semanasOrdenadas = semanas;
-
-        container.innerHTML = `
-            <div class="ske-rol-calendario-scroll">
-                ${semanasOrdenadas.map(semana => this.renderSemanaCard(rol, semana, hoyStr)).join('')}
-            </div>
-        `;
+        container.innerHTML = `<div class="ske-rol-calendario-scroll">${semanas.map(semana => this.renderSemanaCard(rol, semana, hoyStr)).join('')}</div>`;
     },
 
     renderSemanaCard(rol, semana, hoyStr) {
@@ -543,9 +436,7 @@ const Rol = {
 
         return `
             <div class="ske-rol-semana-card">
-                <div class="ske-rol-semana-header">
-                    <span class="ske-rol-semana-titulo">SEMANA ${semana.numeroSemana} - ${mesTexto}</span>
-                </div>
+                <div class="ske-rol-semana-header"><span class="ske-rol-semana-titulo">SEMANA ${semana.numeroSemana} - ${mesTexto}</span></div>
                 <div class="ske-rol-dias-grid">
                     ${semana.dias.map((dia, diaIdx) => {
                         const fechaDiaStr = dia.fecha || this.calcularFecha(semana.fechaInicio, diaIdx);
@@ -559,10 +450,7 @@ const Rol = {
                                     <span class="ske-rol-dia-nombre">${diasCortos[diaIdx]}</span>
                                     <span class="ske-rol-dia-numero">${diaNumero}</span>
                                 </div>
-                                ${esDescanso ? 
-                                    '<div class="ske-rol-descanso-badge">🛌</div>' :
-                                    `<div class="ske-rol-dia-servicio">${dia.dato || '—'}</div>`
-                                }
+                                ${esDescanso ? '<div class="ske-rol-descanso-badge">🛌</div>' : `<div class="ske-rol-dia-servicio">${dia.dato || '—'}</div>`}
                             </div>
                         `;
                     }).join('')}

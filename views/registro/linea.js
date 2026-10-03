@@ -1,200 +1,149 @@
 // ============================================
-// REGISTRO/LINEA.JS - Módulo de Línea
+// REGISTRO DE LÍNEAS - Con Firebase
 // ============================================
 
-const Linea = {
+const RegistroLinea = {
     render() {
-        console.log('📋 Renderizando módulo Línea...');
+        const lineas = DB.load('lineas');
         
         return `
-            <div class="view active">
-                <div class="crud-header">
-                    <h2 class="page-title" style="margin:0;">
-                        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-                        Línea
-                    </h2>
-                    <button class="btn-add" id="btnAddLinea">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nueva
+            <div class="view active ske-registro">
+                <div class="ske-registro-header">
+                    <div class="ske-registro-icono">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                            <line x1="4" y1="22" x2="4" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="ske-registro-texto">
+                        <h2 class="ske-registro-titulo">Registro de Líneas</h2>
+                        <p class="ske-registro-subtitulo">${lineas.length} líneas registradas</p>
+                    </div>
+                    <button class="ske-registro-btn-nuevo" id="btnAddLinea">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Nueva</span>
                     </button>
                 </div>
-                <div id="lineaList"></div>
+
+                <div id="lineaList">
+                    ${lineas.length === 0 ? `
+                        <div class="ske-registro-empty">
+                            <p>No hay líneas registradas</p>
+                        </div>
+                    ` : `
+                        <div class="ske-registro-lista">
+                            ${lineas.map((linea, index) => `
+                                <div class="ske-registro-card">
+                                    <div class="ske-registro-card-info">
+                                        <strong>${linea.nombre || 'Sin nombre'}</strong>
+                                        ${linea.descripcion ? `<p>${linea.descripcion}</p>` : ''}
+                                    </div>
+                                    <div class="ske-registro-card-acciones">
+                                        <button class="ske-registro-btn-editar" data-index="${index}">Editar</button>
+                                        <button class="ske-registro-btn-eliminar" data-index="${index}">Eliminar</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
             </div>
         `;
     },
 
     init() {
-        console.log('📋 Inicializando módulo Línea...');
+        document.getElementById('btnAddLinea')?.addEventListener('click', () => this.openModal());
         
-        // Event listener para botón Nueva
-        const btnAdd = document.getElementById('btnAddLinea');
-        if (btnAdd) {
-            btnAdd.addEventListener('click', () => this.openModal());
-        }
+        document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
+            btn.addEventListener('click', () => this.openModal(parseInt(btn.dataset.index)));
+        });
         
-        this.renderList();
+        document.querySelectorAll('.ske-registro-btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', () => this.eliminar(parseInt(btn.dataset.index)));
+        });
     },
 
-    openModal(editId = null) {
-        console.log('📝 Abriendo modal, editId:', editId);
-        
-        const data = editId ? DB.load('lineas').find(l => l.id === editId) : null;
+    openModal(editIndex = null) {
+        const lineas = DB.load('lineas');
+        const linea = editIndex !== null ? lineas[editIndex] : null;
 
-        const modalHTML = `
-            <h3>${editId ? 'Editar' : 'Nueva'} Línea</h3>
-            <div class="input-group">
-                <label>Nombre de la Línea</label>
-                <input type="text" id="lineaNombre" value="${data ? data.nombre : ''}" placeholder="Ej: Línea 1">
+        const modalOverlay = App.showModal(`
+            <div class="ske-registro-modal-inner">
+                <div class="ske-registro-modal-header">
+                    <h3>${editIndex !== null ? 'Editar' : 'Nueva'} Línea</h3>
+                </div>
+                <div class="ske-registro-modal-body">
+                    <div class="ske-registro-input-group">
+                        <label>Nombre de la Línea *</label>
+                        <input type="text" id="lineaNombre" value="${linea?.nombre || ''}" placeholder="Ej: Línea 1">
+                    </div>
+                    <div class="ske-registro-input-group">
+                        <label>Descripción</label>
+                        <textarea id="lineaDescripcion" rows="3" placeholder="Detalles adicionales...">${linea?.descripcion || ''}</textarea>
+                    </div>
+                </div>
+                <div class="ske-registro-modal-footer">
+                    <button class="ske-registro-btn-modal" id="btnCancel">Cancelar</button>
+                    <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnSave">
+                        ${editIndex !== null ? 'Actualizar' : 'Guardar'}
+                    </button>
+                </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancelModal">Cancelar</button>
-                <button class="btn-primary" id="btnSaveModal">${editId ? 'Actualizar' : 'Guardar'}</button>
-            </div>
-        `;
+        `);
 
-        const modal = App.showModal(modalHTML);
-        
-        // Agregar event listeners INMEDIATAMENTE
-        const btnCancel = document.getElementById('btnCancelModal');
-        const btnSave = document.getElementById('btnSaveModal');
-        const inputNombre = document.getElementById('lineaNombre');
-        
-        console.log(' Elementos del modal:', { btnCancel: !!btnCancel, btnSave: !!btnSave, inputNombre: !!inputNombre });
-        
-        if (btnCancel) {
-            btnCancel.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('❌ Cancelar clickeado');
-                modal.remove();
-            });
-        }
-        
-        if (btnSave) {
-            btnSave.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('💾 Guardar clickeado');
-                this.saveLinea(editId);
-                modal.remove();
-            });
-        }
-        
-        // Enter para guardar
-        if (inputNombre) {
-            inputNombre.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    console.log('⏎ Enter presionado');
-                    this.saveLinea(editId);
-                    modal.remove();
-                }
-            });
-            inputNombre.focus();
-        }
+        document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
+        document.getElementById('btnSave').addEventListener('click', () => this.guardar(editIndex, modalOverlay));
     },
 
-    saveLinea(editId = null) {
-        const inputNombre = document.getElementById('lineaNombre');
-        const nombre = inputNombre ? inputNombre.value.trim() : '';
-
-        console.log('💾 Guardando línea:', nombre);
+    async guardar(editIndex, modalOverlay) {
+        const nombre = document.getElementById('lineaNombre').value.trim();
+        const descripcion = document.getElementById('lineaDescripcion').value.trim();
 
         if (!nombre) {
-            App.showToast('El nombre es obligatorio');
+            App.showToast('⚠️ El nombre es obligatorio');
             return;
         }
 
-        let lineas = DB.load('lineas');
-        console.log('📦 Líneas actuales:', lineas.length);
+        const lineas = DB.load('lineas');
+        const nuevaLinea = { nombre, descripcion };
 
-        if (editId) {
-            const idx = lineas.findIndex(l => l.id === editId);
-            if (idx !== -1) {
-                lineas[idx] = { ...lineas[idx], nombre };
-                console.log('✅ Línea actualizada en índice:', idx);
-            }
+        if (editIndex !== null) {
+            lineas[editIndex] = nuevaLinea;
         } else {
-            const newLinea = {
-                id: DB.generateId(),
-                nombre,
-                createdAt: Date.now()
-            };
-            lineas.push(newLinea);
-            console.log('✅ Nueva línea agregada:', newLinea);
+            lineas.push(nuevaLinea);
         }
 
-        DB.save('lineas', lineas);
-        console.log('💾 Líneas guardadas:', lineas.length);
+        // ✅ Guardar local y en Firebase
+        await DB_FIREBASE.sync('lineas', lineas);
+
+        modalOverlay.remove();
+        App.showToast(editIndex !== null ? '✅ Línea actualizada' : '✅ Línea guardada');
         
-        this.renderList();
-        App.showToast(editId ? 'Línea actualizada' : 'Línea guardada');
+        // Recargar vista
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = this.render();
+        this.init();
     },
 
-    renderList() {
-        console.log('📋 Renderizando lista de líneas...');
+    async eliminar(index) {
+        if (!confirm('¿Eliminar esta línea?')) return;
+
+        const lineas = DB.load('lineas');
+        lineas.splice(index, 1);
+
+        // ✅ Guardar local y en Firebase
+        await DB_FIREBASE.sync('lineas', lineas);
+
+        App.showToast('🗑️ Línea eliminada');
         
-        const list = document.getElementById('lineaList');
-        if (!list) {
-            console.error('❌ No se encontró el elemento lineaList');
-            return;
-        }
-        
-        const data = DB.load('lineas');
-        console.log('📦 Líneas cargadas:', data.length);
-
-        if (data.length === 0) {
-            list.innerHTML = `
-                <div class="aviso-empty">
-                    <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
-                        <path d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                    <p>No hay líneas registradas</p>
-                </div>
-            `;
-            return;
-        }
-
-        const sortedData = [...data].sort((a, b) => b.createdAt - a.createdAt);
-
-        list.innerHTML = sortedData.map(item => `
-            <div class="item-card">
-                <div class="item-header">
-                    <div class="item-title">${item.nombre}</div>
-                </div>
-                <div class="item-actions">
-                    <button class="btn-edit" data-id="${item.id}">Editar</button>
-                    <button class="btn-remove" data-id="${item.id}">Eliminar</button>
-                </div>
-            </div>
-        `).join('');
-
-        // Event listeners para botones de editar/eliminar
-        list.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                console.log('✏️ Editando línea:', id);
-                this.openModal(id);
-            });
-        });
-        
-        list.querySelectorAll('.btn-remove').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                console.log('🗑️ Eliminando línea:', id);
-                if (confirm('¿Eliminar esta línea?')) {
-                    let lineas = DB.load('lineas').filter(l => l.id !== id);
-                    DB.save('lineas', lineas);
-                    this.renderList();
-                    App.showToast('Línea eliminada');
-                }
-            });
-        });
+        // Recargar vista
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = this.render();
+        this.init();
     }
 };
 
-export default Linea;
+export default RegistroLinea;
