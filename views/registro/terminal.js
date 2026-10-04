@@ -1,5 +1,5 @@
 // ============================================
-// TERMINAL.JS - Módulo de Registro de Terminales con Firebase (DEBUG MEJORADO)
+// TERMINAL.JS - Módulo de Registro de Terminales (SIN FILTRO ESTRICTO)
 // ============================================
 
 const Terminal = {
@@ -8,7 +8,7 @@ const Terminal = {
         const lineas = DB.load('lineas');
 
         console.log('📋 Renderizando terminales:', terminales);
-        console.log('📋 Líneas disponibles:', lineas);
+        console.log(' Líneas disponibles:', lineas);
 
         return `
             <div class="view active ske-registro">
@@ -88,14 +88,12 @@ const Terminal = {
         await DB_FIREBASE.load('lineas');
         const lineas = DB.load('lineas');
 
-        console.log('📋 Líneas en modal:', lineas);
-        console.log(' Terminal a editar:', terminal);
+        console.log(' Líneas en modal:', lineas);
 
-        const lineasValidas = lineas.filter(l => l.id && l.id !== 'undefined');
-        
-        const lineaOptions = lineasValidas.length > 0
-            ? '<option value="">Selecciona una línea</option>' + lineasValidas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
-            : '<option value="">Primero registra una línea válida</option>';
+        // ✅ MOSTRAR TODAS las líneas (sin filtro estricto)
+        const lineaOptions = lineas.length > 0
+            ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${terminal && terminal.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
+            : '<option value="">Primero registra una línea</option>';
 
         const modalOverlay = App.showModal(`
             <div class="ske-registro-modal-inner">
@@ -128,11 +126,9 @@ const Terminal = {
             const nombre = document.getElementById('terminalNombre').value.trim();
 
             console.log('💾 Guardando terminal:', { lineaId, nombre });
-            console.log('🔍 Valor del select:', selectLinea.value);
-            console.log('🔍 Texto seleccionado:', selectLinea.options[selectLinea.selectedIndex]?.text);
 
-            if (!lineaId || lineaId === '' || lineaId === 'undefined') {
-                App.showToast('️ Selecciona una línea válida');
+            if (!lineaId) {
+                App.showToast('️ Selecciona una línea');
                 return;
             }
 
@@ -147,7 +143,6 @@ const Terminal = {
                 const idx = terminales.findIndex(t => t.id === editId);
                 if (idx !== -1) {
                     terminales[idx] = { ...terminales[idx], lineaId, nombre };
-                    console.log('✅ Terminal actualizada:', terminales[idx]);
                 }
             } else {
                 terminales.push({
@@ -156,10 +151,7 @@ const Terminal = {
                     nombre,
                     createdAt: Date.now()
                 });
-                console.log('✅ Terminal creada:', terminales[terminales.length - 1]);
             }
-
-            console.log(' Todas las terminales:', terminales);
 
             await DB_FIREBASE.sync('terminales', terminales);
 
