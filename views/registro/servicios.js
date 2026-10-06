@@ -1,35 +1,122 @@
 // ============================================
-// SERVICIOS.JS - Módulo de Registro de Servicios
+// SERVICIOS.JS - Módulo de Registro de Servicios con Firebase y Skeuomorfismo
 // ============================================
 
 const Servicios = {
     render() {
         const servicios = DB.load('servicios');
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        const semanas = DB.load('semanas');
+
+        console.log('📋 Renderizando servicios:', servicios.length);
 
         return `
-            <div class="view active">
-                <div class="crud-header">
-                    <h2 class="page-title" style="margin:0;">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        Servicios
-                    </h2>
-                    <button class="btn-add" id="btnAddServicio">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nuevo
+            <div class="view active ske-registro">
+                <div class="ske-registro-header">
+                    <div class="ske-registro-icono">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <div class="ske-registro-texto">
+                        <h2 class="ske-registro-titulo">Registro de Servicios</h2>
+                        <p class="ske-registro-subtitulo">${servicios.length} servicios registrados</p>
+                    </div>
+                    <button class="ske-registro-btn-nuevo" id="btnAddServicio">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>Nuevo</span>
                     </button>
                 </div>
-                <div id="servicioList"></div>
+
+                <div id="servicioList">
+                    ${servicios.length === 0 ? `
+                        <div class="ske-registro-empty">
+                            <p>No hay servicios registrados</p>
+                        </div>
+                    ` : `
+                        <div class="ske-registro-lista">
+                            ${servicios.map(s => {
+                                const linea = lineas.find(l => l.id === s.lineaId);
+                                const terminal = terminales.find(t => t.id === s.terminalId);
+                                const semana = semanas.find(w => w.id === s.semanaId);
+                                const trenes = s.trenes || [];
+                                const trenesConGarage = trenes.filter(t => t.garage === true).length;
+                                const haceGarageGeneral = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
+                                const tieneGarage = haceGarageGeneral || trenesConGarage > 0;
+
+                                console.log(`🔍 Servicio: ${s.nombre} | Línea: ${linea ? linea.nombre : '❌'} | Terminal: ${terminal ? terminal.nombre : '❌'}`);
+
+                                return `
+                                    <div class="ske-registro-card">
+                                        <div class="ske-registro-card-info">
+                                            <strong style="font-size:18px;">Servicio #${s.nombre || 'N/A'}</strong>
+                                            <p>
+                                                <span style="color:var(--primary);">📍 ${linea ? linea.nombre : 'Sin línea'}</span> | 
+                                                <span>🚇 ${terminal ? terminal.nombre : 'Sin terminal'}</span> | 
+                                                <span>📅 ${semana ? semana.tipo : 'Sin día'}</span><br>
+                                                <span style="font-size:12px; color:var(--text-soft);">
+                                                    🚂 ${trenes.length} tren(es) ${trenesConGarage > 0 ? `• ${trenesConGarage} con garage` : ''}
+                                                </span><br>
+                                                <span style="font-size:12px; color:var(--accent);">
+                                                    Descanso: ${s.descansoInicio || '--:--'} a ${s.descansoFinal || '--:--'}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div class="ske-registro-card-acciones">
+                                            <span class="ske-registro-badge ${tieneGarage ? 'ske-badge-success' : 'ske-badge-warning'}" style="margin-right:8px; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">
+                                                ${tieneGarage ? 'HACE GARAGE' : 'SIN GARAGE'}
+                                            </span>
+                                            <button class="ske-registro-btn-editar" data-id="${s.id}">Editar</button>
+                                            <button class="ske-registro-btn-eliminar" data-id="${s.id}">Eliminar</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
             </div>
         `;
     },
 
-    init() {
-        document.getElementById('btnAddServicio').addEventListener('click', () => this.openModal());
-        this.renderList();
+    async init() {
+        // ✅ 1. Cargar todos los datos desde Firebase
+        await DB_FIREBASE.load('servicios');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('semanas');
+
+        console.log('✅ Datos de Servicios cargados en init()');
+
+        // ✅ 2. Renderizar la vista
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = this.render();
+
+        // ✅ 3. Adjuntar eventos
+        document.getElementById('btnAddServicio')?.addEventListener('click', () => this.openModal());
+
+        document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
+            btn.addEventListener('click', () => this.openModal(btn.dataset.id));
+        });
+
+        document.querySelectorAll('.ske-registro-btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', () => this.eliminar(btn.dataset.id));
+        });
     },
 
-    openModal(editId = null) {
-        const data = editId ? DB.load('servicios').find(s => s.id === editId) : null;
+    async openModal(editId = null) {
+        // ✅ Asegurar datos frescos
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('semanas');
+
+        const servicios = DB.load('servicios');
+        const data = editId ? servicios.find(s => s.id === editId) : null;
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const semanas = DB.load('semanas');
@@ -40,69 +127,75 @@ const Servicios = {
 
         const haceGarage = data ? (data.garage === true || data.garage === 'Si' || data.garage === 'Sí') : false;
 
-        const modal = App.showModal(`
-            <h3>${editId ? 'Editar' : 'Nuevo'} Servicio</h3>
-            <div class="modal-scroll-content">
-                <div class="input-group">
-                    <label>Línea</label>
-                    <select id="servicioLinea">${lineaOptions}</select>
+        const modalOverlay = App.showModal(`
+            <div class="ske-registro-modal-inner" style="max-width:650px; max-height:90vh; overflow-y:auto;">
+                <div class="ske-registro-modal-header">
+                    <h3>${editId ? 'Editar' : 'Nuevo'} Servicio</h3>
                 </div>
-                <div class="input-group">
-                    <label>Terminal</label>
-                    <select id="servicioTerminal">
-                        <option value="">Selecciona línea primero</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Día</label>
-                    <select id="servicioSemana">
-                        <option value="">Selecciona línea primero</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Nombre del Servicio (Número)</label>
-                    <input type="text" id="servicioNombre" value="${data ? data.nombre : ''}" placeholder="Ej. 1234">
-                </div>
-                
-                <!-- Checkbox de Garage general -->
-                <div class="input-group">
-                    <div class="garage-row" style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg-soft);border-radius:8px;">
-                        <label style="font-size:13px;font-weight:600;color:var(--text);">Hace Garage (General)</label>
-                        <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
-                            <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
-                            <span id="garageToggle" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${haceGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
-                                <span id="garageToggleCircle" style="position:absolute;height:18px;width:18px;left:${haceGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
-                            </span>
-                        </label>
+                <div class="ske-registro-modal-body">
+                    <div class="ske-registro-input-group">
+                        <label>Línea *</label>
+                        <select id="servicioLinea" class="ske-registro-select">${lineaOptions}</select>
                     </div>
-                </div>
+                    <div class="ske-registro-input-group">
+                        <label>Terminal *</label>
+                        <select id="servicioTerminal" class="ske-registro-select">
+                            <option value="">Selecciona línea primero</option>
+                        </select>
+                    </div>
+                    <div class="ske-registro-input-group">
+                        <label>Tipo de Día *</label>
+                        <select id="servicioSemana" class="ske-registro-select">
+                            <option value="">Selecciona línea y terminal primero</option>
+                        </select>
+                    </div>
+                    <div class="ske-registro-input-group">
+                        <label>Nombre del Servicio (Número) *</label>
+                        <input type="text" id="servicioNombre" class="ske-registro-input" value="${data ? data.nombre : ''}" placeholder="Ej. 1234">
+                    </div>
+                    
+                    <!-- Checkbox de Garage general -->
+                    <div class="ske-registro-input-group">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg-soft);border-radius:8px;">
+                            <label style="font-size:13px;font-weight:600;color:var(--text);">Hace Garage (General)</label>
+                            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+                                <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
+                                <span id="garageToggle" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${haceGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
+                                    <span id="garageToggleCircle" style="position:absolute;height:18px;width:18px;left:${haceGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
 
-                <!-- TRENES -->
-                <div class="trenes-section">
-                    <h4 style="margin-bottom:12px;font-size:14px;color:var(--text);">Trenes</h4>
-                    <div id="trenesContainer">
-                        ${this.renderTrenesForm(data ? data.trenes : [])}
+                    <!-- TRENES -->
+                    <div style="margin-top:16px;">
+                        <h4 style="margin-bottom:12px;font-size:14px;color:var(--text);font-weight:700;">🚂 Trenes</h4>
+                        <div id="trenesContainer">
+                            ${this.renderTrenesForm(data ? data.trenes : [])}
+                        </div>
+                        <button class="ske-registro-btn-modal" id="btnAddTren" style="margin-top:10px;width:100%;padding:10px;background:var(--bg-soft);border:2px dashed var(--primary-soft);color:var(--primary);font-weight:600;font-size:13px;">
+                            + Agregar Tren
+                        </button>
                     </div>
-                    <button class="btn-add-tren" id="btnAddTren" style="margin-top:10px;width:100%;padding:10px;background:var(--bg-soft);border:2px dashed var(--primary-soft);border-radius:8px;color:var(--primary);cursor:pointer;font-weight:600;font-size:13px;">
-                        + Agregar Tren
+
+                    <!-- DESCANSO -->
+                    <div style="margin-top:16px;display:flex;gap:12px;">
+                        <div class="ske-registro-input-group" style="flex:1;">
+                            <label>Inicio de Descanso</label>
+                            <input type="time" id="servicioDescansoInicio" class="ske-registro-input" value="${data ? data.descansoInicio : ''}">
+                        </div>
+                        <div class="ske-registro-input-group" style="flex:1;">
+                            <label>Final de Descanso</label>
+                            <input type="time" id="servicioDescansoFinal" class="ske-registro-input" value="${data ? data.descansoFinal : ''}">
+                        </div>
+                    </div>
+                </div>
+                <div class="ske-registro-modal-footer">
+                    <button class="ske-registro-btn-modal" id="btnCancel">Cancelar</button>
+                    <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnSave">
+                        ${editId ? 'Actualizar' : 'Guardar'}
                     </button>
                 </div>
-
-                <!-- DESCANSO -->
-                <div class="input-row" style="margin-top:16px;display:flex;gap:10px;">
-                    <div class="input-group" style="flex:1;">
-                        <label>Inicio de Descanso</label>
-                        <input type="time" id="servicioDescansoInicio" value="${data ? data.descansoInicio : ''}">
-                    </div>
-                    <div class="input-group" style="flex:1;">
-                        <label>Final de Descanso</label>
-                        <input type="time" id="servicioDescansoFinal" value="${data ? data.descansoFinal : ''}">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="btnCancel">Cancelar</button>
-                <button class="btn-primary" id="btnSave">${editId ? 'Actualizar' : 'Guardar'}</button>
             </div>
         `);
 
@@ -127,32 +220,44 @@ const Servicios = {
         const selectTerminal = document.getElementById('servicioTerminal');
         const selectSemana = document.getElementById('servicioSemana');
 
+        // ✅ Lógica en cascada actualizada (Línea -> Terminal -> Semana)
         const updateTerminales = () => {
             const lineaId = selectLinea.value;
-            const terminalesFiltradas = terminales.filter(t => t.lineaId === lineaId);
-            selectTerminal.innerHTML = terminalesFiltradas.length === 0
+            const filtradas = terminales.filter(t => t.lineaId === lineaId);
+            
+            selectTerminal.innerHTML = filtradas.length === 0
                 ? '<option value="">No hay terminales</option>'
-                : '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => 
+                : '<option value="">Selecciona terminal</option>' + filtradas.map(t => 
                     `<option value="${t.id}" ${data && data.terminalId === t.id ? 'selected' : ''}>${t.nombre}</option>`
                 ).join('');
+            updateSemanas();
         };
 
         const updateSemanas = () => {
             const lineaId = selectLinea.value;
-            const semanasFiltradas = semanas.filter(s => s.lineaId === lineaId);
-            selectSemana.innerHTML = semanasFiltradas.length === 0
-                ? '<option value="">No hay días</option>'
-                : '<option value="">Selecciona tipo de día</option>' + semanasFiltradas.map(s => 
+            const terminalId = selectTerminal.value;
+            
+            let filtradas = semanas.filter(s => s.lineaId === lineaId);
+            if (terminalId) {
+                filtradas = filtradas.filter(s => s.terminalId === terminalId);
+            }
+            
+            selectSemana.innerHTML = filtradas.length === 0
+                ? '<option value="">No hay tipos de día</option>'
+                : '<option value="">Selecciona tipo de día</option>' + filtradas.map(s => 
                     `<option value="${s.id}" ${data && data.semanaId === s.id ? 'selected' : ''}>${s.tipo}</option>`
                 ).join('');
         };
 
         selectLinea.addEventListener('change', () => {
             updateTerminales();
+        });
+        selectTerminal.addEventListener('change', () => {
             updateSemanas();
         });
+        
+        // Ejecutar al abrir para pre-seleccionar si es edición
         updateTerminales();
-        updateSemanas();
 
         // Agregar tren
         document.getElementById('btnAddTren').addEventListener('click', () => {
@@ -170,8 +275,9 @@ const Servicios = {
         // Inicializar toggles de garage en trenes existentes
         this.initTrenGarageToggles();
 
-        document.getElementById('btnCancel').addEventListener('click', () => modal.remove());
-        document.getElementById('btnSave').addEventListener('click', () => {
+        document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
+        
+        document.getElementById('btnSave').addEventListener('click', async () => {
             const lineaId = selectLinea.value;
             const terminalId = selectTerminal.value;
             const semanaId = selectSemana.value;
@@ -181,19 +287,19 @@ const Servicios = {
             const descansoFinal = document.getElementById('servicioDescansoFinal').value;
 
             if (!lineaId || !terminalId || !semanaId || !nombre) {
-                App.showToast('Completa los campos obligatorios');
+                App.showToast('⚠️ Completa los campos obligatorios');
                 return;
             }
 
             const trenes = this.getTrenesFromForm();
 
-            let servicios = DB.load('servicios');
+            let serviciosData = DB.load('servicios');
 
             if (editId) {
-                const idx = servicios.findIndex(s => s.id === editId);
+                const idx = serviciosData.findIndex(s => s.id === editId);
                 if (idx !== -1) {
-                    servicios[idx] = { 
-                        ...servicios[idx], 
+                    serviciosData[idx] = { 
+                        ...serviciosData[idx], 
                         lineaId, 
                         terminalId, 
                         semanaId, 
@@ -205,7 +311,7 @@ const Servicios = {
                     };
                 }
             } else {
-                servicios.push({
+                serviciosData.push({
                     id: DB.generateId(),
                     lineaId,
                     terminalId,
@@ -219,10 +325,14 @@ const Servicios = {
                 });
             }
 
-            DB.save('servicios', servicios);
-            modal.remove();
-            this.renderList();
-            App.showToast(editId ? 'Servicio actualizado' : 'Servicio guardado');
+            // ✅ Guardar local y en Firebase
+            await DB_FIREBASE.sync('servicios', serviciosData);
+
+            modalOverlay.remove();
+            App.showToast(editId ? '✅ Servicio actualizado' : '✅ Servicio guardado');
+
+            // ✅ Recargar la vista
+            await this.init();
         });
     },
 
@@ -234,7 +344,6 @@ const Servicios = {
             const circle = toggle.querySelector('.tren-garage-circle');
             
             if (checkbox && track && circle) {
-                // Estado inicial
                 if (checkbox.checked) {
                     track.style.background = 'var(--primary)';
                     circle.style.left = '22px';
@@ -266,7 +375,6 @@ const Servicios = {
         if (!trenes || trenes.length === 0) {
             return '<p style="color:var(--text-soft);font-size:13px;text-align:center;padding:20px;">No hay trenes registrados. Agrega al menos uno.</p>';
         }
-
         return trenes.map((tren, idx) => this.crearHTMLTren(tren, idx)).join('');
     },
 
@@ -276,23 +384,23 @@ const Servicios = {
             <div class="tren-item" style="background:var(--bg-soft);padding:12px;border-radius:8px;margin-bottom:10px;position:relative;border:1px solid var(--primary-soft);">
                 <button class="btn-remove-tren" data-idx="${idx}" style="position:absolute;top:8px;right:8px;background:#ff4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">×</button>
                 <div style="display:flex;gap:10px;margin-bottom:8px;">
-                    <div class="input-group" style="flex:1;margin:0;">
+                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
                         <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Número de Tren</label>
-                        <input type="text" class="tren-numero" value="${tren ? tren.numero || '' : ''}" placeholder="Ej. 1" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                        <input type="text" class="tren-numero ske-registro-input" value="${tren ? tren.numero || '' : ''}" placeholder="Ej. 1" style="padding:8px;">
                     </div>
-                    <div class="input-group" style="flex:1;margin:0;">
+                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
                         <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Vueltas</label>
-                        <input type="number" class="tren-vueltas" value="${tren ? tren.vueltas || '' : ''}" placeholder="Ej. 2" min="1" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                        <input type="number" class="tren-vueltas ske-registro-input" value="${tren ? tren.vueltas || '' : ''}" placeholder="Ej. 2" min="1" style="padding:8px;">
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-bottom:8px;">
-                    <div class="input-group" style="flex:1;margin:0;">
+                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
                         <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Salida</label>
-                        <input type="time" class="tren-salida" value="${tren ? tren.salida || '' : ''}" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                        <input type="time" class="tren-salida ske-registro-input" value="${tren ? tren.salida || '' : ''}" style="padding:8px;">
                     </div>
-                    <div class="input-group" style="flex:1;margin:0;">
+                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
                         <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Llegada</label>
-                        <input type="time" class="tren-llegada" value="${tren ? tren.llegada || '' : ''}" style="width:100%;padding:8px;border:2px solid var(--bg);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+                        <input type="time" class="tren-llegada ske-registro-input" value="${tren ? tren.llegada || '' : ''}" style="padding:8px;">
                     </div>
                 </div>
                 <!-- ✅ Toggle de Garage por tren -->
@@ -311,18 +419,14 @@ const Servicios = {
 
     addTrenField() {
         const container = document.getElementById('trenesContainer');
-        
-        // Si es el primer tren, limpiar el mensaje de "no hay trenes"
         const mensajeVacio = container.querySelector('p');
         if (mensajeVacio) mensajeVacio.remove();
         
         const trenIndex = container.querySelectorAll('.tren-item').length;
-        
         const trenHTML = this.crearHTMLTren(null, trenIndex);
         
         container.insertAdjacentHTML('beforeend', trenHTML);
         
-        // Inicializar el toggle del nuevo tren
         const nuevoTren = container.lastElementChild;
         const checkbox = nuevoTren.querySelector('.tren-garage-checkbox');
         const track = nuevoTren.querySelector('.tren-garage-track');
@@ -375,74 +479,18 @@ const Servicios = {
         return trenes;
     },
 
-    renderList() {
-        const list = document.getElementById('servicioList');
-        const servicios = DB.load('servicios');
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
-        const semanas = DB.load('semanas');
+    async eliminar(id) {
+        if (!confirm('¿Eliminar este servicio?')) return;
 
-        if (servicios.length === 0) {
-            list.innerHTML = `
-                <div class="aviso-empty">
-                    <svg viewBox="0 0 24 24" style="width:38px;height:38px;stroke:var(--text-light);fill:none;margin-bottom:10px;opacity:0.5;">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <p>No hay servicios registrados</p>
-                </div>
-            `;
-            return;
-        }
+        let serviciosData = DB.load('servicios').filter(s => s.id !== id);
 
-        list.innerHTML = servicios.map(s => {
-            const linea = lineas.find(l => l.id === s.lineaId);
-            const terminal = terminales.find(t => t.id === s.terminalId);
-            const semana = semanas.find(w => w.id === s.semanaId);
-            const trenes = s.trenes || [];
-            const trenesCount = trenes.length;
-            
-            // ✅ Contar trenes con garage
-            const trenesConGarage = trenes.filter(t => t.garage === true).length;
-            
-            // ✅ Determinar si hace garage (general o por tren)
-            const haceGarageGeneral = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
-            const tieneGarage = haceGarageGeneral || trenesConGarage > 0;
-            
-            return `
-                <div class="item-card">
-                    <div class="item-header">
-                        <div class="item-title">Servicio #${s.nombre}</div>
-                        <div class="item-date ${tieneGarage ? 'garage-si' : 'garage-no'}">
-                            ${tieneGarage ? 'Hace Garage' : 'Sin Garage'}
-                        </div>
-                    </div>
-                    <div class="item-meta">
-                        <span class="item-tag">📍 ${linea ? linea.nombre : 'Sin línea'}</span>
-                        <span class="item-tag">🚇 ${terminal ? terminal.nombre : 'Sin terminal'}</span>
-                        <span class="item-tag">📅 ${semana ? semana.tipo : 'Sin día'}</span>
-                    </div>
-                    ${trenesCount > 0 ? `<div class="item-desc" style="margin-top:6px;font-size:12px;color:var(--text-soft);">${trenesCount} tren(es) registrado(s) ${trenesConGarage > 0 ? `• ${trenesConGarage} con garage` : ''}</div>` : ''}
-                    <div class="item-actions">
-                        <button class="btn-edit" data-id="${s.id}">Editar</button>
-                        <button class="btn-remove" data-id="${s.id}">Eliminar</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        // ✅ Guardar local y en Firebase
+        await DB_FIREBASE.sync('servicios', serviciosData);
 
-        list.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', () => this.openModal(btn.dataset.id));
-        });
-        list.querySelectorAll('.btn-remove').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (confirm('¿Eliminar este servicio?')) {
-                    let data = DB.load('servicios').filter(s => s.id !== btn.dataset.id);
-                    DB.save('servicios', data);
-                    this.renderList();
-                    App.showToast('Servicio eliminado');
-                }
-            });
-        });
+        App.showToast('🗑️ Servicio eliminado');
+
+        // ✅ Recargar la vista
+        await this.init();
     }
 };
 
