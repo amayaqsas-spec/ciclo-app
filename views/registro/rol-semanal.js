@@ -123,7 +123,6 @@ const RolSemanal = {
             : '<option value="">Primero registra una línea</option>';
 
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const posiciones = ['1', '2', '3', 'Ra', 'CC', 'CB', 'MA'];
 
         // Inicializar 5 semanas si no existen
         const semanas = data && data.semanas ? data.semanas : Array.from({length: 5}, (_, i) => ({
@@ -162,8 +161,11 @@ const RolSemanal = {
 
                 <div style="margin-bottom:16px;">
                     <label style="display:block;font-size:14px;font-weight:700;margin-bottom:12px;color:var(--primary);">📅 5 Semanas de Rotación</label>
+                    <div style="font-size:12px;color:var(--text-soft);margin-bottom:12px;">
+                        Captura la posición de cada día (Ej: 1, 2, 3, Ra, CC, CB, MA, etc.)
+                    </div>
                     <div id="semanasContainer">
-                        ${semanas.map((semana, idx) => this.crearHTMLSemana(semana, idx, diasSemana, posiciones)).join('')}
+                        ${semanas.map((semana, idx) => this.crearHTMLSemana(semana, idx, diasSemana)).join('')}
                     </div>
                 </div>
 
@@ -211,10 +213,10 @@ const RolSemanal = {
                 const dias = {};
                 
                 diasSemana.forEach(dia => {
-                    const posicionSelect = semanaDiv.querySelector(`#semana-${i}-${dia}-posicion`);
+                    const posicionInput = semanaDiv.querySelector(`#semana-${i}-${dia}-posicion`);
                     
                     dias[dia] = {
-                        posicion: posicionSelect ? posicionSelect.value : ''
+                        posicion: posicionInput ? posicionInput.value.trim() : ''
                     };
                 });
 
@@ -259,16 +261,13 @@ const RolSemanal = {
         });
     },
 
-    crearHTMLSemana(semana, idx, diasSemana, posiciones) {
+    crearHTMLSemana(semana, idx, diasSemana) {
         const diasHTML = diasSemana.map(dia => {
             const diaData = semana.dias[dia] || { posicion: '' };
             return `
                 <div style="background:var(--bg-soft);padding:10px;border-radius:6px;margin-bottom:8px;">
                     <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">${dia}</div>
-                    <select id="semana-${semana.numero}-${dia}-posicion" style="width:100%;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:12px;">
-                        <option value="">Selecciona posición</option>
-                        ${posiciones.map(p => `<option value="${p}" ${diaData.posicion === p ? 'selected' : ''}>${p}</option>`).join('')}
-                    </select>
+                    <input type="text" id="semana-${semana.numero}-${dia}-posicion" value="${diaData.posicion}" placeholder="Posición" style="width:100%;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:12px;box-sizing:border-box;">
                 </div>
             `;
         }).join('');
