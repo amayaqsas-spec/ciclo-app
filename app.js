@@ -49,6 +49,7 @@ const viewModules = {
     'registro-semana': './views/registro/semana.js',
     'registro-reservas': './views/registro/reservas.js',
     'registro-servicios': './views/registro/servicios.js',
+    'numero-semana': './views/registro/numero-semana.js',
     'registro-espejo': './views/registro/espejo.js',
     'mi-rol': './views/rol.js',
     'bd': './views/bd.js',
@@ -94,6 +95,7 @@ const Views = {
                 { id: 'registro-semana', label: 'Tipo de Día' },
                 { id: 'registro-reservas', label: 'Reservas' },
                 { id: 'registro-servicios', label: 'Servicios' },
+                { id: 'registro-numero-semana', label: 'Número de Semana' },
                 { id: 'registro-espejo', label: 'Espejo' }
             ]
         },
