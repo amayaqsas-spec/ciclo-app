@@ -1,5 +1,5 @@
 // ============================================
-// SERVICIOS.JS - Módulo de Registro de Servicios (Diseño Simple y Limpio)
+// SERVICIOS.JS - Diseño Simple y Funcional
 // ============================================
 
 const Servicios = {
@@ -10,34 +10,21 @@ const Servicios = {
         const semanas = DB.load('semanas');
 
         return `
-            <div class="view active ske-registro">
-                <div class="ske-registro-header">
-                    <div class="ske-registro-icono">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
-                        </svg>
+            <div class="view active">
+                <div style="padding:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h2 style="margin:0;font-size:22px;">Servicios</h2>
+                        <button id="btnAddServicio" style="background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">
+                            + Nuevo
+                        </button>
                     </div>
-                    <div class="ske-registro-texto">
-                        <h2 class="ske-registro-titulo">Registro de Servicios</h2>
-                        <p class="ske-registro-subtitulo">${servicios.length} servicios registrados</p>
-                    </div>
-                    <button class="ske-registro-btn-nuevo" id="btnAddServicio">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        <span>Nuevo</span>
-                    </button>
-                </div>
 
-                <div id="servicioList">
                     ${servicios.length === 0 ? `
-                        <div class="ske-registro-empty">
+                        <div style="text-align:center;padding:40px;color:var(--text-soft);">
                             <p>No hay servicios registrados</p>
                         </div>
                     ` : `
-                        <div class="ske-registro-lista">
+                        <div style="display:flex;flex-direction:column;gap:16px;">
                             ${servicios.map(s => {
                                 const linea = lineas.find(l => l.id === s.lineaId);
                                 const terminal = terminales.find(t => t.id === s.terminalId);
@@ -46,73 +33,47 @@ const Servicios = {
                                 const haceGarage = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
 
                                 return `
-                                    <div class="ske-registro-card">
-                                        <div class="servicio-header">
-                                            <h3>Servicio #${s.nombre || 'N/A'}</h3>
-                                            <span class="badge-garage ${haceGarage ? 'garage-si' : 'garage-no'}">
-                                                ${haceGarage ? '✓ Hace Garage' : 'Sin Garage'}
-                                            </span>
+                                    <div style="background:var(--surface);padding:16px;border-radius:12px;box-shadow:var(--clay-shadow-sm);">
+                                        <div style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:12px;">
+                                            Servicio #${s.nombre || 'N/A'} ${haceGarage ? '✓' : ''}
                                         </div>
                                         
-                                        <div class="servicio-info">
-                                            <div class="info-row">
-                                                <span class="info-label"> Línea:</span>
-                                                <span class="info-value">${linea ? linea.nombre : 'Sin línea'}</span>
-                                            </div>
-                                            <div class="info-row">
-                                                <span class="info-label">🚇 Terminal:</span>
-                                                <span class="info-value">${terminal ? terminal.nombre : 'Sin terminal'}</span>
-                                            </div>
-                                            <div class="info-row">
-                                                <span class="info-label">📅 Tipo de Día:</span>
-                                                <span class="info-value">${semana ? semana.tipo : 'Sin tipo'}</span>
-                                            </div>
+                                        <div style="font-size:14px;margin-bottom:8px;">
+                                            <strong>Línea:</strong> ${linea ? linea.nombre : 'Sin línea'}
+                                        </div>
+                                        <div style="font-size:14px;margin-bottom:8px;">
+                                            <strong>Terminal:</strong> ${terminal ? terminal.nombre : 'Sin terminal'}
+                                        </div>
+                                        <div style="font-size:14px;margin-bottom:12px;">
+                                            <strong>Tipo de Día:</strong> ${semana ? semana.tipo : 'Sin tipo'}
                                         </div>
 
                                         ${trenes.length > 0 ? `
-                                            <div class="servicio-trenes">
-                                                <h4>🚂 Trenes (${trenes.length})</h4>
+                                            <div style="margin-bottom:12px;">
+                                                <strong style="font-size:13px;">Trenes:</strong>
                                                 ${trenes.map((tren, idx) => `
-                                                    <div class="tren-card">
-                                                        <div class="tren-header">
-                                                            <span class="tren-numero">Tren #${tren.numero || idx + 1}</span>
-                                                            ${tren.garage ? '<span class="badge-garage-small">GARAGE</span>' : ''}
-                                                        </div>
-                                                        <div class="tren-times">
-                                                            <div class="time-box">
-                                                                <span class="time-label">Salida</span>
-                                                                <span class="time-value">${tren.salida || '--:--'}</span>
-                                                            </div>
-                                                            <div class="time-box">
-                                                                <span class="time-label">Llegada</span>
-                                                                <span class="time-value">${tren.llegada || '--:--'}</span>
-                                                            </div>
-                                                            ${tren.vueltas ? `
-                                                                <div class="time-box">
-                                                                    <span class="time-label">Vueltas</span>
-                                                                    <span class="time-value">${tren.vueltas}</span>
-                                                                </div>
-                                                            ` : ''}
-                                                        </div>
+                                                    <div style="background:var(--bg-soft);padding:8px;border-radius:6px;margin-top:6px;font-size:13px;">
+                                                        <div><strong>Tren #${tren.numero || idx + 1}</strong> ${tren.garage ? '(Garage)' : ''}</div>
+                                                        <div>Salida: ${tren.salida || '--:--'} | Llegada: ${tren.llegada || '--:--'}</div>
+                                                        ${tren.vueltas ? `<div>Vueltas: ${tren.vueltas}</div>` : ''}
                                                     </div>
                                                 `).join('')}
                                             </div>
                                         ` : ''}
 
                                         ${(s.descansoInicio || s.descansoFinal) ? `
-                                            <div class="servicio-descanso">
-                                                <h4>🍽️ Tiempo de Alimentos</h4>
-                                                <div class="descanso-times">
-                                                    <span>${s.descansoInicio || '--:--'}</span>
-                                                    <span>→</span>
-                                                    <span>${s.descansoFinal || '--:--'}</span>
-                                                </div>
+                                            <div style="font-size:13px;margin-bottom:12px;color:#E65100;">
+                                                <strong>Descanso:</strong> ${s.descansoInicio || '--:--'} → ${s.descansoFinal || '--:--'}
                                             </div>
                                         ` : ''}
 
-                                        <div class="servicio-actions">
-                                            <button class="ske-registro-btn-editar" data-id="${s.id}">Editar</button>
-                                            <button class="ske-registro-btn-eliminar" data-id="${s.id}">Eliminar</button>
+                                        <div style="display:flex;gap:8px;margin-top:12px;">
+                                            <button class="btn-edit-servicio" data-id="${s.id}" style="flex:1;background:var(--bg-soft);color:var(--primary);border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;">
+                                                Editar
+                                            </button>
+                                            <button class="btn-delete-servicio" data-id="${s.id}" style="flex:1;background:#ff4444;color:white;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;">
+                                                Eliminar
+                                            </button>
                                         </div>
                                     </div>
                                 `;
@@ -135,11 +96,11 @@ const Servicios = {
 
         document.getElementById('btnAddServicio')?.addEventListener('click', () => this.openModal());
 
-        document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
+        document.querySelectorAll('.btn-edit-servicio').forEach(btn => {
             btn.addEventListener('click', () => this.openModal(btn.dataset.id));
         });
 
-        document.querySelectorAll('.ske-registro-btn-eliminar').forEach(btn => {
+        document.querySelectorAll('.btn-delete-servicio').forEach(btn => {
             btn.addEventListener('click', () => this.eliminar(btn.dataset.id));
         });
     },
@@ -156,95 +117,73 @@ const Servicios = {
         const semanas = DB.load('semanas');
 
         const lineaOptions = lineas.length > 0
-            ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${data && data.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
+            ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${data && data.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
             : '<option value="">Primero registra una línea</option>';
 
         const haceGarage = data ? (data.garage === true || data.garage === 'Si' || data.garage === 'Sí') : false;
 
         const modalOverlay = App.showModal(`
-            <div class="ske-registro-modal-inner" style="max-width:650px; max-height:90vh; overflow-y:auto;">
-                <div class="ske-registro-modal-header">
-                    <h3>${editId ? 'Editar' : 'Nuevo'} Servicio</h3>
+            <div style="background:var(--surface);padding:20px;border-radius:12px;max-width:90%;width:400px;">
+                <h3 style="margin:0 0 16px 0;">${editId ? 'Editar' : 'Nuevo'} Servicio</h3>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Línea *</label>
+                    <select id="servicioLinea" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">${lineaOptions}</select>
                 </div>
-                <div class="ske-registro-modal-body">
-                    <div class="ske-registro-input-group">
-                        <label>Línea *</label>
-                        <select id="servicioLinea" class="ske-registro-select">${lineaOptions}</select>
-                    </div>
-                    <div class="ske-registro-input-group">
-                        <label>Terminal *</label>
-                        <select id="servicioTerminal" class="ske-registro-select">
-                            <option value="">Selecciona línea primero</option>
-                        </select>
-                    </div>
-                    <div class="ske-registro-input-group">
-                        <label>Tipo de Día *</label>
-                        <select id="servicioSemana" class="ske-registro-select">
-                            <option value="">Selecciona línea y terminal primero</option>
-                        </select>
-                    </div>
-                    <div class="ske-registro-input-group">
-                        <label>Nombre del Servicio (Número) *</label>
-                        <input type="text" id="servicioNombre" class="ske-registro-input" value="${data ? data.nombre : ''}" placeholder="Ej. 1234">
-                    </div>
-                    
-                    <div class="ske-registro-input-group">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg-soft);border-radius:8px;">
-                            <label style="font-size:13px;font-weight:600;color:var(--text);">Hace Garage (General)</label>
-                            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
-                                <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
-                                <span id="garageToggle" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${haceGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
-                                    <span id="garageToggleCircle" style="position:absolute;height:18px;width:18px;left:${haceGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <div style="margin-top:16px;">
-                        <h4 style="margin-bottom:12px;font-size:14px;color:var(--text);font-weight:700;">🚂 Trenes</h4>
-                        <div id="trenesContainer">
-                            ${this.renderTrenesForm(data ? data.trenes : [])}
-                        </div>
-                        <button class="ske-registro-btn-modal" id="btnAddTren" style="margin-top:10px;width:100%;padding:10px;background:var(--bg-soft);border:2px dashed var(--primary-soft);color:var(--primary);font-weight:600;font-size:13px;">
-                            + Agregar Tren
-                        </button>
-                    </div>
-
-                    <div style="margin-top:16px;display:flex;gap:12px;">
-                        <div class="ske-registro-input-group" style="flex:1;">
-                            <label>Inicio de Descanso</label>
-                            <input type="time" id="servicioDescansoInicio" class="ske-registro-input" value="${data ? data.descansoInicio : ''}">
-                        </div>
-                        <div class="ske-registro-input-group" style="flex:1;">
-                            <label>Final de Descanso</label>
-                            <input type="time" id="servicioDescansoFinal" class="ske-registro-input" value="${data ? data.descansoFinal : ''}">
-                        </div>
-                    </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Terminal *</label>
+                    <select id="servicioTerminal" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                        <option value="">Selecciona línea primero</option>
+                    </select>
                 </div>
-                <div class="ske-registro-modal-footer">
-                    <button class="ske-registro-btn-modal" id="btnCancel">Cancelar</button>
-                    <button class="ske-registro-btn-modal ske-registro-btn-guardar" id="btnSave">
-                        ${editId ? 'Actualizar' : 'Guardar'}
+
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Tipo de Día *</label>
+                    <select id="servicioSemana" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                        <option value="">Selecciona línea y terminal primero</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Número de Servicio *</label>
+                    <input type="text" id="servicioNombre" value="${data ? data.nombre : ''}" placeholder="Ej. 1234" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" id="servicioGarage" ${haceGarage ? 'checked' : ''}>
+                        <span style="font-size:13px;">Hace Garage</span>
+                    </label>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Trenes</label>
+                    <div id="trenesContainer">
+                        ${this.renderTrenesForm(data ? data.trenes : [])}
+                    </div>
+                    <button id="btnAddTren" style="width:100%;padding:8px;background:var(--bg-soft);border:2px dashed var(--primary-soft);border-radius:6px;color:var(--primary);font-weight:600;cursor:pointer;margin-top:8px;">
+                        + Agregar Tren
                     </button>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Inicio Descanso</label>
+                        <input type="time" id="servicioDescansoInicio" value="${data ? data.descansoInicio : ''}" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Final Descanso</label>
+                        <input type="time" id="servicioDescansoFinal" value="${data ? data.descansoFinal : ''}" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                    <button id="btnCancel" style="flex:1;padding:10px;background:var(--bg-soft);border:none;border-radius:6px;font-weight:600;cursor:pointer;">Cancelar</button>
+                    <button id="btnSave" style="flex:1;padding:10px;background:var(--primary);color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;">${editId ? 'Actualizar' : 'Guardar'}</button>
                 </div>
             </div>
         `);
-
-        const checkboxGarage = document.getElementById('servicioGarage');
-        const garageToggle = document.getElementById('garageToggle');
-        const garageToggleCircle = document.getElementById('garageToggleCircle');
-        
-        if (checkboxGarage && garageToggle && garageToggleCircle) {
-            checkboxGarage.addEventListener('change', () => {
-                if (checkboxGarage.checked) {
-                    garageToggle.style.background = 'var(--primary)';
-                    garageToggleCircle.style.left = '22px';
-                } else {
-                    garageToggle.style.background = 'var(--bg)';
-                    garageToggleCircle.style.left = '3px';
-                }
-            });
-        }
 
         const selectLinea = document.getElementById('servicioLinea');
         const selectTerminal = document.getElementById('servicioTerminal');
@@ -278,27 +217,17 @@ const Servicios = {
                 ).join('');
         };
 
-        selectLinea.addEventListener('change', () => {
-            updateTerminales();
-        });
-        selectTerminal.addEventListener('change', () => {
-            updateSemanas();
-        });
-        
+        selectLinea.addEventListener('change', updateTerminales);
+        selectTerminal.addEventListener('change', updateSemanas);
         updateTerminales();
 
-        document.getElementById('btnAddTren').addEventListener('click', () => {
-            this.addTrenField();
-        });
+        document.getElementById('btnAddTren').addEventListener('click', () => this.addTrenField());
 
         document.querySelectorAll('.btn-remove-tren').forEach(btn => {
             btn.addEventListener('click', () => {
                 btn.parentElement.remove();
-                this.updateTrenRemoveButtons();
             });
         });
-
-        this.initTrenGarageToggles();
 
         document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
         
@@ -312,7 +241,7 @@ const Servicios = {
             const descansoFinal = document.getElementById('servicioDescansoFinal').value;
 
             if (!lineaId || !terminalId || !semanaId || !nombre) {
-                App.showToast('️ Completa los campos obligatorios');
+                App.showToast('Completa los campos obligatorios');
                 return;
             }
 
@@ -325,27 +254,13 @@ const Servicios = {
                 if (idx !== -1) {
                     serviciosData[idx] = { 
                         ...serviciosData[idx], 
-                        lineaId, 
-                        terminalId, 
-                        semanaId, 
-                        nombre, 
-                        garage,
-                        trenes,
-                        descansoInicio,
-                        descansoFinal
+                        lineaId, terminalId, semanaId, nombre, garage, trenes, descansoInicio, descansoFinal
                     };
                 }
             } else {
                 serviciosData.push({
                     id: DB.generateId(),
-                    lineaId,
-                    terminalId,
-                    semanaId,
-                    nombre,
-                    garage,
-                    trenes,
-                    descansoInicio,
-                    descansoFinal,
+                    lineaId, terminalId, semanaId, nombre, garage, trenes, descansoInicio, descansoFinal,
                     createdAt: Date.now()
                 });
             }
@@ -353,48 +268,15 @@ const Servicios = {
             await DB_FIREBASE.sync('servicios', serviciosData);
 
             modalOverlay.remove();
-            App.showToast(editId ? '✅ Servicio actualizado' : '✅ Servicio guardado');
+            App.showToast(editId ? 'Servicio actualizado' : 'Servicio guardado');
 
             await this.init();
         });
     },
 
-    initTrenGarageToggles() {
-        document.querySelectorAll('.tren-garage-toggle').forEach(toggle => {
-            const checkbox = toggle.querySelector('input[type="checkbox"]');
-            const track = toggle.querySelector('.tren-garage-track');
-            const circle = toggle.querySelector('.tren-garage-circle');
-            
-            if (checkbox && track && circle) {
-                if (checkbox.checked) {
-                    track.style.background = 'var(--primary)';
-                    circle.style.left = '22px';
-                }
-                
-                checkbox.addEventListener('change', () => {
-                    if (checkbox.checked) {
-                        track.style.background = 'var(--primary)';
-                        circle.style.left = '22px';
-                    } else {
-                        track.style.background = 'var(--bg)';
-                        circle.style.left = '3px';
-                    }
-                });
-            }
-        });
-    },
-
-    updateTrenRemoveButtons() {
-        const items = document.querySelectorAll('.tren-item');
-        items.forEach((item, idx) => {
-            const btn = item.querySelector('.btn-remove-tren');
-            if (btn) btn.dataset.idx = idx;
-        });
-    },
-
     renderTrenesForm(trenes) {
         if (!trenes || trenes.length === 0) {
-            return '<p style="color:var(--text-soft);font-size:13px;text-align:center;padding:20px;">No hay trenes registrados. Agrega al menos uno.</p>';
+            return '<p style="color:var(--text-soft);font-size:13px;text-align:center;padding:12px;">No hay trenes. Agrega uno.</p>';
         }
         return trenes.map((tren, idx) => this.crearHTMLTren(tren, idx)).join('');
     },
@@ -402,37 +284,20 @@ const Servicios = {
     crearHTMLTren(tren, idx) {
         const tieneGarage = tren && tren.garage;
         return `
-            <div class="tren-item" style="background:var(--bg-soft);padding:12px;border-radius:8px;margin-bottom:10px;position:relative;border:1px solid var(--primary-soft);">
-                <button class="btn-remove-tren" data-idx="${idx}" style="position:absolute;top:8px;right:8px;background:#ff4444;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">×</button>
-                <div style="display:flex;gap:10px;margin-bottom:8px;">
-                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
-                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Número de Tren</label>
-                        <input type="text" class="tren-numero ske-registro-input" value="${tren ? tren.numero || '' : ''}" placeholder="Ej. 1" style="padding:8px;">
-                    </div>
-                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
-                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Vueltas</label>
-                        <input type="number" class="tren-vueltas ske-registro-input" value="${tren ? tren.vueltas || '' : ''}" placeholder="Ej. 2" min="1" style="padding:8px;">
-                    </div>
+            <div class="tren-item" style="background:var(--bg-soft);padding:10px;border-radius:6px;margin-bottom:8px;position:relative;">
+                <button class="btn-remove-tren" style="position:absolute;top:6px;right:6px;background:#ff4444;color:white;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;">×</button>
+                <div style="display:flex;gap:8px;margin-bottom:6px;">
+                    <input type="text" class="tren-numero" value="${tren ? tren.numero || '' : ''}" placeholder="N° Tren" style="flex:1;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:13px;">
+                    <input type="number" class="tren-vueltas" value="${tren ? tren.vueltas || '' : ''}" placeholder="Vueltas" min="1" style="width:70px;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:13px;">
                 </div>
-                <div style="display:flex;gap:10px;margin-bottom:8px;">
-                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
-                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Salida</label>
-                        <input type="time" class="tren-salida ske-registro-input" value="${tren ? tren.salida || '' : ''}" style="padding:8px;">
-                    </div>
-                    <div class="ske-registro-input-group" style="flex:1;margin:0;">
-                        <label style="font-size:11px;font-weight:600;color:var(--text-soft);">Hora Llegada</label>
-                        <input type="time" class="tren-llegada ske-registro-input" value="${tren ? tren.llegada || '' : ''}" style="padding:8px;">
-                    </div>
+                <div style="display:flex;gap:8px;margin-bottom:6px;">
+                    <input type="time" class="tren-salida" value="${tren ? tren.salida || '' : ''}" style="flex:1;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:13px;">
+                    <input type="time" class="tren-llegada" value="${tren ? tren.llegada || '' : ''}" style="flex:1;padding:6px;border:1px solid var(--bg);border-radius:4px;font-size:13px;">
                 </div>
-                <div class="tren-garage-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface);border-radius:6px;border:1px solid var(--bg-soft);">
-                    <label style="font-size:12px;font-weight:600;color:var(--text);">Hace Garage</label>
-                    <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;margin:0;">
-                        <input type="checkbox" class="tren-garage-checkbox" ${tieneGarage ? 'checked' : ''} style="opacity:0;width:0;height:0;">
-                        <span class="tren-garage-track" style="position:absolute;top:0;left:0;right:0;bottom:0;background:${tieneGarage ? 'var(--primary)' : 'var(--bg)'};border-radius:24px;transition:0.3s;box-shadow:var(--clay-shadow-sm);">
-                            <span class="tren-garage-circle" style="position:absolute;height:18px;width:18px;left:${tieneGarage ? '22px' : '3px'};bottom:3px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
-                        </span>
-                    </label>
-                </div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;">
+                    <input type="checkbox" class="tren-garage-checkbox" ${tieneGarage ? 'checked' : ''}>
+                    Hace Garage
+                </label>
             </div>
         `;
     },
@@ -448,27 +313,11 @@ const Servicios = {
         container.insertAdjacentHTML('beforeend', trenHTML);
         
         const nuevoTren = container.lastElementChild;
-        const checkbox = nuevoTren.querySelector('.tren-garage-checkbox');
-        const track = nuevoTren.querySelector('.tren-garage-track');
-        const circle = nuevoTren.querySelector('.tren-garage-circle');
         const btnRemove = nuevoTren.querySelector('.btn-remove-tren');
-        
-        if (checkbox && track && circle) {
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    track.style.background = 'var(--primary)';
-                    circle.style.left = '22px';
-                } else {
-                    track.style.background = 'var(--bg)';
-                    circle.style.left = '3px';
-                }
-            });
-        }
         
         if (btnRemove) {
             btnRemove.addEventListener('click', () => {
                 btnRemove.parentElement.remove();
-                this.updateTrenRemoveButtons();
             });
         }
     },
@@ -486,13 +335,7 @@ const Servicios = {
             const garage = garageCheckbox ? garageCheckbox.checked : false;
             
             if (numero || salida || llegada) {
-                trenes.push({
-                    numero,
-                    vueltas: vueltas ? parseInt(vueltas) : 1,
-                    salida,
-                    llegada,
-                    garage: garage
-                });
+                trenes.push({ numero, vueltas: vueltas ? parseInt(vueltas) : 1, salida, llegada, garage });
             }
         });
         
@@ -506,7 +349,7 @@ const Servicios = {
 
         await DB_FIREBASE.sync('servicios', serviciosData);
 
-        App.showToast('🗑️ Servicio eliminado');
+        App.showToast('Servicio eliminado');
 
         await this.init();
     }
