@@ -49,7 +49,7 @@ const viewModules = {
     'registro-semana': './views/registro/semana.js',
     'registro-reservas': './views/registro/reservas.js',
     'registro-servicios': './views/registro/servicios.js',
-    'numero-semana': './views/registro/numero-semana.js',
+    'registro-numero-semana': './views/registro/numero-semana.js', // ✅ CORREGIDO: Ahora coincide con el ID del menú
     'registro-espejo': './views/registro/espejo.js',
     'mi-rol': './views/rol.js',
     'bd': './views/bd.js',
@@ -95,7 +95,7 @@ const Views = {
                 { id: 'registro-semana', label: 'Tipo de Día' },
                 { id: 'registro-reservas', label: 'Reservas' },
                 { id: 'registro-servicios', label: 'Servicios' },
-                { id: 'registro-numero-semana', label: 'Número de Semana' },
+                { id: 'registro-numero-semana', label: 'Número de Semana' }, // ✅ Ya estaba correcto aquí
                 { id: 'registro-espejo', label: 'Espejo' }
             ]
         },
@@ -187,7 +187,7 @@ const Views = {
     },
 
     async load(viewId, addToHistory = true) {
-        console.log(' Cargando vista:', viewId);
+        console.log('🔄 Cargando vista:', viewId);
 
         const currentModule = this.getCurrentModule();
         if (currentModule && typeof currentModule.onLeave === 'function') {
@@ -476,7 +476,7 @@ const App = {
                     btnNotificaciones.classList.remove('has-notifications');
                 }
                 
-                console.log(' Documentos no leídos:', noLeidos);
+                console.log('🔔 Documentos no leídos:', noLeidos);
             } catch (error) {
                 console.error('Error al calcular no leídos:', error);
             }
@@ -600,4 +600,4 @@ if (document.readyState === 'loading') {
     startApp();
 }
 
-console.log(' app.js cargado correctamente');
+console.log('✅ app.js cargado correctamente');
