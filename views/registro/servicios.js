@@ -1,5 +1,5 @@
 // ============================================
-// SERVICIOS.JS - Módulo de Registro de Servicios con Firebase y Diseño Mejorado
+// SERVICIOS.JS - Módulo de Registro de Servicios (Diseño Simple y Limpio)
 // ============================================
 
 const Servicios = {
@@ -8,8 +8,6 @@ const Servicios = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const semanas = DB.load('semanas');
-
-        console.log('📋 Renderizando servicios:', servicios.length);
 
         return `
             <div class="view active ske-registro">
@@ -48,81 +46,73 @@ const Servicios = {
                                 const haceGarage = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
 
                                 return `
-                                    <div class="ske-registro-card" style="padding:0; overflow:hidden;">
-                                        <!-- HEADER DE LA TARJETA -->
-                                        <div style="background:linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); padding:16px 20px; color:white;">
-                                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                                <div>
-                                                    <h3 style="margin:0; font-size:24px; font-weight:800;">Servicio #${s.nombre || 'N/A'}</h3>
-                                                    <p style="margin:4px 0 0 0; opacity:0.9; font-size:13px;">
-                                                        ${linea ? linea.nombre : 'Sin línea'} • ${terminal ? terminal.nombre : 'Sin terminal'}
-                                                    </p>
-                                                </div>
-                                                <div style="background:${haceGarage ? '#4CAF50' : '#FF9800'}; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                                    ${haceGarage ? '✓ Hace Garage' : 'Sin Garage'}
-                                                </div>
+                                    <div class="ske-registro-card">
+                                        <div class="servicio-header">
+                                            <h3>Servicio #${s.nombre || 'N/A'}</h3>
+                                            <span class="badge-garage ${haceGarage ? 'garage-si' : 'garage-no'}">
+                                                ${haceGarage ? '✓ Hace Garage' : 'Sin Garage'}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="servicio-info">
+                                            <div class="info-row">
+                                                <span class="info-label"> Línea:</span>
+                                                <span class="info-value">${linea ? linea.nombre : 'Sin línea'}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">🚇 Terminal:</span>
+                                                <span class="info-value">${terminal ? terminal.nombre : 'Sin terminal'}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">📅 Tipo de Día:</span>
+                                                <span class="info-value">${semana ? semana.tipo : 'Sin tipo'}</span>
                                             </div>
                                         </div>
 
-                                        <!-- CONTENIDO -->
-                                        <div style="padding:16px 20px;">
-                                            <!-- TIPO DE DÍA -->
-                                            <div style="margin-bottom:16px; padding:10px; background:var(--bg-soft); border-radius:8px; border-left:4px solid var(--primary);">
-                                                <div style="font-size:11px; color:var(--text-soft); text-transform:uppercase; font-weight:700; margin-bottom:4px;">📅 Tipo de Día</div>
-                                                <div style="font-size:15px; font-weight:700; color:var(--text);">${semana ? semana.tipo : 'Sin tipo de día'}</div>
-                                            </div>
-
-                                            <!-- TRENES -->
-                                            ${trenes.length > 0 ? `
-                                                <div style="margin-bottom:16px;">
-                                                    <div style="font-size:12px; color:var(--text-soft); text-transform:uppercase; font-weight:700; margin-bottom:10px;">🚂 Trenes (${trenes.length})</div>
-                                                    <div style="display:flex; flex-direction:column; gap:8px;">
-                                                        ${trenes.map((tren, idx) => {
-                                                            const tieneGarageTren = tren.garage === true;
-                                                            return `
-                                                                <div style="background:var(--surface); padding:12px; border-radius:8px; border:2px solid var(--bg-soft);">
-                                                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                                                        <span style="font-weight:700; color:var(--primary); font-size:14px;">Tren #${tren.numero || idx + 1}</span>
-                                                                        ${tieneGarageTren ? '<span style="background:#4CAF50; color:white; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700;">GARAGE</span>' : ''}
-                                                                    </div>
-                                                                    <div style="display:flex; gap:12px; font-size:13px;">
-                                                                        <div style="flex:1;">
-                                                                            <div style="font-size:10px; color:var(--text-soft);">Salida</div>
-                                                                            <div style="font-weight:700; color:var(--text);">${tren.salida || '--:--'}</div>
-                                                                        </div>
-                                                                        <div style="flex:1;">
-                                                                            <div style="font-size:10px; color:var(--text-soft);">Llegada</div>
-                                                                            <div style="font-weight:700; color:var(--text);">${tren.llegada || '--:--'}</div>
-                                                                        </div>
-                                                                        ${tren.vueltas ? `
-                                                                            <div style="flex:1;">
-                                                                                <div style="font-size:10px; color:var(--text-soft);">Vueltas</div>
-                                                                                <div style="font-weight:700; color:var(--text);">${tren.vueltas}</div>
-                                                                            </div>
-                                                                        ` : ''}
-                                                                    </div>
+                                        ${trenes.length > 0 ? `
+                                            <div class="servicio-trenes">
+                                                <h4>🚂 Trenes (${trenes.length})</h4>
+                                                ${trenes.map((tren, idx) => `
+                                                    <div class="tren-card">
+                                                        <div class="tren-header">
+                                                            <span class="tren-numero">Tren #${tren.numero || idx + 1}</span>
+                                                            ${tren.garage ? '<span class="badge-garage-small">GARAGE</span>' : ''}
+                                                        </div>
+                                                        <div class="tren-times">
+                                                            <div class="time-box">
+                                                                <span class="time-label">Salida</span>
+                                                                <span class="time-value">${tren.salida || '--:--'}</span>
+                                                            </div>
+                                                            <div class="time-box">
+                                                                <span class="time-label">Llegada</span>
+                                                                <span class="time-value">${tren.llegada || '--:--'}</span>
+                                                            </div>
+                                                            ${tren.vueltas ? `
+                                                                <div class="time-box">
+                                                                    <span class="time-label">Vueltas</span>
+                                                                    <span class="time-value">${tren.vueltas}</span>
                                                                 </div>
-                                                            `;
-                                                        }).join('')}
+                                                            ` : ''}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ` : ''}
-
-                                            <!-- DESCANSO / ALIMENTOS -->
-                                            ${(s.descansoInicio || s.descansoFinal) ? `
-                                                <div style="margin-bottom:16px; padding:12px; background:#FFF3E0; border-radius:8px; border-left:4px solid #FF9800;">
-                                                    <div style="font-size:11px; color:#E65100; text-transform:uppercase; font-weight:700; margin-bottom:4px;">🍽️ Tiempo de Alimentos</div>
-                                                    <div style="font-size:14px; font-weight:700; color:#E65100;">
-                                                        ${s.descansoInicio || '--:--'} → ${s.descansoFinal || '--:--'}
-                                                    </div>
-                                                </div>
-                                            ` : ''}
-
-                                            <!-- ACCIONES -->
-                                            <div style="display:flex; gap:8px; padding-top:12px; border-top:2px solid var(--bg-soft);">
-                                                <button class="ske-registro-btn-editar" data-id="${s.id}" style="flex:1;">Editar</button>
-                                                <button class="ske-registro-btn-eliminar" data-id="${s.id}" style="flex:1;">Eliminar</button>
+                                                `).join('')}
                                             </div>
+                                        ` : ''}
+
+                                        ${(s.descansoInicio || s.descansoFinal) ? `
+                                            <div class="servicio-descanso">
+                                                <h4>🍽️ Tiempo de Alimentos</h4>
+                                                <div class="descanso-times">
+                                                    <span>${s.descansoInicio || '--:--'}</span>
+                                                    <span>→</span>
+                                                    <span>${s.descansoFinal || '--:--'}</span>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+
+                                        <div class="servicio-actions">
+                                            <button class="ske-registro-btn-editar" data-id="${s.id}">Editar</button>
+                                            <button class="ske-registro-btn-eliminar" data-id="${s.id}">Eliminar</button>
                                         </div>
                                     </div>
                                 `;
@@ -135,19 +125,14 @@ const Servicios = {
     },
 
     async init() {
-        // ✅ 1. Cargar todos los datos desde Firebase
         await DB_FIREBASE.load('servicios');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
 
-        console.log('✅ Datos de Servicios cargados en init()');
-
-        // ✅ 2. Renderizar la vista
         const container = document.getElementById('viewContainer');
         container.innerHTML = this.render();
 
-        // ✅ 3. Adjuntar eventos
         document.getElementById('btnAddServicio')?.addEventListener('click', () => this.openModal());
 
         document.querySelectorAll('.ske-registro-btn-editar').forEach(btn => {
@@ -160,7 +145,6 @@ const Servicios = {
     },
 
     async openModal(editId = null) {
-        // ✅ Asegurar datos frescos
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
@@ -204,7 +188,6 @@ const Servicios = {
                         <input type="text" id="servicioNombre" class="ske-registro-input" value="${data ? data.nombre : ''}" placeholder="Ej. 1234">
                     </div>
                     
-                    <!-- Checkbox de Garage general -->
                     <div class="ske-registro-input-group">
                         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg-soft);border-radius:8px;">
                             <label style="font-size:13px;font-weight:600;color:var(--text);">Hace Garage (General)</label>
@@ -217,7 +200,6 @@ const Servicios = {
                         </div>
                     </div>
 
-                    <!-- TRENES -->
                     <div style="margin-top:16px;">
                         <h4 style="margin-bottom:12px;font-size:14px;color:var(--text);font-weight:700;">🚂 Trenes</h4>
                         <div id="trenesContainer">
@@ -228,7 +210,6 @@ const Servicios = {
                         </button>
                     </div>
 
-                    <!-- DESCANSO -->
                     <div style="margin-top:16px;display:flex;gap:12px;">
                         <div class="ske-registro-input-group" style="flex:1;">
                             <label>Inicio de Descanso</label>
@@ -249,7 +230,6 @@ const Servicios = {
             </div>
         `);
 
-        // Toggle del garage general
         const checkboxGarage = document.getElementById('servicioGarage');
         const garageToggle = document.getElementById('garageToggle');
         const garageToggleCircle = document.getElementById('garageToggleCircle');
@@ -270,7 +250,6 @@ const Servicios = {
         const selectTerminal = document.getElementById('servicioTerminal');
         const selectSemana = document.getElementById('servicioSemana');
 
-        // ✅ Lógica en cascada actualizada (Línea -> Terminal -> Semana)
         const updateTerminales = () => {
             const lineaId = selectLinea.value;
             const filtradas = terminales.filter(t => t.lineaId === lineaId);
@@ -306,15 +285,12 @@ const Servicios = {
             updateSemanas();
         });
         
-        // Ejecutar al abrir para pre-seleccionar si es edición
         updateTerminales();
 
-        // Agregar tren
         document.getElementById('btnAddTren').addEventListener('click', () => {
             this.addTrenField();
         });
 
-        // Eventos de eliminar trenes existentes
         document.querySelectorAll('.btn-remove-tren').forEach(btn => {
             btn.addEventListener('click', () => {
                 btn.parentElement.remove();
@@ -322,7 +298,6 @@ const Servicios = {
             });
         });
 
-        // Inicializar toggles de garage en trenes existentes
         this.initTrenGarageToggles();
 
         document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
@@ -337,7 +312,7 @@ const Servicios = {
             const descansoFinal = document.getElementById('servicioDescansoFinal').value;
 
             if (!lineaId || !terminalId || !semanaId || !nombre) {
-                App.showToast('⚠️ Completa los campos obligatorios');
+                App.showToast('️ Completa los campos obligatorios');
                 return;
             }
 
@@ -375,18 +350,15 @@ const Servicios = {
                 });
             }
 
-            // ✅ Guardar local y en Firebase
             await DB_FIREBASE.sync('servicios', serviciosData);
 
             modalOverlay.remove();
             App.showToast(editId ? '✅ Servicio actualizado' : '✅ Servicio guardado');
 
-            // ✅ Recargar la vista
             await this.init();
         });
     },
 
-    // ✅ Inicializar toggles de garage en trenes
     initTrenGarageToggles() {
         document.querySelectorAll('.tren-garage-toggle').forEach(toggle => {
             const checkbox = toggle.querySelector('input[type="checkbox"]');
@@ -412,7 +384,6 @@ const Servicios = {
         });
     },
 
-    // ✅ Actualizar botones de eliminar trenes
     updateTrenRemoveButtons() {
         const items = document.querySelectorAll('.tren-item');
         items.forEach((item, idx) => {
@@ -453,7 +424,6 @@ const Servicios = {
                         <input type="time" class="tren-llegada ske-registro-input" value="${tren ? tren.llegada || '' : ''}" style="padding:8px;">
                     </div>
                 </div>
-                <!-- ✅ Toggle de Garage por tren -->
                 <div class="tren-garage-toggle" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface);border-radius:6px;border:1px solid var(--bg-soft);">
                     <label style="font-size:12px;font-weight:600;color:var(--text);">Hace Garage</label>
                     <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;margin:0;">
@@ -534,12 +504,10 @@ const Servicios = {
 
         let serviciosData = DB.load('servicios').filter(s => s.id !== id);
 
-        // ✅ Guardar local y en Firebase
         await DB_FIREBASE.sync('servicios', serviciosData);
 
         App.showToast('🗑️ Servicio eliminado');
 
-        // ✅ Recargar la vista
         await this.init();
     }
 };
