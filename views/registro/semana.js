@@ -1,14 +1,14 @@
 // ============================================
-// SEMANA.JS - Módulo de Registro de Tipos de Día con Firebase
+// SEMANA.JS - Módulo de Registro de Tipos de Día (Rediseñado con Terminal)
 // ============================================
 
 const Semana = {
     render() {
         const semanas = DB.load('semanas');
         const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
 
-        console.log('📋 Renderizando semanas:', semanas.length);
-        console.log('📋 Líneas disponibles:', lineas.length);
+        console.log('📋 Renderizando tipos de día:', semanas.length);
 
         return `
             <div class="view active ske-registro">
@@ -43,12 +43,18 @@ const Semana = {
                         <div class="ske-registro-lista">
                             ${semanas.map(s => {
                                 const linea = lineas.find(l => l.id === s.lineaId);
-                                console.log(`🔍 Tipo de Día: ${s.tipo}, lineaId: "${s.lineaId}", Línea encontrada: ${linea ? linea.nombre : '❌ NO'}`);
+                                const terminal = terminales.find(t => t.id === s.terminalId);
+                                
+                                console.log(`🔍 Tipo: ${s.tipo} | Línea: ${linea ? linea.nombre : '❌'} | Terminal: ${terminal ? terminal.nombre : '❌'}`);
+                                
                                 return `
                                     <div class="ske-registro-card">
                                         <div class="ske-registro-card-info">
                                             <strong>${s.tipo || 'Sin tipo'}</strong>
-                                            <p>${linea ? linea.nombre : 'Sin línea asignada'}</p>
+                                            <p>
+                                                <span style="color:var(--primary);">📍 ${linea ? linea.nombre : 'Sin línea'}</span> | 
+                                                <span>🚇 ${terminal ? terminal.nombre : 'Sin terminal'}</span>
+                                            </p>
                                         </div>
                                         <div class="ske-registro-card-acciones">
                                             <button class="ske-registro-btn-editar" data-id="${s.id}">Editar</button>
@@ -68,8 +74,9 @@ const Semana = {
         // ✅ 1. Cargar datos desde Firebase (actualiza caché local)
         await DB_FIREBASE.load('semanas');
         await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
 
-        console.log('✅ Datos de Semanas cargados en init()');
+        console.log('✅ Datos de Tipos de Día cargados en init()');
 
         // ✅ 2. Renderizar la vista
         const container = document.getElementById('viewContainer');
@@ -91,12 +98,15 @@ const Semana = {
         const semanas = DB.load('semanas');
         const semana = editId ? semanas.find(s => s.id === editId) : null;
         
-        // ✅ Asegurar que tenemos las líneas más recientes
+        // ✅ Asegurar que tenemos las líneas y terminales más recientes
         await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        
         const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
 
         console.log('📋 Líneas en modal:', lineas);
-        console.log('📋 Semana a editar:', semana);
+        console.log('📋 Terminales en modal:', terminales);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona una línea</option>' + lineas.map(l => `<option value="${l.id}" ${semana && semana.lineaId === l.id ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -113,6 +123,12 @@ const Semana = {
                         <select id="semanaLinea" class="ske-registro-select">${lineaOptions}</select>
                     </div>
                     <div class="ske-registro-input-group">
+                        <label>Terminal *</label>
+                        <select id="semanaTerminal" class="ske-registro-select">
+                            <option value="">Selecciona línea primero</option>
+                        </select>
+                    </div>
+                    <div class="ske-registro-input-group">
                         <label>Tipo de Día *</label>
                         <input type="text" id="semanaTipo" class="ske-registro-input" value="${semana ? semana.tipo : ''}" placeholder="Ej. Laboral, Sábado, Domingo/Festivos">
                     </div>
@@ -126,14 +142,38 @@ const Semana = {
             </div>
         `);
 
+        const selectLinea = document.getElementById('semanaLinea');
+        const selectTerminal = document.getElementById('semanaTerminal');
+
+        // ✅ Lógica en cascada: Al cambiar la línea, actualizar las terminales
+        const updateTerminales = () => {
+            const lineaId = selectLinea.value;
+            const terminalesFiltradas = terminales.filter(t => t.lineaId === lineaId);
+            
+            console.log('🔄 Terminales filtradas para lineaId', lineaId, ':', terminalesFiltradas);
+
+            selectTerminal.innerHTML = terminalesFiltradas.length === 0
+                ? '<option value="">No hay terminales para esta línea</option>'
+                : '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => 
+                    `<option value="${t.id}" ${semana && semana.terminalId === t.id ? 'selected' : ''}>${t.nombre}</option>`
+                ).join('');
+        };
+
+        selectLinea.addEventListener('change', updateTerminales);
+        
+        // Ejecutar al abrir el modal para pre-seleccionar si es edición
+        updateTerminales();
+
         document.getElementById('btnCancel').addEventListener('click', () => modalOverlay.remove());
+        
         document.getElementById('btnSave').addEventListener('click', async () => {
-            const lineaId = document.getElementById('semanaLinea').value;
+            const lineaId = selectLinea.value;
+            const terminalId = selectTerminal.value;
             const tipo = document.getElementById('semanaTipo').value.trim();
 
-            console.log('💾 Guardando tipo de día:', { lineaId, tipo });
+            console.log('💾 Guardando tipo de día:', { lineaId, terminalId, tipo });
 
-            if (!lineaId || !tipo) {
+            if (!lineaId || !terminalId || !tipo) {
                 App.showToast('⚠️ Completa todos los campos');
                 return;
             }
@@ -143,12 +183,13 @@ const Semana = {
             if (editId) {
                 const idx = semanasData.findIndex(s => s.id === editId);
                 if (idx !== -1) {
-                    semanasData[idx] = { ...semanasData[idx], lineaId, tipo };
+                    semanasData[idx] = { ...semanasData[idx], lineaId, terminalId, tipo };
                 }
             } else {
                 semanasData.push({
                     id: DB.generateId(),
                     lineaId,
+                    terminalId,
                     tipo,
                     createdAt: Date.now()
                 });
