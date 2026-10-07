@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Semana Actual desde Firebase
+// MI-ROL.JS - Calendario con Fechas Reales Alineadas
 // ============================================
 
 const MiRol = {
@@ -8,6 +8,10 @@ const MiRol = {
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
         const day = String(fecha.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    },
+
+    formatFechaCorta(fecha) {
+        return `${fecha.getDate()}/${fecha.getMonth() + 1}`;
     },
 
     render() {
@@ -26,6 +30,7 @@ const MiRol = {
         let semanaActualNum = 1;
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
         const diaActualNombre = diasSemana[hoy.getDay()];
 
         // ✅ SEMANA ACTUAL: Leer desde configuración global (Firebase)
@@ -37,14 +42,44 @@ const MiRol = {
             console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
         } else {
             console.log('📅 Mi Rol - No hay semana actual configurada');
-            console.log('📅 Mi Rol - userLineaId:', userLineaId);
-            console.log('📅 Mi Rol - configGlobal:', configGlobal);
         }
 
         // Buscar el rol del usuario
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
         }
+
+        // ✅ CALCULAR FECHAS REALES DEL CALENDARIO
+        // Calcular el domingo de la semana actual
+        const diaDeSemanaHoy = hoy.getDay(); // 0 = domingo, 1 = lunes, etc.
+        const domingoSemanaActual = new Date(hoy);
+        domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
+
+        // Generar fechas para las 5 semanas
+        // Si la semana actual es la 5, las semanas 1-4 son anteriores
+        const semanasConFechas = miRol ? miRol.semanas.map(semana => {
+            const diferencia = semana.numero - semanaActualNum;
+            const domingoSemana = new Date(domingoSemanaActual);
+            domingoSemana.setDate(domingoSemanaActual.getDate() + (diferencia * 7));
+
+            const diasConFechas = diasSemana.map((dia, idx) => {
+                const fechaDia = new Date(domingoSemana);
+                fechaDia.setDate(domingoSemana.getDate() + idx);
+                return {
+                    nombre: dia,
+                    fecha: fechaDia,
+                    fechaStr: this.formatFechaCorta(fechaDia),
+                    esHoy: this.getFechaLocal(fechaDia) === this.getFechaLocal(hoy)
+                };
+            });
+
+            return {
+                ...semana,
+                diasConFechas: diasConFechas,
+                fechaInicio: domingoSemana,
+                fechaFin: new Date(domingoSemana.getTime() + 6 * 24 * 60 * 60 * 1000)
+            };
+        }) : [];
 
         return `
             <div class="view active" style="padding: 20px;">
@@ -64,11 +99,11 @@ const MiRol = {
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Terminal</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚇 Terminal</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🔢 Número de Rol</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Número de Rol</div>
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
@@ -89,33 +124,41 @@ const MiRol = {
                     `}
                 </div>
 
-                <!-- CALENDARIO DE 5 SEMANAS -->
+                <!-- CALENDARIO DE 5 SEMANAS CON FECHAS REALES -->
                 ${miRol ? `
                     <div style="display: flex; flex-direction: column; gap: 16px;">
-                        ${miRol.semanas.map(semana => {
+                        ${semanasConFechas.map(semana => {
                             const esSemanaActual = semana.numero === semanaActualNum;
+                            const mesNombre = semana.fechaInicio.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
                             
                             return `
                                 <div style="background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); border: 2px solid ${esSemanaActual ? 'var(--primary)' : 'var(--bg-soft)'};">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esSemanaActual ? 'var(--primary)' : 'var(--text)'};">
-                                            ${esSemanaActual ? '📍 ' : ''}Semana ${semana.numero}
-                                        </h3>
+                                        <div>
+                                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esSemanaActual ? 'var(--primary)' : 'var(--text)'};">
+                                                ${esSemanaActual ? '📍 ' : ''}Semana ${semana.numero}
+                                            </h3>
+                                            <div style="font-size: 11px; color: var(--text-soft); margin-top: 4px; text-transform: capitalize;">
+                                                ${mesNombre}
+                                            </div>
+                                        </div>
                                         ${esSemanaActual ? '<span style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">ACTUAL</span>' : ''}
                                     </div>
 
                                     <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
-                                        ${diasSemana.map(dia => {
-                                            const diaData = semana.dias[dia] || { posicion: '' };
-                                            const esHoy = esSemanaActual && dia === diaActualNombre;
+                                        ${semana.diasConFechas.map(diaInfo => {
+                                            const diaData = semana.dias[diaInfo.nombre] || { posicion: '' };
                                             const posicion = diaData.posicion || '-';
                                             
                                             return `
-                                                <div style="background: ${esHoy ? 'var(--primary)' : 'var(--bg-soft)'}; padding: 8px 4px; border-radius: 8px; text-align: center; border: 2px solid ${esHoy ? 'var(--accent)' : 'transparent'};">
-                                                    <div style="font-size: 9px; font-weight: 700; color: ${esHoy ? 'white' : 'var(--text-soft)'}; margin-bottom: 4px; text-transform: uppercase;">
-                                                        ${dia.substring(0, 3)}
+                                                <div style="background: ${diaInfo.esHoy ? 'var(--primary)' : 'var(--bg-soft)'}; padding: 8px 4px; border-radius: 8px; text-align: center; border: 2px solid ${diaInfo.esHoy ? 'var(--accent)' : 'transparent'};">
+                                                    <div style="font-size: 9px; font-weight: 700; color: ${diaInfo.esHoy ? 'white' : 'var(--text-soft)'}; margin-bottom: 4px; text-transform: uppercase;">
+                                                        ${diaInfo.nombre.substring(0, 3)}
                                                     </div>
-                                                    <div style="font-size: 14px; font-weight: 800; color: ${esHoy ? 'white' : 'var(--text)'};">
+                                                    <div style="font-size: 11px; font-weight: 600; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'}; margin-bottom: 4px;">
+                                                        ${diaInfo.fechaStr}
+                                                    </div>
+                                                    <div style="font-size: 14px; font-weight: 800; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'};">
                                                         ${posicion}
                                                     </div>
                                                 </div>
@@ -131,11 +174,7 @@ const MiRol = {
         `;
     },
 
-    async init() {
-        // ✅ CARGAR configuracionGlobal DESDE FIREBASE ANTES DE RENDERIZAR
-        await DB_FIREBASE.load('configuracionGlobal');
-        console.log('📅 Mi Rol - configuracionGlobal cargada desde Firebase');
-
+    init() {
         console.log('📅 Mi Rol cargado');
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
