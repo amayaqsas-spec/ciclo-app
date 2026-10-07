@@ -1,13 +1,13 @@
 // ============================================
-// ONBOARDING.JS - Configuración Inicial Obligatoria (Paso 1, 2 y 3)
+// ONBOARDING.JS - Configuración Inicial Obligatoria
 // ============================================
 
 const Onboarding = {
-    render() {
+    render(cargando = false) {
         const lineas = DB.load('lineas');
         const lineaOptions = lineas.length > 0 
             ? '<option value="">Selecciona tu línea</option>' + lineas.map(l => `<option value="${l.id}">${l.nombre}</option>`).join('')
-            : '<option value="">No hay líneas registradas</option>';
+            : '<option value="">Cargando líneas...</option>';
 
         return `
             <div class="auth-container" style="background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);">
@@ -21,43 +21,48 @@ const Onboarding = {
 
                     <div style="background: #fff3cd; padding: 16px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid #ffc107;">
                         <p style="font-size: 14px; color: #856404; margin: 0; line-height: 1.5;">
-                            <strong>⚠️ Paso 1: Configuración Obligatoria</strong><br>
+                            <strong>️ Paso 1: Configuración Obligatoria</strong><br>
                             Para que la app funcione, es indispensable que ingreses tu <strong>Número de Rol</strong> asignado. 
-                            Cada usuario tiene un rol único. Este dato es el que la app usará para cargar tus horarios, trenes y descansos. 
-                            <br><br>
-                            <em>Si no tienes tu número de rol, solicítalo a tu administrador.</em>
+                            Cada usuario tiene un rol único. Este dato es el que la app usará para cargar tus horarios, trenes y descansos.
                         </p>
                     </div>
 
-                    <div class="auth-form">
-                        <h2 class="form-title" style="text-align: left; font-size: 18px; margin-bottom: 16px;">Datos de tu Perfil</h2>
-                        
-                        <div class="msg-error" id="onboardingError" style="display: none; background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; border-left: 4px solid #c33;"></div>
-
-                        <div class="input-group-modern">
-                            <label class="input-label">Tu Línea *</label>
-                            <select id="onbLinea" class="input-modern">
-                                ${lineaOptions}
-                            </select>
+                    ${cargando ? `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div class="spinner" style="border-color: var(--primary-soft); border-top-color: var(--primary); width: 40px; height: 40px; margin: 0 auto 16px auto;"></div>
+                            <p style="color: var(--text-soft); font-size: 14px;">Cargando información...</p>
                         </div>
+                    ` : `
+                        <div class="auth-form">
+                            <h2 class="form-title" style="text-align: left; font-size: 18px; margin-bottom: 16px;">Datos de tu Perfil</h2>
+                            
+                            <div class="msg-error" id="onboardingError" style="display: none; background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; border-left: 4px solid #c33;"></div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Tu Terminal *</label>
-                            <select id="onbTerminal" class="input-modern" disabled>
-                                <option value="">Selecciona línea primero</option>
-                            </select>
+                            <div class="input-group-modern">
+                                <label class="input-label">Tu Línea *</label>
+                                <select id="onbLinea" class="input-modern">
+                                    ${lineaOptions}
+                                </select>
+                            </div>
+
+                            <div class="input-group-modern">
+                                <label class="input-label">Tu Terminal *</label>
+                                <select id="onbTerminal" class="input-modern" disabled>
+                                    <option value="">Selecciona línea primero</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group-modern">
+                                <label class="input-label">Tu Número de Rol *</label>
+                                <input type="text" id="onbRol" class="input-modern" placeholder="Ej. 1, 2, 7, etc." inputmode="numeric">
+                                <p style="font-size: 11px; color: var(--text-soft); margin-top: 4px;">Este número es único por usuario y define tus horarios.</p>
+                            </div>
+
+                            <button class="btn-auth-primary" id="btnEmpezar" style="margin-top: 16px;">
+                                <span>Guardar y Entrar a la App</span>
+                            </button>
                         </div>
-
-                        <div class="input-group-modern">
-                            <label class="input-label">Tu Número de Rol *</label>
-                            <input type="text" id="onbRol" class="input-modern" placeholder="Ej. 1, 2, 7, etc." inputmode="numeric">
-                            <p style="font-size: 11px; color: var(--text-soft); margin-top: 4px;">Este número es único por usuario y define tus horarios.</p>
-                        </div>
-
-                        <button class="btn-auth-primary" id="btnEmpezar" style="margin-top: 16px;">
-                            <span>Guardar y Entrar a la App</span>
-                        </button>
-                    </div>
+                    `}
                 </div>
 
                 <div class="auth-background">
@@ -68,20 +73,72 @@ const Onboarding = {
         `;
     },
 
-    init() {
+    async init() {
+        console.log('🎬 Onboarding init() llamado');
+
         // ✅ PASO 3: Si ya está configurado, saltar directamente al Home
         if (DB.get('perfilConfigurado') === true) {
+            console.log('✅ Perfil ya configurado, yendo al Home');
             window.Views.load('home', false);
             return;
         }
 
+        // ✅ Renderizar primero con estado de carga
+        const container = document.getElementById('viewContainer');
+        if (container) {
+            container.innerHTML = this.render(true);
+        }
+
+        // ✅ PASO 1: Cargar datos desde Firebase ANTES de mostrar el formulario
+        console.log('📡 Cargando líneas y terminales desde Firebase...');
+        
+        try {
+            await DB_FIREBASE.load('lineas');
+            await DB_FIREBASE.load('terminales');
+            
+            const lineas = DB.load('lineas');
+            const terminales = DB.load('terminales');
+            
+            console.log('✅ Líneas cargadas:', lineas.length);
+            console.log('✅ Terminales cargadas:', terminales.length);
+
+            // ✅ Re-renderizar con los datos reales
+            if (container) {
+                container.innerHTML = this.render(false);
+            }
+
+            // ✅ Configurar eventos después de re-renderizar
+            this.setupEventListeners();
+
+        } catch (error) {
+            console.error('❌ Error al cargar datos desde Firebase:', error);
+            
+            // Si falla, mostrar formulario vacío con mensaje de error
+            if (container) {
+                container.innerHTML = this.render(false);
+            }
+            
+            const errorMsg = document.getElementById('onboardingError');
+            if (errorMsg) {
+                errorMsg.textContent = '⚠️ Error al cargar las líneas. Intenta recargar la página.';
+                errorMsg.style.display = 'block';
+            }
+        }
+    },
+
+    setupEventListeners() {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const selectLinea = document.getElementById('onbLinea');
         const selectTerminal = document.getElementById('onbTerminal');
         const errorMsg = document.getElementById('onboardingError');
 
-        // Cascada de terminales: al cambiar la línea, se actualizan las terminales
+        if (!selectLinea || !selectTerminal) {
+            console.error('❌ No se encontraron los elementos del formulario');
+            return;
+        }
+
+        // ✅ Cascada de terminales: al cambiar la línea, se actualizan las terminales
         selectLinea.addEventListener('change', () => {
             const lineaId = selectLinea.value;
             const filtradas = terminales.filter(t => t.lineaId === lineaId);
@@ -113,9 +170,10 @@ const Onboarding = {
             DB.set('userTerminalId', terminalId);
             DB.set('userNumeroRol', numeroRol);
 
+            console.log('💾 Perfil guardado:', { lineaId, terminalId, numeroRol });
+
             // Feedback visual de carga
             const btn = document.getElementById('btnEmpezar');
-            const textoOriginal = btn.innerHTML;
             btn.innerHTML = '<div class="spinner"></div> Guardando...';
             btn.disabled = true;
 
