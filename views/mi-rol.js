@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales Alineadas
+// MI-ROL.JS - Calendario con Fechas Reales (Solo número de día)
 // ============================================
 
 const MiRol = {
@@ -8,10 +8,6 @@ const MiRol = {
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
         const day = String(fecha.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
-    },
-
-    formatFechaCorta(fecha) {
-        return `${fecha.getDate()}/${fecha.getMonth() + 1}`;
     },
 
     render() {
@@ -50,13 +46,11 @@ const MiRol = {
         }
 
         // ✅ CALCULAR FECHAS REALES DEL CALENDARIO
-        // Calcular el domingo de la semana actual
-        const diaDeSemanaHoy = hoy.getDay(); // 0 = domingo, 1 = lunes, etc.
+        const diaDeSemanaHoy = hoy.getDay();
         const domingoSemanaActual = new Date(hoy);
         domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
 
         // Generar fechas para las 5 semanas
-        // Si la semana actual es la 5, las semanas 1-4 son anteriores
         const semanasConFechas = miRol ? miRol.semanas.map(semana => {
             const diferencia = semana.numero - semanaActualNum;
             const domingoSemana = new Date(domingoSemanaActual);
@@ -68,16 +62,22 @@ const MiRol = {
                 return {
                     nombre: dia,
                     fecha: fechaDia,
-                    fechaStr: this.formatFechaCorta(fechaDia),
+                    diaNumero: fechaDia.getDate(), // ✅ Solo número de día
                     esHoy: this.getFechaLocal(fechaDia) === this.getFechaLocal(hoy)
                 };
             });
 
+            // ✅ Calcular etiqueta de mes (si cruza de mes, mostrar ambos)
+            const sabadoSemana = new Date(domingoSemana);
+            sabadoSemana.setDate(domingoSemana.getDate() + 6);
+            const mesInicio = domingoSemana.toLocaleDateString('es-MX', { month: 'long' });
+            const mesFin = sabadoSemana.toLocaleDateString('es-MX', { month: 'long' });
+            const etiquetaMes = mesInicio === mesFin ? mesInicio : `${mesInicio}/${mesFin}`;
+
             return {
                 ...semana,
                 diasConFechas: diasConFechas,
-                fechaInicio: domingoSemana,
-                fechaFin: new Date(domingoSemana.getTime() + 6 * 24 * 60 * 60 * 1000)
+                etiquetaMes: etiquetaMes
             };
         }) : [];
 
@@ -86,7 +86,7 @@ const MiRol = {
                 <!-- HEADER CON INFO DEL PERFIL -->
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
+                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);"> Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             ✏️ Editar
                         </button>
@@ -129,7 +129,6 @@ const MiRol = {
                     <div style="display: flex; flex-direction: column; gap: 16px;">
                         ${semanasConFechas.map(semana => {
                             const esSemanaActual = semana.numero === semanaActualNum;
-                            const mesNombre = semana.fechaInicio.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
                             
                             return `
                                 <div style="background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); border: 2px solid ${esSemanaActual ? 'var(--primary)' : 'var(--bg-soft)'};">
@@ -139,7 +138,7 @@ const MiRol = {
                                                 ${esSemanaActual ? '📍 ' : ''}Semana ${semana.numero}
                                             </h3>
                                             <div style="font-size: 11px; color: var(--text-soft); margin-top: 4px; text-transform: capitalize;">
-                                                ${mesNombre}
+                                                ${semana.etiquetaMes}
                                             </div>
                                         </div>
                                         ${esSemanaActual ? '<span style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">ACTUAL</span>' : ''}
@@ -155,10 +154,10 @@ const MiRol = {
                                                     <div style="font-size: 9px; font-weight: 700; color: ${diaInfo.esHoy ? 'white' : 'var(--text-soft)'}; margin-bottom: 4px; text-transform: uppercase;">
                                                         ${diaInfo.nombre.substring(0, 3)}
                                                     </div>
-                                                    <div style="font-size: 11px; font-weight: 600; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'}; margin-bottom: 4px;">
-                                                        ${diaInfo.fechaStr}
+                                                    <div style="font-size: 16px; font-weight: 800; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'}; margin-bottom: 4px; line-height: 1;">
+                                                        ${diaInfo.diaNumero}
                                                     </div>
-                                                    <div style="font-size: 14px; font-weight: 800; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'};">
+                                                    <div style="font-size: 13px; font-weight: 700; color: ${diaInfo.esHoy ? 'white' : 'var(--text)'};">
                                                         ${posicion}
                                                     </div>
                                                 </div>
@@ -254,7 +253,7 @@ const MiRol = {
             const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
 
             if (!nuevaLineaId || !nuevaTerminalId || !nuevoNumeroRol) {
-                App.showToast('⚠️ Completa todos los campos');
+                App.showToast('️ Completa todos los campos');
                 return;
             }
 
