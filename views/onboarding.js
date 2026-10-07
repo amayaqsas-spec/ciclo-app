@@ -21,7 +21,7 @@ const Onboarding = {
 
                     <div style="background: #fff3cd; padding: 16px; border-radius: 12px; margin-bottom: 24px; border-left: 4px solid #ffc107;">
                         <p style="font-size: 14px; color: #856404; margin: 0; line-height: 1.5;">
-                            <strong>️ Paso 1: Configuración Obligatoria</strong><br>
+                            <strong>⚠️ Paso 1: Configuración Obligatoria</strong><br>
                             Para que la app funcione, es indispensable que ingreses tu <strong>Número de Rol</strong> asignado. 
                             Cada usuario tiene un rol único. Este dato es el que la app usará para cargar tus horarios, trenes y descansos.
                         </p>
@@ -76,20 +76,17 @@ const Onboarding = {
     async init() {
         console.log('🎬 Onboarding init() llamado');
 
-        // ✅ PASO 3: Si ya está configurado, saltar directamente al Home
         if (DB.get('perfilConfigurado') === true) {
             console.log('✅ Perfil ya configurado, yendo al Home');
-            window.Views.load('home', false);
+            this.irAlHome();
             return;
         }
 
-        // ✅ Renderizar primero con estado de carga
         const container = document.getElementById('viewContainer');
         if (container) {
             container.innerHTML = this.render(true);
         }
 
-        // ✅ PASO 1: Cargar datos desde Firebase ANTES de mostrar el formulario
         console.log('📡 Cargando líneas y terminales desde Firebase...');
         
         try {
@@ -102,18 +99,15 @@ const Onboarding = {
             console.log('✅ Líneas cargadas:', lineas.length);
             console.log('✅ Terminales cargadas:', terminales.length);
 
-            // ✅ Re-renderizar con los datos reales
             if (container) {
                 container.innerHTML = this.render(false);
             }
 
-            // ✅ Configurar eventos después de re-renderizar
             this.setupEventListeners();
 
         } catch (error) {
             console.error('❌ Error al cargar datos desde Firebase:', error);
             
-            // Si falla, mostrar formulario vacío con mensaje de error
             if (container) {
                 container.innerHTML = this.render(false);
             }
@@ -138,7 +132,6 @@ const Onboarding = {
             return;
         }
 
-        // ✅ Cascada de terminales: al cambiar la línea, se actualizan las terminales
         selectLinea.addEventListener('change', () => {
             const lineaId = selectLinea.value;
             const filtradas = terminales.filter(t => t.lineaId === lineaId);
@@ -150,13 +143,11 @@ const Onboarding = {
             selectTerminal.disabled = filtradas.length === 0;
         });
 
-        // ✅ PASO 2: Validación estricta al guardar
         document.getElementById('btnEmpezar').addEventListener('click', async () => {
             const lineaId = selectLinea.value;
             const terminalId = selectTerminal.value;
             const numeroRol = document.getElementById('onbRol').value.trim();
 
-            // Si falta alguno, NO deja avanzar y muestra error
             if (!lineaId || !terminalId || !numeroRol) {
                 errorMsg.textContent = '⚠️ Es indispensable completar Línea, Terminal y Número de Rol para continuar.';
                 errorMsg.style.display = 'block';
@@ -164,7 +155,6 @@ const Onboarding = {
                 return;
             }
 
-            // ✅ Guardar configuración de forma persistente en el dispositivo del usuario
             DB.set('perfilConfigurado', true);
             DB.set('userLineaId', lineaId);
             DB.set('userTerminalId', terminalId);
@@ -172,17 +162,37 @@ const Onboarding = {
 
             console.log('💾 Perfil guardado:', { lineaId, terminalId, numeroRol });
 
-            // Feedback visual de carga
             const btn = document.getElementById('btnEmpezar');
             btn.innerHTML = '<div class="spinner"></div> Guardando...';
             btn.disabled = true;
 
             setTimeout(() => {
                 App.showToast('✅ Perfil configurado correctamente');
-                // Redirigir al Home, que ahora cargará los datos de ESTE rol específico
-                window.Views.load('home', false);
+                this.irAlHome();
             }, 800);
         });
+    },
+
+    irAlHome() {
+        console.log('🚀 Intentando ir al Home...');
+        
+        if (window.Views && window.Views.load) {
+            console.log('✅ Usando window.Views.load');
+            window.Views.load('home', false);
+            return;
+        }
+        
+        if (typeof Views !== 'undefined' && Views.load) {
+            console.log('✅ Usando Views.load directamente');
+            Views.load('home', false);
+            return;
+        }
+        
+        console.log('⚠️ Views no disponible, recargando página...');
+        window.location.href = '#home';
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     }
 };
 
