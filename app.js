@@ -1,8 +1,43 @@
 // ============================================
-// APP.JS - Orquestador Principal con soporte Offline
+// APP.JS - Orquestador Principal con soporte Offline y Caché
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
+
+// ============================================
+// ✅ CACHE EN MEMORIA para evitar llamadas repetidas a Firebase
+// ============================================
+const FIREBASE_CACHE = {};
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutos
+
+async function loadFromFirebase(collection) {
+    const now = Date.now();
+    
+    // Si está en cache y no expiró, usarlo
+    if (FIREBASE_CACHE[collection] && 
+        FIREBASE_CACHE[collection].timestamp > now - CACHE_EXPIRY) {
+        console.log('⚡ Usando cache en memoria:', collection);
+        return FIREBASE_CACHE[collection].data;
+    }
+    
+    // Si no, cargar desde Firebase
+    console.log('📡 Cargando desde Firebase:', collection);
+    if (typeof DB_FIREBASE !== 'undefined' && DB_FIREBASE.load) {
+        await DB_FIREBASE.load(collection);
+    }
+    const data = DB.load(collection);
+    
+    // Guardar en cache
+    FIREBASE_CACHE[collection] = {
+        data: data,
+        timestamp: now
+    };
+    
+    return data;
+}
+
+// Hacer disponible globalmente
+window.loadFromFirebase = loadFromFirebase;
 
 // ============================================
 // TEMAS (15 temas en total)
@@ -490,8 +525,8 @@ const App = {
         });
 
         window.addEventListener('offline', () => {
-            console.log('📡 Sin conexión');
-            App.showToast('📡 Modo offline activado');
+            console.log(' Sin conexión');
+            App.showToast(' Modo offline activado');
             Auth.isOffline = true;
             this.mostrarIndicadorOffline();
         });
@@ -514,7 +549,7 @@ const App = {
 
     // ✅ NUEVA FUNCIÓN: Manejar usuario offline autenticado
     handleOfflineUser(user) {
-        console.log(' Usuario offline autenticado:', user.email);
+        console.log('📡 Usuario offline autenticado:', user.email);
         Auth.currentUser = user;
         Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
         Auth.isOffline = true;
@@ -657,7 +692,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('️ Volviendo a:', vistaAnterior);
+            console.log('↩️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             

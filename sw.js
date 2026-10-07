@@ -1,8 +1,8 @@
 // ============================================
-// SW.JS - Service Worker con Force Update
+// SW.JS - Service Worker Optimizado para iOS
 // ============================================
 
-const CACHE_NAME = 'ciclo-app-v3.0'; // ✅ Cambia este número de versión cada vez que haya actualización importante
+const CACHE_NAME = 'ciclo-app-v3.1';
 
 const urlsToCache = [
     './',
@@ -13,107 +13,63 @@ const urlsToCache = [
     './app.js',
     './manifest.json',
     './assets/icon-192.png',
-    './assets/icon-512.png',
-    './views/home.js',
-    './views/mi-rol.js',
-    './views/avisos.js',
-    './views/notas.js',
-    './views/tiempo-extra.js',
-    './views/servicios-busqueda.js',
-    './views/reservas-busqueda.js',
-    './views/espejo.js',
-    './views/bd.js',
-    './views/instalacion.js',
-    './views/app.js',
-    './views/registro/linea.js',
-    './views/registro/terminal.js',
-    './views/registro/turno.js',
-    './views/registro/semana.js',
-    './views/registro/reservas.js',
-    './views/registro/servicios.js',
-    './views/registro/numero-semana.js',
-    './views/registro/rol-semanal.js',
-    './views/registro/espejo.js'
+    './assets/icon-512.png'
 ];
 
-// ✅ INSTALACIÓN: Forzar actualización del Service Worker
+// ✅ Instalación ligera
 self.addEventListener('install', event => {
-    console.log(' [SW] Instalando nueva versión:', CACHE_NAME);
+    console.log('[SW] Instalando:', CACHE_NAME);
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('📦 [SW] Cacheando archivos...');
-                return cache.addAll(urlsToCache);
-            })
-            .then(() => {
-                console.log('✅ [SW] Instalación completada, saltando al estado waiting');
-                return self.skipWaiting(); // ✅ Fuerza la activación inmediata
-            })
+            .then(cache => cache.addAll(urlsToCache))
+            .then(() => self.skipWaiting())
     );
 });
 
-// ✅ ACTIVACIÓN: Limpiar caches viejos
+// ✅ Activación: limpiar caches viejos
 self.addEventListener('activate', event => {
-    console.log(' [SW] Activando nueva versión:', CACHE_NAME);
+    console.log('[SW] Activando:', CACHE_NAME);
     event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('🗑️ [SW] Eliminando cache viejo:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => {
-            console.log('✅ [SW] Activación completada');
-            return self.clients.claim(); // ✅ Toma control inmediato de todas las pestañas
-        })
+        caches.keys().then(names => 
+            Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+        ).then(() => self.clients.claim())
     );
 });
 
-// ✅ FETCH: Estrategia cache-first con network fallback
+// ✅ Fetch: Estrategia Network-First (mejor para iOS)
 self.addEventListener('fetch', event => {
-    // No cachear requests de Firebase
+    // NO interceptar Firebase ni requests externos
     if (event.request.url.includes('firebase') || 
         event.request.url.includes('googleapis') ||
-        event.request.url.includes('firestore')) {
+        event.request.url.includes('firestore') ||
+        event.request.url.includes('gstatic')) {
         return;
     }
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Si está en cache, devolverlo
-                if (response) {
+    // Solo cachear navegación (HTML)
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                     return response;
-                }
-                
-                // Si no está en cache, hacer fetch de la red
-                return fetch(event.request).then(response => {
-                    // Verificar que la respuesta sea válida
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-
-                    // Clonar la respuesta para guardarla en cache
-                    const responseToCache = response.clone();
-
-                    caches.open(CACHE_NAME)
-                        .then(cache => {
-                            cache.put(event.request, responseToCache);
-                        });
-
-                    return response;
-                });
-            })
-    );
-});
-
-// ✅ MESSAGE: Escuchar mensajes de actualización desde la app
-self.addEventListener('message', event => {
-    if (event.data === 'SKIP_WAITING') {
-        console.log(' [SW] Skip waiting recibido, activando...');
-        self.skipWaiting();
+                })
+                .catch(() => caches.match(event.request))
+        );
+        return;
     }
+
+    // Para assets estáticos: cache-first
+    event.respondWith(
+        caches.match(event.request).then(response => 
+            response || fetch(event.request).then(res => {
+                if (res && res.status === 200) {
+                    const clone = res.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return res;
+            })
+        )
+    );
 });

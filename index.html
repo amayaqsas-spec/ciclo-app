@@ -6,127 +6,88 @@
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
     
-    <!-- ✅ Prevenir caché agresivo del navegador -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <!-- ✅ Meta tags para iOS y Android -->
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- ✅ OPTIMIZACIÓN iOS: Prevenir render blocking -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="CICLO">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- ✅ Prevenir caché -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     
     <title>CICLO</title>
     
-    <!-- PWA Manifest e Iconos -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
-    <link rel="stylesheet" href="styles.css">
+    <!-- ✅ CSS cargado de forma no-blocking -->
+    <link rel="stylesheet" href="styles.css" media="all">
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <!-- ✅ Firebase SDK cargado con defer -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
 
-    <!-- INICIALIZACIÓN INMEDIATA DE FIREBASE -->
+    <!-- ✅ INICIALIZACIÓN FIREBASE (solo cuando esté listo) -->
     <script>
-        if (typeof firebase === 'undefined') {
-            console.error('❌ Firebase SDK no cargó');
-        } else {
-            const firebaseConfig = {
-                apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
-                authDomain: "ciclo-db5c9.firebaseapp.com",
-                projectId: "ciclo-db5c9",
-                storageBucket: "ciclo-db5c9.firebasestorage.app",
-                messagingSenderId: "384309494842",
-                appId: "1:384309494842:web:b5c113c35877a431462103"
-            };
-
-            if (!firebase.apps.length) {
+        window.addEventListener('load', function() {
+            if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length === 0) {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
+                    authDomain: "ciclo-db5c9.firebaseapp.com",
+                    projectId: "ciclo-db5c9",
+                    storageBucket: "ciclo-db5c9.firebasestorage.app",
+                    messagingSenderId: "384309494842",
+                    appId: "1:384309494842:web:b5c113c35877a431462103"
+                };
                 firebase.initializeApp(firebaseConfig);
-                console.log('✅ Firebase inicializado correctamente');
+                console.log('✅ Firebase inicializado');
+                window.firebase = firebase;
             }
-            window.firebase = firebase;
-        }
+        });
     </script>
 
-    <!-- ✅ SCRIPT: Service Worker SIN bucle de recargas -->
+    <!-- ✅ Service Worker ligero (sin bucle) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker registrado:', registration.scope);
-                        
-                        // Escuchar actualizaciones SIN forzar recarga infinita
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            console.log('🔄 Nueva versión del Service Worker detectada');
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log(' Nueva versión lista. Se aplicará en la próxima visita.');
-                                    
-                                    // Mostrar toast una sola vez
-                                    if (window.App && window.App.showToast) {
-                                        window.App.showToast('🔄 Nueva versión disponible. Recarga la página.');
-                                    }
-                                    
-                                    // NO forzar recarga automática (evita bucle)
-                                }
-                            });
-                        });
-                        
-                        // Verificar actualizaciones cada 30 minutos (no cada 5)
-                        setInterval(() => {
-                            registration.update();
-                        }, 30 * 60 * 1000);
+                    .then(reg => {
+                        console.log('✅ SW registrado');
+                        // Verificar actualizaciones cada 10 minutos (no 5)
+                        setInterval(() => reg.update(), 10 * 60 * 1000);
                     })
-                    .catch((error) => {
-                        console.log('❌ Error al registrar Service Worker:', error);
-                    });
+                    .catch(err => console.log('SW error:', err));
             });
         }
     </script>
 
-    <!-- Script de splash INMEDIATO -->
+    <!-- ✅ Splash screen mínimo -->
     <script>
         (function() {
             function initSplash() {
-                console.log('🎬 Iniciando splash...');
                 setTimeout(function() {
-                    console.log('⏳ Ocultando splash (2s)');
                     var splash = document.getElementById('splashScreen');
                     if (splash) splash.classList.add('hide');
                     
                     setTimeout(function() {
-                        console.log('🌊 Activando wave (2.1s)');
                         var wave = document.getElementById('wave');
                         if (wave) wave.classList.add('active');
                         
                         setTimeout(function() {
-                            console.log('🔐 Mostrando auth (2.6s)');
                             var auth = document.getElementById('authContainer');
                             if (auth) {
                                 auth.classList.add('show');
-                                if (window.Auth && Auth.renderLogin) {
-                                    Auth.renderLogin();
-                                }
+                                if (window.Auth && Auth.renderLogin) Auth.renderLogin();
                             }
-                            
                             setTimeout(function() {
-                                console.log('✅ Wave completada (3.2s)');
                                 if (wave) wave.classList.remove('active');
                             }, 600);
-                            
                         }, 500);
-                        
                     }, 100);
-                    
-                }, 2000);
+                }, 1500); // Reducido de 2000 a 1500
             }
 
             if (document.readyState === 'loading') {
@@ -136,22 +97,35 @@
             }
         })();
     </script>
+    
+    <!-- ✅ CSS crítico inline para renderizado inmediato en iOS -->
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        #splashScreen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #F0E6F6 0%, #E8D5F5 100%); z-index: 10000; transition: opacity 0.3s; }
+        #splashScreen.hide { opacity: 0; pointer-events: none; }
+        .splash-title { font-size: 48px; font-weight: 800; color: #9B7FD4; letter-spacing: 4px; margin-top: 20px; }
+        .splash-subtitle { color: #7A6B8E; font-size: 16px; }
+        #authContainer { display: none; }
+        #authContainer.show { display: block; }
+        #mainApp { display: none; }
+        #mainApp.show { display: block; }
+        /* ✅ Aceleración GPU para iOS */
+        .view, .ske-greeting-card, .auth-card { will-change: transform; -webkit-transform: translateZ(0); transform: translateZ(0); }
+    </style>
 </head>
 <body>
 
-    <!-- SPLASH SCREEN -->
     <div id="splashScreen">
         <div class="splash-logo">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                <polyline points="21 3 21 9 15 9"/>
+            <svg viewBox="0 0 24 24" width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" fill="none" stroke="#9B7FD4" stroke-width="2"/>
+                <polyline points="21 3 21 9 15 9" fill="none" stroke="#9B7FD4" stroke-width="2"/>
             </svg>
         </div>
         <div class="splash-title">CICLO</div>
         <div class="splash-subtitle">Gestión inteligente</div>
     </div>
 
-    <!-- WAVE TRANSITION -->
     <div class="wave-container">
         <div class="wave" id="wave">
             <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -160,10 +134,8 @@
         </div>
     </div>
 
-    <!-- AUTH CONTAINER -->
     <div id="authContainer"></div>
 
-    <!-- MAIN APP -->
     <div id="mainApp">
         <header class="app-header">
             <div class="header-left">
@@ -172,7 +144,6 @@
                 </button>
                 <span class="header-title wave-title">CICLO</span>
             </div>
-            <!-- ✅ CAMPANITA DE NOTIFICACIÓN -->
             <button class="header-bell" id="btnNotificaciones" title="Documentos nuevos">
                 <svg viewBox="0 0 24 24">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -184,7 +155,6 @@
 
         <div class="app-content" id="viewContainer"></div>
 
-        <!-- SIDE MENU -->
         <div class="side-menu-overlay" id="menuOverlay"></div>
         <nav class="side-menu" id="sideMenu">
             <div class="side-menu-header">
@@ -204,77 +174,42 @@
         </nav>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
-    <!-- Scripts base -->
+    <!-- ✅ Scripts base cargados al final -->
     <script src="db.js"></script>
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
 
-    <!-- ✅ SCRIPT: Botón ojito para ver contraseña -->
+    <!-- ✅ Botón ojito (ligero) -->
     <script>
     (function() {
         function agregarBotonOjito() {
             const inputsPassword = document.querySelectorAll('input[type="password"]');
-            
             inputsPassword.forEach(input => {
                 if (input.parentElement.classList.contains('password-wrapper')) return;
-                
                 const wrapper = document.createElement('div');
                 wrapper.className = 'password-wrapper';
-                
                 input.parentNode.insertBefore(wrapper, input);
                 wrapper.appendChild(input);
-                
                 const btnOjo = document.createElement('button');
                 btnOjo.type = 'button';
                 btnOjo.className = 'btn-ver-password';
                 btnOjo.setAttribute('aria-label', 'Ver contraseña');
-                btnOjo.innerHTML = `
-                    <svg class="icono-ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
-                    </svg>
-                    <svg class="icono-ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                `;
-                
+                btnOjo.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                 wrapper.appendChild(btnOjo);
-                
                 btnOjo.addEventListener('click', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const esPassword = input.type === 'password';
-                    input.type = esPassword ? 'text' : 'password';
-                    
-                    const ojoCerrado = btnOjo.querySelector('.icono-ojo-cerrado');
-                    const ojoAbierto = btnOjo.querySelector('.icono-ojo-abierto');
-                    
-                    if (esPassword) {
-                        ojoCerrado.style.display = 'none';
-                        ojoAbierto.style.display = 'block';
-                    } else {
-                        ojoCerrado.style.display = 'block';
-                        ojoAbierto.style.display = 'none';
-                    }
+                    input.type = input.type === 'password' ? 'text' : 'password';
                 });
             });
         }
-        
         agregarBotonOjito();
-        
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length > 0) {
-                    setTimeout(agregarBotonOjito, 100);
-                }
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(m => {
+                if (m.addedNodes.length > 0) setTimeout(agregarBotonOjito, 100);
             });
         });
-        
         observer.observe(document.body, { childList: true, subtree: true });
     })();
     </script>

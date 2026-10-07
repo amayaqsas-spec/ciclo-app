@@ -8731,3 +8731,36 @@ BOTONES DE MODO LABORAL/DOMINGO - SKEUOMORPHISM
 .ske-registro-btn-guardar:hover {
     background: var(--accent);
 }
+/* ✅ OPTIMIZACIÓN iOS */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+}
+
+/* Aceleración GPU */
+.view, .ske-greeting-card, .auth-card, .side-menu, .modal {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Reducir animaciones en dispositivos de bajo rendimiento */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Scroll suave en iOS */
+#viewContainer {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+}
