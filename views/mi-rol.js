@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales (Solo número de día)
+// MI-ROL.JS - Calendario con Fechas Reales
 // ============================================
 
 const MiRol = {
@@ -29,28 +29,26 @@ const MiRol = {
         hoy.setHours(0, 0, 0, 0);
         const diaActualNombre = diasSemana[hoy.getDay()];
 
-        // ✅ SEMANA ACTUAL: Leer desde configuración global (Firebase)
         const configGlobal = DB.load('configuracionGlobal');
         const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
 
         if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
             semanaActualNum = semanaActualConfig.numero;
-            console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
-        } else {
-            console.log('📅 Mi Rol - No hay semana actual configurada');
+            console.log(' Mi Rol - Semana actual desde config global:', semanaActualNum);
         }
 
-        // Buscar el rol del usuario
+        console.log(' Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
+
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
+            console.log('📅 Mi Rol - miRol encontrado:', miRol ? 'SÍ' : 'NO');
         }
 
-        // ✅ CALCULAR FECHAS REALES DEL CALENDARIO
         const diaDeSemanaHoy = hoy.getDay();
         const domingoSemanaActual = new Date(hoy);
         domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
 
-        // Generar fechas para las 5 semanas
         const semanasConFechas = miRol ? miRol.semanas.map(semana => {
             const diferencia = semana.numero - semanaActualNum;
             const domingoSemana = new Date(domingoSemanaActual);
@@ -62,12 +60,11 @@ const MiRol = {
                 return {
                     nombre: dia,
                     fecha: fechaDia,
-                    diaNumero: fechaDia.getDate(), // ✅ Solo número de día
+                    diaNumero: fechaDia.getDate(),
                     esHoy: this.getFechaLocal(fechaDia) === this.getFechaLocal(hoy)
                 };
             });
 
-            // ✅ Calcular etiqueta de mes (si cruza de mes, mostrar ambos)
             const sabadoSemana = new Date(domingoSemana);
             sabadoSemana.setDate(domingoSemana.getDate() + 6);
             const mesInicio = domingoSemana.toLocaleDateString('es-MX', { month: 'long' });
@@ -83,10 +80,9 @@ const MiRol = {
 
         return `
             <div class="view active" style="padding: 20px;">
-                <!-- HEADER CON INFO DEL PERFIL -->
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);"> Mi Rol</h2>
+                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             ✏️ Editar
                         </button>
@@ -103,7 +99,7 @@ const MiRol = {
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Número de Rol</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🔢 Número de Rol</div>
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
@@ -124,7 +120,6 @@ const MiRol = {
                     `}
                 </div>
 
-                <!-- CALENDARIO DE 5 SEMANAS CON FECHAS REALES -->
                 ${miRol ? `
                     <div style="display: flex; flex-direction: column; gap: 16px;">
                         ${semanasConFechas.map(semana => {
@@ -173,7 +168,12 @@ const MiRol = {
         `;
     },
 
-    init() {
+    async init() {
+        // ✅ CARGAR rolesSemanal Y configuracionGlobal DESDE FIREBASE
+        await DB_FIREBASE.load('rolesSemanal');
+        await DB_FIREBASE.load('configuracionGlobal');
+        console.log('📅 Mi Rol - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+
         console.log('📅 Mi Rol cargado');
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');

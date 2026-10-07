@@ -76,8 +76,17 @@ const Onboarding = {
     async init() {
         console.log('🎬 Onboarding init() llamado');
 
+        // ✅ Ocultar header y menú lateral durante el onboarding
+        const header = document.querySelector('.app-header');
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        if (header) header.style.display = 'none';
+        if (sideMenu) sideMenu.style.display = 'none';
+        if (menuOverlay) menuOverlay.style.display = 'none';
+
         if (DB.get('perfilConfigurado') === true) {
             console.log('✅ Perfil ya configurado, yendo al Home');
+            this.mostrarUI();
             this.irAlHome();
             return;
         }
@@ -87,7 +96,7 @@ const Onboarding = {
             container.innerHTML = this.render(true);
         }
 
-        console.log('📡 Cargando líneas y terminales desde Firebase...');
+        console.log(' Cargando líneas y terminales desde Firebase...');
         
         try {
             await DB_FIREBASE.load('lineas');
@@ -114,14 +123,13 @@ const Onboarding = {
             
             const errorMsg = document.getElementById('onboardingError');
             if (errorMsg) {
-                errorMsg.textContent = '⚠️ Error al cargar las líneas. Intenta recargar la página.';
+                errorMsg.textContent = '️ Error al cargar las líneas. Intenta recargar la página.';
                 errorMsg.style.display = 'block';
             }
         }
     },
 
     setupEventListeners() {
-        const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const selectLinea = document.getElementById('onbLinea');
         const selectTerminal = document.getElementById('onbTerminal');
@@ -168,9 +176,18 @@ const Onboarding = {
 
             setTimeout(() => {
                 App.showToast('✅ Perfil configurado correctamente');
+                this.mostrarUI();
                 this.irAlHome();
             }, 800);
         });
+    },
+
+    // ✅ Mostrar de nuevo el header y menú
+    mostrarUI() {
+        const header = document.querySelector('.app-header');
+        const sideMenu = document.getElementById('sideMenu');
+        if (header) header.style.display = '';
+        if (sideMenu) sideMenu.style.display = '';
     },
 
     irAlHome() {

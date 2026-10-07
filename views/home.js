@@ -6,7 +6,6 @@ const Home = {
     relojInterval: null,
     minutosAtraso: 0,
 
-    // ✅ Lista de posiciones que son RESERVAS (no servicios fijos)
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
 
@@ -17,7 +16,6 @@ const Home = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ Verifica si una posición es una reserva
     esReserva(posicion) {
         if (!posicion) return false;
         return this.RESERVAS.includes(posicion.trim());
@@ -103,12 +101,11 @@ const Home = {
         let tipoDiaActual = this.getTipoDiaActual();
         let infoServicio = null;
         let errorMensaje = null;
-        let esReservaHoy = false; // ✅ Nueva variable
+        let esReservaHoy = false;
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaNombreReal = diasSemana[new Date().getDay()];
         const hoy = new Date();
 
-        // ✅ SEMANA ACTUAL desde Firebase
         const configGlobal = DB.load('configuracionGlobal');
         const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
 
@@ -116,7 +113,9 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        // Buscar rol del usuario
+        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
+
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
 
@@ -126,15 +125,12 @@ const Home = {
                     posicionHoy = semanaData.dias[diaNombreReal].posicion || 'N/A';
                 }
 
-                // ✅ Verificar si la posición es una reserva
                 esReservaHoy = this.esReserva(posicionHoy);
 
                 if (posicionHoy !== 'N/A') {
                     if (esReservaHoy) {
-                        // ✅ Si es reserva, mostrar mensaje específico
                         errorMensaje = `No hay servicios fijos para este tipo de reservas. Hoy tienes asignada la reserva "${posicionHoy}".`;
                     } else {
-                        // Buscar servicio normalmente
                         infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
 
                         if (!infoServicio) {
@@ -145,7 +141,7 @@ const Home = {
                     errorMensaje = `No hay posición asignada para hoy (${diaNombreReal}) en la Semana ${semanaActualNum}.`;
                 }
             } else {
-                errorMensaje = `No se encontró el Rol #${userNumeroRol} para tu línea.`;
+                errorMensaje = `No se encontró el Rol #${userNumeroRol} para tu línea. Verifica con tu administrador.`;
             }
         } else {
             errorMensaje = 'Tu perfil no está completamente configurado.';
@@ -158,7 +154,6 @@ const Home = {
 
         return `
             <div class="view active ske-home">
-                <!-- HEADER SALUDO -->
                 <div class="ske-greeting-card">
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
@@ -199,7 +194,6 @@ const Home = {
                     </div>
                 </div>
 
-                <!-- BOTONES DE MODO -->
                 ${mostrarBotones ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">
@@ -208,7 +202,7 @@ const Home = {
                         <div style="display: flex; gap: 8px;">
                             ${diaSemana >= 1 && diaSemana <= 5 ? `
                                 <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                     Laboral
+                                    📅 Laboral
                                 </button>
                                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
                                     🌙 Domingo/Festivo
@@ -232,7 +226,6 @@ const Home = {
                     </div>
                 ` : ''}
 
-                <!-- CONTENEDOR DE SERVICIO -->
                 <div id="skeServicioDiaContainer">
                     ${errorMensaje ? `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
@@ -267,7 +260,6 @@ const Home = {
                     `}
                 </div>
 
-                <!-- TIEMPO EXTRA -->
                 ${tiempoExtraPendiente.length > 0 ? `
                     <div style="margin-top: 20px; background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -328,7 +320,6 @@ const Home = {
                     </div>
                 ` : ''}
 
-                <!-- TRENES -->
                 <div style="margin-bottom: 16px;">
                     <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;">
                         🚂 Trenes (${trenes.length})
@@ -363,7 +354,6 @@ const Home = {
                     }).join('')}
                 </div>
 
-                <!-- DESCANSO Y CRONÓMETRO -->
                 <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft);">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
                         <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -393,7 +383,7 @@ const Home = {
                     <div id="badgeAtraso" style="display: none; text-align: center; margin-bottom: 12px; padding: 8px; background: #ffebee; color: #c62828; border-radius: 8px; font-weight: 700; font-size: 13px;"></div>
 
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                        ️ Agregar Atraso en Línea
+                        ⏱️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
@@ -403,7 +393,10 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
+        // ✅ CARGAR rolesSemanal DESDE FIREBASE (ESTO FALTABA)
+        await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
+        console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('🏠 Home - configuracionGlobal cargada');
 
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
@@ -474,7 +467,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast('📅 Modo: Automático');
+                App.showToast(' Modo: Automático');
                 recargarHome();
             });
         }
@@ -555,7 +548,7 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
             if (horaActualMinutos < minutosInicio) {
@@ -574,7 +567,7 @@ const Home = {
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0
-                    ? `️ Tiempo restante de descanso (+${minutosAtraso} min)`
+                    ? `🍽️ Tiempo restante de descanso (+${minutosAtraso} min)`
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
@@ -584,7 +577,7 @@ const Home = {
                 const mins = diff % 60;
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏰ Tiempo de tolerancia restante';
+                relojEtiqueta.textContent = ' Tiempo de tolerancia restante';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
@@ -597,7 +590,7 @@ const Home = {
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
-                    relojMensaje.textContent = '️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
+                    relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#c62828';
                 }
             }
@@ -621,7 +614,7 @@ const Home = {
 
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
 
-        App.showToast(`⏱️ +${minutosNum} min de atraso agregados al descanso`);
+        App.showToast(`️ +${minutosNum} min de atraso agregados al descanso`);
 
         this.iniciarReloj(servicio);
     }
