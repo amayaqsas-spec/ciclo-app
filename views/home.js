@@ -1,12 +1,10 @@
 // ============================================
-// HOME.JS - Módulo de Inicio con botones Laboral/Domingo FUNCIONALES
+// HOME.JS - Dashboard Inteligente con Rol Semanal
 // ============================================
 
 const Home = {
     relojInterval: null,
     minutosAtraso: 0,
-    modoForzado: localStorage.getItem('modoDiaForzado') || null,
-    fechaModoForzado: localStorage.getItem('fechaModoForzado') || null,
 
     getFechaLocal(fecha) {
         const year = fecha.getFullYear();
@@ -15,56 +13,23 @@ const Home = {
         return `${year}-${month}-${day}`;
     },
 
-    procesarImagen(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const size = 200;
-                    canvas.width = size;
-                    canvas.height = size;
-                    const ctx = canvas.getContext('2d');
-                    const minDim = Math.min(img.width, img.height);
-                    const startX = (img.width - minDim) / 2;
-                    const startY = (img.height - minDim) / 2;
-                    ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.9);
-                    resolve(base64);
-                };
-                img.onerror = reject;
-                img.src = e.target.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    },
-
-    // ✅ Determina el tipo de día (automático o forzado)
+    // ✅ Determina el tipo de día (automático o forzado por el usuario)
     getTipoDiaActual() {
-        // Verificar si el modo forzado es de un día anterior
-        if (this.modoForzado && this.fechaModoForzado) {
-            const hoy = new Date();
-            const hoyStr = this.getFechaLocal(hoy);
-            
-            // Si la fecha guardada es diferente a hoy, resetear
-            if (this.fechaModoForzado !== hoyStr) {
-                this.modoForzado = null;
-                this.fechaModoForzado = null;
-                localStorage.removeItem('modoDiaForzado');
-                localStorage.removeItem('fechaModoForzado');
-            }
+        const modoForzado = DB.get('modoDiaForzado', null);
+        const fechaForzada = DB.get('fechaModoForzado', null);
+        const hoyStr = this.getFechaLocal(new Date());
+
+        // Si el modo forzado es de un día anterior, resetearlo
+        if (modoForzado && fechaForzada !== hoyStr) {
+            DB.remove('modoDiaForzado');
+            DB.remove('fechaModoForzado');
         }
-        
-        if (this.modoForzado === 'domingo') {
-            return 'Domingo/Festivos';
-        }
-        if (this.modoForzado === 'laboral') {
-            return 'Laboral';
-        }
-        const hoy = new Date();
-        const dia = hoy.getDay();
+
+        const modoActual = DB.get('modoDiaForzado', null);
+        if (modoActual === 'domingo') return 'Domingo/Festivos';
+        if (modoActual === 'laboral') return 'Laboral';
+
+        const dia = new Date().getDay();
         if (dia === 0) return 'Domingo/Festivos';
         if (dia === 6) return 'Sábado';
         return 'Laboral';
@@ -76,46 +41,78 @@ const Home = {
         const imagenPerfil = DB.get('imagenPerfil', null);
         const avisosNoLeidos = DB.get('avisosNoLeidos', 0);
 
-        const roles = DB.load('roles');
-        let semanaActual = null;
-        let datoDiaActual = null;
-        let infoServicio = null;
-        let tipoDiaActual = this.getTipoDiaActual();
-        let servicioNoExiste = false;
+        // ✅ Obtener datos del perfil del usuario
+        const userLineaId = DB.get('userLineaId');
+        const userTerminalId = DB.get('userTerminalId');
+        const userNumeroRol = DB.get('userNumeroRol');
 
-        if (roles.length > 0) {
-            const rol = roles.sort((a, b) => b.createdAt - a.createdAt)[0];
-            const hoy = new Date();
-            const hoyStr = this.getFechaLocal(hoy);
-            
-            semanaActual = rol.semanas.find(semana => hoyStr >= semana.fechaInicio && hoyStr <= semana.fechaFin);
-            
-            if (semanaActual) {
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+        const rolesSemanal = DB.load('rolesSemanal');
+        const servicios = DB.load('servicios');
+        const semanas = DB.load('semanas'); // Tipos de día registrados
+
+        const miLinea = lineas.find(l => l.id === userLineaId);
+        const miTerminal = terminales.find(t => t.id === userTerminalId);
+        
+        let semanaActualNum = 1;
+        let posicionHoy = 'N/A';
+        let tipoDiaActual = this.getTipoDiaActual();
+        let infoServicio = null;
+        let errorMensaje = null;
+
+        if (userNumeroRol && rolesSemanal.length > 0) {
+            const miRol = rolesSemanal.find(r => r.numeroRol === userNumeroRol && r.lineaId === userLineaId);
+
+            if (miRol) {
+                // Calcular semana actual basada en la fecha de inicio
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const fechaInicio = new Date(miRol.fechaInicio);
+                fechaInicio.setHours(0, 0, 0, 0);
+                const diasTranscurridos = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
+                
+                semanaActualNum = Math.floor(diasTranscurridos / 7) % 5 + 1;
                 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 const diaNombre = diasSemana[hoy.getDay()];
-                const dia = semanaActual.dias.find(d => d.dia === diaNombre);
-                
-                if (dia && dia.dato) {
-                    datoDiaActual = dia.dato;
-                    // ✅ Buscar servicio según el tipo de día (automático o forzado)
-                    infoServicio = this.buscarServicioPorTipo(rol, tipoDiaActual, datoDiaActual);
+
+                const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
+                if (semanaData && semanaData.dias[diaNombre]) {
+                    posicionHoy = semanaData.dias[diaNombre].posicion || 'N/A';
+                }
+
+                // Buscar el servicio correspondiente
+                if (posicionHoy !== 'N/A') {
+                    const tipoDiaConfig = semanas.find(s => s.tipo === tipoDiaActual && s.lineaId === userLineaId && s.terminalId === userTerminalId);
                     
-                    if (!infoServicio) {
-                        servicioNoExiste = true;
+                    if (tipoDiaConfig) {
+                        infoServicio = servicios.find(s => 
+                            String(s.nombre).trim() === String(posicionHoy).trim() && 
+                            s.lineaId === userLineaId && 
+                            s.semanaId === tipoDiaConfig.id
+                        );
+                    } else {
+                        errorMensaje = `No se encontró configuración de tipo de día "${tipoDiaActual}" para esta terminal.`;
+                    }
+
+                    if (!infoServicio && !errorMensaje) {
+                        errorMensaje = `No hay servicio registrado con la posición "${posicionHoy}" para el tipo de día "${tipoDiaActual}".`;
                     }
                 }
+            } else {
+                errorMensaje = `No se encontró el Rol #${userNumeroRol} en el sistema. Verifica con tu administrador.`;
             }
+        } else {
+            errorMensaje = 'Tu perfil no está completamente configurado. Por favor, contacta a tu administrador.';
         }
 
         const tiempoExtraPendiente = DB.load('tiempoExtra').filter(t => !t.cobrado);
-        
-        const hoy = new Date();
-        const diaSemana = hoy.getDay();
-        const mostrarBotones = datoDiaActual !== null;
+        const diaSemana = new Date().getDay();
+        const mostrarBotones = posicionHoy !== 'N/A' && !errorMensaje;
 
         return `
             <div class="view active ske-home">
-                <!-- HEADER SALUDO SKEUOMÓRFICO -->
+                <!-- HEADER SALUDO -->
                 <div class="ske-greeting-card">
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
@@ -128,27 +125,19 @@ const Home = {
                             <button class="ske-avatar-btn" id="btnCambiarFoto" title="Cambiar foto">
                                 <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                             </button>
-                            <input type="file" id="inputFotoPerfil" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
+                            <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
                         </div>
                         
                         <div class="ske-greeting-text">
                             <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
                             <p class="ske-greeting-subtitle">Tu espacio de gestión inteligente</p>
                             
-                            ${semanaActual ? `
-                                <div class="ske-badges-row">
-                                    <span class="ske-chip ske-chip-soft">
-                                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        Semana ${semanaActual.numeroSemana}
-                                    </span>
-                                    ${datoDiaActual ? `
-                                        <span class="ske-chip ske-chip-primary">
-                                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            ${tipoDiaActual} · Servicio ${datoDiaActual}
-                                        </span>
-                                    ` : ''}
-                                </div>
-                            ` : ''}
+                            <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end;">
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    Semana ${semanaActualNum}
+                                </span>
+                            </div>
                         </div>
                         
                         ${avisosNoLeidos > 0 ? `
@@ -162,25 +151,25 @@ const Home = {
 
                 <!-- ✅ BOTONES DE ALTERNANCIA LABORAL/DOMINGO -->
                 ${mostrarBotones ? `
-                    <div class="ske-modo-dia-container">
-                        <div class="ske-modo-dia-label">Modo de visualización:</div>
-                        <div class="ske-modo-dia-botones">
+                    <div class="ske-modo-dia-container" style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
+                        <div class="ske-modo-dia-label" style="font-size: 13px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase;">Modo de visualización:</div>
+                        <div class="ske-modo-dia-botones" style="display: flex; gap: 8px;">
                             ${diaSemana >= 1 && diaSemana <= 5 ? `
-                                <button class="ske-modo-btn ${this.modoForzado === null ? 'ske-modo-btn-activo' : ''}" id="btnModoLaboral">
-                                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <button class="ske-modo-btn ${DB.get('modoDiaForzado') === null ? 'ske-modo-btn-activo' : ''}" id="btnModoLaboral" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === null ? 'var(--primary)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === null ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                     Laboral
                                 </button>
-                                <button class="ske-modo-btn ${this.modoForzado === 'domingo' ? 'ske-modo-btn-activo' : ''}" id="btnModoDomingo">
-                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                <button class="ske-modo-btn ${DB.get('modoDiaForzado') === 'domingo' ? 'ske-modo-btn-activo' : ''}" id="btnModoDomingo" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                                     Domingo/Festivo
                                 </button>
                             ` : `
-                                <button class="ske-modo-btn ${this.modoForzado === null ? 'ske-modo-btn-activo' : ''}" id="btnModoNormal">
-                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                <button class="ske-modo-btn ${DB.get('modoDiaForzado') === null ? 'ske-modo-btn-activo' : ''}" id="btnModoNormal" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === null ? 'var(--primary)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === null ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                                     ${diaSemana === 0 ? 'Domingo/Festivo' : 'Sábado'}
                                 </button>
-                                <button class="ske-modo-btn ${this.modoForzado === 'laboral' ? 'ske-modo-btn-activo' : ''}" id="btnModoLaboralForzado">
-                                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <button class="ske-modo-btn ${DB.get('modoDiaForzado') === 'laboral' ? 'ske-modo-btn-activo' : ''}" id="btnModoLaboralForzado" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'laboral' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'laboral' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                     Ver como Laboral
                                 </button>
                             `}
@@ -188,9 +177,27 @@ const Home = {
                     </div>
                 ` : ''}
 
+                <!-- ✅ CONTENEDOR DE SERVICIO DEL DÍA -->
+                <div id="skeServicioDiaContainer">
+                    ${errorMensaje ? `
+                        <div class="ske-servicio-no-existe" style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
+                            <div class="ske-servicio-no-existe-icono" style="margin-bottom: 16px;">
+                                <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; stroke: var(--text-soft); fill: none;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            </div>
+                            <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
+                            <p style="color: var(--text-soft); font-size: 14px;">${errorMensaje}</p>
+                        </div>
+                    ` : infoServicio ? this.renderServicioDia(infoServicio, tipoDiaActual, semanaActualNum) : `
+                        <div class="ske-empty-card" style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
+                            <h3 class="ske-empty-title">Sin servicio asignado</h3>
+                            <p class="ske-empty-text">No hay servicio registrado para tu posición hoy.</p>
+                        </div>
+                    `}
+                </div>
+
                 <!-- TIEMPO EXTRA PENDIENTE -->
                 ${tiempoExtraPendiente.length > 0 ? `
-                    <div class="ske-section">
+                    <div class="ske-section" style="margin-top: 20px;">
                         <div class="ske-section-header">
                             <div class="ske-icon-circle ske-icon-warning">
                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -211,41 +218,11 @@ const Home = {
                         </div>
                     </div>
                 ` : ''}
-
-                <!-- ✅ CONTENEDOR DE SERVICIO DEL DÍA -->
-                <div id="skeServicioDiaContainer">
-                    ${infoServicio ? this.renderServicioDia(infoServicio, tipoDiaActual) : ''}
-
-                    ${servicioNoExiste ? `
-                        <div class="ske-servicio-no-existe">
-                            <div class="ske-servicio-no-existe-icono">
-                                <svg viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="15" y1="9" x2="9" y2="15"/>
-                                    <line x1="9" y1="9" x2="15" y2="15"/>
-                                </svg>
-                            </div>
-                            <h3>Servicio no disponible</h3>
-                            <p>No hay servicios fijos para estas reservas.</p>
-                            <p class="ske-servicio-no-existe-hint">Verifica en Registro → Servicios si existe el servicio <strong>"${datoDiaActual}"</strong> para el tipo de día <strong>"${tipoDiaActual}"</strong>.</p>
-                        </div>
-                    ` : ''}
-
-                    ${!infoServicio && !datoDiaActual ? `
-                        <div class="ske-empty-card">
-                            <div class="ske-empty-icono">
-                                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            </div>
-                            <h3 class="ske-empty-title">Sin servicio asignado</h3>
-                            <p class="ske-empty-text">No hay servicio asignado para hoy.</p>
-                        </div>
-                    ` : ''}
-                </div>
             </div>
         `;
     },
 
-    renderServicioDia(info, tipoDia) {
+    renderServicioDia(info, tipoDia, semanaNum) {
         const { servicio, linea, terminal, semana } = info;
         const trenes = servicio.trenes || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
@@ -259,28 +236,26 @@ const Home = {
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                     <h2 class="ske-section-title">Servicio del Día</h2>
-                    <span class="ske-tipo-dia-badge">${tipoDia}</span>
+                    <span class="ske-tipo-dia-badge" style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">${tipoDia}</span>
                 </div>
 
-                <div class="ske-info-grid">
-                    <div class="ske-info-item">
-                        <span class="ske-info-label">Línea</span>
-                        <span class="ske-info-value">${linea ? linea.nombre : 'N/A'}</span>
+                <div class="ske-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div class="ske-info-item" style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
+                        <span class="ske-info-label" style="font-size: 11px; color: var(--text-soft); display: block;">Línea</span>
+                        <span class="ske-info-value" style="font-size: 15px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</span>
                     </div>
-                    <div class="ske-info-item">
-                        <span class="ske-info-label">Terminal</span>
-                        <span class="ske-info-value">${terminal ? terminal.nombre : 'N/A'}</span>
-                    </div>
-                    <div class="ske-info-item">
-                        <span class="ske-info-label">Tipo de día</span>
-                        <span class="ske-info-value">${semana ? semana.tipo : 'N/A'}</span>
+                    <div class="ske-info-item" style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
+                        <span class="ske-info-label" style="font-size: 11px; color: var(--text-soft); display: block;">Terminal</span>
+                        <span class="ske-info-value" style="font-size: 15px; font-weight: 700; color: var(--text);">${terminal ? terminal.nombre : 'N/A'}</span>
                     </div>
                 </div>
 
-                <div class="ske-service-number">${servicio.nombre}</div>
+                <div class="ske-service-number" style="text-align: center; font-size: 32px; font-weight: 800; color: var(--primary); margin: 16px 0; letter-spacing: 1px;">
+                    Servicio ${servicio.nombre}
+                </div>
 
-                <div class="ske-garage-badge ${garageClass}">
-                    <svg viewBox="0 0 24 24">
+                <div class="ske-garage-badge ${garageClass}" style="text-align: center; padding: 10px; background: ${haceGarage ? '#e8f5e9' : '#ffebee'}; color: ${haceGarage ? '#2e7d32' : '#c62828'}; border-radius: 8px; font-weight: 700; font-size: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;">
                         ${haceGarage 
                             ? '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' 
                             : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}
@@ -288,54 +263,62 @@ const Home = {
                     ${garageTexto}
                 </div>
 
-                <div class="ske-trains-list">
+                <div class="ske-trains-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
                         const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren Adicional #${numTren}`;
                         return `
-                            <div class="ske-train-card">
-                                <div class="ske-train-header">${labelTren} <span class="ske-train-num">#${numTren}</span></div>
-                                <div class="ske-train-times">
-                                    <div class="ske-time-box">
-                                        <span class="ske-time-label">Salida</span>
-                                        <span class="ske-time-value">${tren.salida || '--:--'}</span>
+                            <div class="ske-train-card" style="background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); border: 1px solid var(--bg-soft);">
+                                <div class="ske-train-header" style="font-size: 14px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; display: flex; justify-content: space-between;">
+                                    ${labelTren} <span class="ske-train-num" style="color: var(--primary);">#${numTren}</span>
+                                </div>
+                                <div class="ske-train-times" style="display: flex; gap: 12px;">
+                                    <div class="ske-time-box" style="flex: 1; text-align: center; background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                                        <span class="ske-time-label" style="display: block; font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">Salida</span>
+                                        <span class="ske-time-value" style="display: block; font-size: 18px; font-weight: 800; color: var(--text);">${tren.salida || '--:--'}</span>
                                     </div>
-                                    <div class="ske-time-box">
-                                        <span class="ske-time-label">Llegada</span>
-                                        <span class="ske-time-value">${tren.llegada || '--:--'}</span>
+                                    <div class="ske-time-box" style="flex: 1; text-align: center; background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                                        <span class="ske-time-label" style="display: block; font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">Llegada</span>
+                                        <span class="ske-time-value" style="display: block; font-size: 18px; font-weight: 800; color: var(--text);">${tren.llegada || '--:--'}</span>
                                     </div>
+                                    ${tren.vueltas ? `
+                                    <div class="ske-time-box" style="flex: 1; text-align: center; background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                                        <span class="ske-time-label" style="display: block; font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">Vueltas</span>
+                                        <span class="ske-time-value" style="display: block; font-size: 18px; font-weight: 800; color: var(--text);">${tren.vueltas}</span>
+                                    </div>
+                                    ` : ''}
                                 </div>
                             </div>
                         `;
                     }).join('')}
                 </div>
 
-                <div class="ske-rest-card">
-                    <div class="ske-rest-header">
-                        <div class="ske-icon-circle ske-icon-small">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div class="ske-rest-card" style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); border: 1px solid var(--bg-soft);">
+                    <div class="ske-rest-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                        <div class="ske-icon-circle ske-icon-small" style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         </div>
-                        <span>Descanso</span>
+                        <span style="font-size: 16px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                     </div>
-                    <div class="ske-rest-times">
-                        <div class="ske-rest-item">
-                            <span class="ske-rest-label">Inicio</span>
-                            <span class="ske-rest-value">${servicio.descansoInicio || '--:--'}</span>
+                    <div class="ske-rest-times" style="display: flex; align-items: center; justify-content: space-around; background: var(--bg-soft); padding: 16px; border-radius: 10px; margin-bottom: 20px;">
+                        <div class="ske-rest-item" style="text-align: center;">
+                            <span class="ske-rest-label" style="display: block; font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">Inicio</span>
+                            <span class="ske-rest-value" style="display: block; font-size: 20px; font-weight: 800; color: var(--text);">${servicio.descansoInicio || '--:--'}</span>
                         </div>
-                        <div class="ske-rest-separator">→</div>
-                        <div class="ske-rest-item">
-                            <span class="ske-rest-label">Final</span>
-                            <span class="ske-rest-value">${servicio.descansoFinal || '--:--'}</span>
+                        <div class="ske-rest-separator" style="font-size: 24px; color: var(--text-soft); font-weight: 300;">→</div>
+                        <div class="ske-rest-item" style="text-align: center;">
+                            <span class="ske-rest-label" style="display: block; font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">Final</span>
+                            <span class="ske-rest-value" style="display: block; font-size: 20px; font-weight: 800; color: var(--text);">${servicio.descansoFinal || '--:--'}</span>
                         </div>
                     </div>
                     
-                    <div class="ske-clock-container" id="hsdRelojContainer">
-                        <div class="ske-clock-time" id="hsdRelojTiempo">--:--:--</div>
-                        <div class="ske-clock-label" id="hsdRelojEtiqueta">Calculando...</div>
+                    <div class="ske-clock-container" id="hsdRelojContainer" style="text-align: center; margin-bottom: 16px; padding: 16px; background: var(--bg); border-radius: 10px; border: 2px solid var(--bg-soft);">
+                        <div class="ske-clock-time" id="hsdRelojTiempo" style="font-size: 36px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums;">--:--:--</div>
+                        <div class="ske-clock-label" id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 4px;">Calculando...</div>
                     </div>
 
-                    <button class="ske-btn-warning" id="btnAgregarAtrasoHome">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <button class="ske-btn-warning" id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
+                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         Agregar Atraso en Línea
                     </button>
                 </div>
@@ -343,72 +326,10 @@ const Home = {
         `;
     },
 
-    buscarServicioPorTipo(rol, tipoDia, numeroServicio) {
-        if (!numeroServicio) return null;
-        
-        const servicios = DB.load('servicios');
-        const semanas = DB.load('semanas');
-        const lineas = DB.load('lineas');
-        const terminales = DB.load('terminales');
-        
-        const normalizar = (texto) => {
-            return texto.toLowerCase()
-                       .normalize('NFD')
-                       .replace(/[\u0300-\u036f]/g, '')
-                       .trim();
-        };
-        
-        const tipoDiaNorm = normalizar(tipoDia);
-        
-        // ✅ Buscar la semana/tipo de día que coincida
-        const semanaTipo = semanas.find(s => {
-            const tipoSemanaNorm = normalizar(s.tipo);
-            
-            if (tipoSemanaNorm === tipoDiaNorm) return true;
-            if (tipoDiaNorm === 'domingo/festivos' && tipoSemanaNorm === 'domingo') return true;
-            if (tipoDiaNorm === 'domingo' && tipoSemanaNorm === 'domingo/festivos') return true;
-            
-            return false;
-        });
-        
-        if (!semanaTipo) {
-            return null;
-        }
-        
-        const numeroServicioStr = String(numeroServicio).trim();
-        
-        // ✅ Buscar el servicio que coincida con línea, semana y número
-        const servicio = servicios.find(s => {
-            const nombreServicio = String(s.nombre).trim();
-            return nombreServicio === numeroServicioStr && 
-                   s.lineaId === rol.lineaId && 
-                   s.semanaId === semanaTipo.id;
-        });
-        
-        if (servicio) {
-            return {
-                servicio,
-                linea: lineas.find(l => l.id === servicio.lineaId),
-                terminal: terminales.find(t => t.id === servicio.terminalId),
-                semana: semanaTipo
-            };
-        }
-        
-        return null;
-    },
-
     init() {
         this.minutosAtraso = 0;
 
-        const btnVerAvisos = document.getElementById('btnVerAvisos');
-        if (btnVerAvisos) {
-            btnVerAvisos.addEventListener('click', () => {
-                if (typeof Views !== 'undefined' && Views.load) {
-                    Views.load('avisos', true);
-                }
-            });
-        }
-
+        // ✅ Lógica del botón de cambiar foto (igual que antes)
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
         const welcomeIcon = document.getElementById('welcomeIcon');
@@ -423,150 +344,102 @@ const Home = {
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    const tiposValidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-                    if (!tiposValidos.includes(file.type)) {
-                        App.showToast('Formato no válido. Usa JPG, PNG o WebP');
-                        return;
-                    }
                     if (file.size > 5 * 1024 * 1024) {
                         App.showToast('La imagen es muy grande. Máximo 5MB');
                         return;
                     }
                     try {
                         App.showToast('Procesando imagen...');
-                        const imagenBase64 = await this.procesarImagen(file);
-                        DB.set('imagenPerfil', imagenBase64);
-                        const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
-                        if (imgExistente) {
-                            imgExistente.src = imagenBase64;
-                        } else {
-                            welcomeIcon.innerHTML = `
-                                <div class="ske-avatar-inner">
-                                    <img src="${imagenBase64}" alt="Perfil" class="ske-avatar-img">
-                                </div>
-                                <button class="ske-avatar-btn" id="btnCambiarFoto" title="Cambiar foto">
-                                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                                </button>
-                                <input type="file" id="inputFotoPerfil" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
-                            `;
-                            
-                            const nuevoBtn = document.getElementById('btnCambiarFoto');
-                            const nuevoInput = document.getElementById('inputFotoPerfil');
-                            nuevoBtn.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                nuevoInput.click();
-                            });
-                            nuevoInput.addEventListener('change', async (e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    const tiposValidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-                                    if (!tiposValidos.includes(file.type)) {
-                                        App.showToast('Formato no válido. Usa JPG, PNG o WebP');
-                                        return;
-                                    }
-                                    if (file.size > 5 * 1024 * 1024) {
-                                        App.showToast('La imagen es muy grande. Máximo 5MB');
-                                        return;
-                                    }
-                                    try {
-                                        App.showToast('Procesando imagen...');
-                                        const imagenBase64 = await this.procesarImagen(file);
-                                        DB.set('imagenPerfil', imagenBase64);
-                                        const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
-                                        if (imgExistente) {
-                                            imgExistente.src = imagenBase64;
-                                        }
-                                        App.showToast('Foto de perfil actualizada');
-                                    } catch (error) {
-                                        App.showToast('Error al procesar la imagen');
-                                    }
-                                }
-                            });
-                        }
-                        App.showToast('Foto de perfil actualizada');
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            DB.set('imagenPerfil', ev.target.result);
+                            const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
+                            if (imgExistente) {
+                                imgExistente.src = ev.target.result;
+                            } else {
+                                welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="ske-avatar-img">`;
+                            }
+                            App.showToast('Foto de perfil actualizada');
+                        };
+                        reader.readAsDataURL(file);
                     } catch (error) {
-                        console.error('Error al procesar imagen:', error);
                         App.showToast('Error al procesar la imagen');
                     }
                 }
             });
         }
 
-        // ✅ EVENTOS DE BOTONES DE MODO - SIMPLE Y CONFIABLE
+        // ✅ EVENTOS DE BOTONES DE MODO (Alternancia Laboral/Domingo)
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
         const btnModoLaboralForzado = document.getElementById('btnModoLaboralForzado');
 
+        const recargarHome = () => setTimeout(() => window.location.reload(), 300);
+
         if (btnModoLaboral) {
             btnModoLaboral.addEventListener('click', () => {
-                localStorage.removeItem('modoDiaForzado');
-                localStorage.removeItem('fechaModoForzado');
-                App.showToast('📅 Modo: Laboral');
-                setTimeout(() => window.location.reload(), 300);
+                DB.remove('modoDiaForzado');
+                DB.remove('fechaModoForzado');
+                App.showToast('📅 Modo: Laboral (Automático)');
+                recargarHome();
             });
         }
 
         if (btnModoDomingo) {
             btnModoDomingo.addEventListener('click', () => {
-                const hoy = new Date();
-                const hoyStr = this.getFechaLocal(hoy);
-                localStorage.setItem('modoDiaForzado', 'domingo');
-                localStorage.setItem('fechaModoForzado', hoyStr);
-                App.showToast('🌙 Modo: Domingo/Festivo');
-                setTimeout(() => window.location.reload(), 300);
+                DB.set('modoDiaForzado', 'domingo');
+                DB.set('fechaModoForzado', this.getFechaLocal(new Date()));
+                App.showToast('🌙 Modo: Domingo/Festivo (Forzado)');
+                recargarHome();
             });
         }
 
         if (btnModoNormal) {
             btnModoNormal.addEventListener('click', () => {
-                localStorage.removeItem('modoDiaForzado');
-                localStorage.removeItem('fechaModoForzado');
+                DB.remove('modoDiaForzado');
+                DB.remove('fechaModoForzado');
                 App.showToast('📅 Modo: Automático');
-                setTimeout(() => window.location.reload(), 300);
+                recargarHome();
             });
         }
 
         if (btnModoLaboralForzado) {
             btnModoLaboralForzado.addEventListener('click', () => {
-                const hoy = new Date();
-                const hoyStr = this.getFechaLocal(hoy);
-                localStorage.setItem('modoDiaForzado', 'laboral');
-                localStorage.setItem('fechaModoForzado', hoyStr);
-                App.showToast('📅 Modo: Laboral (forzado)');
-                setTimeout(() => window.location.reload(), 300);
+                DB.set('modoDiaForzado', 'laboral');
+                DB.set('fechaModoForzado', this.getFechaLocal(new Date()));
+                App.showToast('📅 Modo: Laboral (Forzado)');
+                recargarHome();
             });
         }
 
         // ✅ Iniciar reloj si hay servicio
-        const servicioEl = document.querySelector('.ske-rest-card');
-        if (servicioEl) {
-            const roles = DB.load('roles');
-            if (roles.length > 0) {
-                const rol = roles.sort((a, b) => b.createdAt - a.createdAt)[0];
+        const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
+        if (btnAtraso) {
+            // Necesitamos recuperar los datos del servicio para el reloj
+            const userNumeroRol = DB.get('userNumeroRol');
+            const userLineaId = DB.get('userLineaId');
+            const rolesSemanal = DB.load('rolesSemanal');
+            const miRol = rolesSemanal.find(r => r.numeroRol === userNumeroRol && r.lineaId === userLineaId);
+            
+            if (miRol) {
                 const hoy = new Date();
-                const hoyStr = this.getFechaLocal(hoy);
-                const semanaActual = rol.semanas.find(semana => hoyStr >= semana.fechaInicio && hoyStr <= semana.fechaFin);
-                
-                if (semanaActual) {
-                    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                    const diaNombre = diasSemana[hoy.getDay()];
-                    const dia = semanaActual.dias.find(d => d.dia === diaNombre);
-                    
-                    if (dia && dia.dato) {
-                        const tipoDia = this.getTipoDiaActual();
-                        const servicio = this.buscarServicioPorTipo(rol, tipoDia, dia.dato);
-                        
-                        if (servicio && servicio.servicio) {
-                            this.minutosAtraso = 0;
-                            this.iniciarReloj(servicio.servicio);
-                            
-                            const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
-                            if (btnAtraso) {
-                                btnAtraso.addEventListener('click', () => this.agregarAtraso(servicio.servicio));
-                            }
-                        }
+                const diasTranscurridos = Math.floor((hoy - new Date(miRol.fechaInicio)) / (1000 * 60 * 60 * 24));
+                const semanaActualNum = Math.floor(diasTranscurridos / 7) % 5 + 1;
+                const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const diaNombre = diasSemana[hoy.getDay()];
+                const posicionHoy = miRol.semanas.find(s => s.numero === semanaActualNum)?.dias[diaNombre]?.posicion;
+
+                if (posicionHoy) {
+                    const tipoDiaActual = this.getTipoDiaActual();
+                    const semanas = DB.load('semanas');
+                    const tipoDiaConfig = semanas.find(s => s.tipo === tipoDiaActual && s.lineaId === userLineaId);
+                    const servicios = DB.load('servicios');
+                    const servicio = servicios.find(s => String(s.nombre).trim() === String(posicionHoy).trim() && s.semanaId === tipoDiaConfig?.id);
+
+                    if (servicio) {
+                        this.iniciarReloj(servicio);
+                        btnAtraso.addEventListener('click', () => this.agregarAtraso(servicio));
                     }
                 }
             }
@@ -582,11 +455,8 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ NUEVA LÓGICA DEL CRONÓMETRO
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
-
-        // ✅ Constante: 1 hora 25 minutos = 85 minutos adicionales
         const MINUTOS_TOLERANCIA = 85;
 
         const actualizarReloj = () => {
@@ -601,48 +471,28 @@ const Home = {
             const minutosFinal = hFinal * 60 + mFinal;
             const minutosAtraso = this.minutosAtraso || 0;
             const minutosFinalAjustado = minutosFinal + minutosAtraso;
-            
-            // ✅ Límite: fin del descanso + 85 minutos (1h 25min)
             const minutosLimite = minutosFinalAjustado + MINUTOS_TOLERANCIA;
 
             const relojTiempo = document.getElementById('hsdRelojTiempo');
             const relojEtiqueta = document.getElementById('hsdRelojEtiqueta');
-
             if (!relojTiempo || !relojEtiqueta) return;
 
-            // ✅ ESTADO 1: Antes del descanso - cuenta regresiva hasta que inicie
             if (horaActual < minutosInicio) {
                 const diff = minutosInicio - horaActual;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
                 relojEtiqueta.textContent = 'Tiempo para iniciar descanso';
                 relojTiempo.className = 'ske-clock-time ske-clock-waiting';
-            }
-            // ✅ ESTADO 2: Durante el descanso - cuenta regresiva del descanso
-            else if (horaActual >= minutosInicio && horaActual < minutosFinalAjustado) {
+            } else if (horaActual >= minutosInicio && horaActual < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActual;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                const segs = 60 - segundosActuales;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 
-                    ? `Tiempo restante de descanso (con +${minutosAtraso} min)` 
-                    : 'Tiempo restante de descanso';
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `Tiempo restante (+${minutosAtraso} min)` : 'Tiempo restante de descanso';
                 relojTiempo.className = 'ske-clock-time ske-clock-active';
-            }
-            // ✅ ESTADO 3: Después del descanso - 85 minutos de tolerancia
-            else if (horaActual >= minutosFinalAjustado && horaActual < minutosLimite) {
+            } else if (horaActual >= minutosFinalAjustado && horaActual < minutosLimite) {
                 const diff = minutosLimite - horaActual;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                const segs = 60 - segundosActuales;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
                 relojEtiqueta.textContent = '⏰ Tiempo de tolerancia restante';
                 relojTiempo.className = 'ske-clock-time ske-clock-tolerancia';
-            }
-            // ✅ ESTADO 4: Pasó el tiempo de tolerancia - se queda en 00:00:00
-            else {
+            } else {
                 relojTiempo.textContent = '00:00:00';
                 relojEtiqueta.textContent = 'Tiempo finalizado';
                 relojTiempo.className = 'ske-clock-time ske-clock-finished';
@@ -655,19 +505,14 @@ const Home = {
 
     agregarAtraso(servicio) {
         const minutos = prompt('¿Cuántos minutos de atraso en línea?');
-        
         if (minutos === null) return;
-        
         const minutosNum = parseInt(minutos);
-        
         if (isNaN(minutosNum) || minutosNum <= 0) {
             App.showToast('Ingresa un número válido de minutos');
             return;
         }
-
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-
-        App.showToast(`+${minutosNum} min de atraso agregados (temporal)`);
+        App.showToast(`+${minutosNum} min de atraso agregados`);
         this.iniciarReloj(servicio);
         
         const container = document.getElementById('hsdRelojContainer');
@@ -676,9 +521,10 @@ const Home = {
             if (!badge) {
                 badge = document.createElement('div');
                 badge.className = 'ske-atraso-badge';
+                badge.style.cssText = 'margin-top: 10px; padding: 6px 12px; background: #ffebee; color: #c62828; border-radius: 20px; font-size: 13px; font-weight: 700; display: inline-block;';
                 container.appendChild(badge);
             }
-            badge.textContent = `+${this.minutosAtraso} min atraso`;
+            badge.textContent = `⚠️ +${this.minutosAtraso} min de atraso`;
         }
     }
 };

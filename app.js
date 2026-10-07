@@ -37,6 +37,7 @@ const themeNames = {
 // ============================================
 const viewModules = {
     home: './views/home.js',
+    onboarding: './views/onboarding.js', // ✅ NUEVO: Módulo de bienvenida y configuración
     avisos: './views/avisos.js',
     notas: './views/notas.js',
     'tiempo-extra': './views/tiempo-extra.js',
@@ -50,7 +51,7 @@ const viewModules = {
     'registro-reservas': './views/registro/reservas.js',
     'registro-servicios': './views/registro/servicios.js',
     'registro-numero-semana': './views/registro/numero-semana.js',
-    'registro-rol-semanal': './views/registro/rol-semanal.js', // ✅ NUEVO: Rol Semanal
+    'registro-rol-semanal': './views/registro/rol-semanal.js',
     'registro-espejo': './views/registro/espejo.js',
     'mi-rol': './views/rol.js',
     'bd': './views/bd.js',
@@ -97,7 +98,7 @@ const Views = {
                 { id: 'registro-reservas', label: 'Reservas' },
                 { id: 'registro-servicios', label: 'Servicios' },
                 { id: 'registro-numero-semana', label: 'Número de Semana' },
-                { id: 'registro-rol-semanal', label: 'Rol Semanal' }, // ✅ NUEVO: Rol Semanal
+                { id: 'registro-rol-semanal', label: 'Rol Semanal' },
                 { id: 'registro-espejo', label: 'Espejo' }
             ]
         },
@@ -387,11 +388,14 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
+                // ✅ LÓGICA DE GUARDIÁN: Verificar si ya configuró su perfil
+                const perfilConfigurado = DB.get('perfilConfigurado', false);
+                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+
                 Views.renderMenu();
-                Views.load('home', false);
+                Views.load(vistaInicial, false);
 
                 this.initBackNavigation();
-
                 this.inicializarCampanita();
 
                 const waveTitle = document.querySelector('.wave-title');
@@ -498,7 +502,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -532,7 +536,7 @@ const App = {
                     backPressTimer = null;
                 }, 2000);
             } else {
-                console.log(' Saliendo de la app');
+                console.log('👋 Saliendo de la app');
                 
                 if (navigator.app) {
                     navigator.app.exitApp();
