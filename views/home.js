@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Detección de Reservas
+// HOME.JS - Dashboard con Modal de Bienvenida
 // ============================================
 
 const Home = {
@@ -113,7 +113,7 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
@@ -322,7 +322,7 @@ const Home = {
 
                 <div style="margin-bottom: 16px;">
                     <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;">
-                        🚂 Trenes (${trenes.length})
+                         Trenes (${trenes.length})
                     </div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
@@ -393,11 +393,19 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
-        // ✅ CARGAR rolesSemanal DESDE FIREBASE (ESTO FALTABA)
+        // ✅ CARGAR rolesSemanal Y configuracionGlobal DESDE FIREBASE
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
-        console.log('🏠 Home - configuracionGlobal cargada');
+        console.log(' Home - configuracionGlobal cargada');
+
+        // ✅ VERIFICAR SI ES PRIMERA VEZ Y MOSTRAR MODAL DE BIENVENIDA
+        const perfilConfigurado = DB.get('perfilConfigurado', false);
+        const bienvenidaVista = DB.get('bienvenidaVista', false);
+
+        if (!perfilConfigurado && !bienvenidaVista) {
+            this.mostrarModalBienvenida();
+        }
 
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
@@ -449,7 +457,7 @@ const Home = {
             btnModoLaboral.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'laboral');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast('📅 Modo: Laboral (hasta mañana)');
+                App.showToast(' Modo: Laboral (hasta mañana)');
                 recargarHome();
             });
         }
@@ -458,7 +466,7 @@ const Home = {
             btnModoDomingo.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'domingo');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast('🌙 Modo: Domingo/Festivo (hasta mañana)');
+                App.showToast(' Modo: Domingo/Festivo (hasta mañana)');
                 recargarHome();
             });
         }
@@ -467,7 +475,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast(' Modo: Automático');
+                App.showToast('📅 Modo: Automático');
                 recargarHome();
             });
         }
@@ -511,6 +519,55 @@ const Home = {
         }
     },
 
+    // ✅ MODAL DE BIENVENIDA
+    mostrarModalBienvenida() {
+        const modalHTML = `
+            <div style="background: var(--surface); padding: 32px 24px; border-radius: 20px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="margin-bottom: 20px;">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; box-shadow: 0 8px 24px rgba(155, 127, 212, 0.4);">
+                        <svg viewBox="0 0 24 24" style="width: 40px; height: 40px; fill: white;">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <h2 style="margin: 0 0 8px 0; font-size: 28px; color: var(--primary); font-weight: 800;">¡Bienvenido a CICLO!</h2>
+                    <p style="font-size: 15px; color: var(--text); margin: 0; line-height: 1.5;">
+                        Gracias por usar nuestra aplicación de gestión ferroviaria.
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid var(--primary);">
+                    <p style="font-size: 14px; color: var(--text); margin: 0; line-height: 1.6; text-align: left;">
+                        <strong> Paso importante:</strong><br>
+                        Para que la app funcione correctamente y puedas ver tus horarios, trenes y descansos, necesitas registrar tu <strong>Número de Rol</strong>.
+                        <br><br>
+                        <strong>¿Cómo hacerlo?</strong><br>
+                        1. Abre el <strong>menú lateral</strong> (☰)<br>
+                        2. Entra al módulo <strong>"Mi Rol"</strong><br>
+                        3. Toca el botón <strong>"Editar"</strong><br>
+                        4. Selecciona tu Línea, Terminal e ingresa tu Número de Rol
+                    </p>
+                </div>
+
+                <button id="btnEntendidoBienvenida" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(155, 127, 212, 0.4); transition: all 0.3s ease;">
+                    Entendido, ir a Mi Rol
+                </button>
+            </div>
+        `;
+
+        const overlay = App.showModal(modalHTML);
+
+        document.getElementById('btnEntendidoBienvenida').addEventListener('click', () => {
+            overlay.remove();
+            DB.set('bienvenidaVista', true);
+            
+            // Abrir menú lateral y navegar a Mi Rol
+            setTimeout(() => {
+                Views.load('mi-rol', true);
+                App.toggleMenu();
+            }, 300);
+        });
+    },
+
     onLeave() {
         if (this.relojInterval) {
             clearInterval(this.relojInterval);
@@ -548,7 +605,7 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
             if (horaActualMinutos < minutosInicio) {
@@ -577,7 +634,7 @@ const Home = {
                 const mins = diff % 60;
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = ' Tiempo de tolerancia restante';
+                relojEtiqueta.textContent = '⏰ Tiempo de tolerancia restante';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
@@ -590,7 +647,7 @@ const Home = {
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
-                    relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
+                    relojMensaje.textContent = '️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#c62828';
                 }
             }
@@ -614,7 +671,7 @@ const Home = {
 
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
 
-        App.showToast(`️ +${minutosNum} min de atraso agregados al descanso`);
+        App.showToast(`⏱️ +${minutosNum} min de atraso agregados al descanso`);
 
         this.iniciarReloj(servicio);
     }

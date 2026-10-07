@@ -37,7 +37,6 @@ const themeNames = {
 // ============================================
 const viewModules = {
     home: './views/home.js',
-    onboarding: './views/onboarding.js',
     'mi-rol': './views/mi-rol.js',
     avisos: './views/avisos.js',
     notas: './views/notas.js',
@@ -194,7 +193,7 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log('🚫 Salida cancelada por atraso activo');
+                console.log(' Salida cancelada por atraso activo');
                 return;
             }
         }
@@ -235,7 +234,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(`❌ Error al cargar vista "${viewId}":`, error);
+            console.error(` Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -350,7 +349,7 @@ const Views = {
 // ============================================
 const App = {
     init() {
-        console.log('🚀 App.init() llamado');
+        console.log(' App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
             console.error('❌ Firebase no está inicializado. Revisa index.html');
@@ -387,11 +386,9 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
-                const perfilConfigurado = DB.get('perfilConfigurado', false);
-                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
-
+                // ✅ SIEMPRE CARGAR HOME DIRECTAMENTE (sin onboarding)
                 Views.renderMenu();
-                Views.load(vistaInicial, false);
+                Views.load('home', false);
 
                 this.initBackNavigation();
                 this.inicializarCampanita();
@@ -515,7 +512,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('️ Volviendo a:', vistaAnterior);
+            console.log('↩️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             
