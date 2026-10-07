@@ -1,43 +1,8 @@
 // ============================================
-// APP.JS - Orquestador Principal con soporte Offline y Caché
+// APP.JS - Orquestador Principal con soporte Offline
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
-
-// ============================================
-// ✅ CACHE EN MEMORIA para evitar llamadas repetidas a Firebase
-// ============================================
-const FIREBASE_CACHE = {};
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutos
-
-async function loadFromFirebase(collection) {
-    const now = Date.now();
-    
-    // Si está en cache y no expiró, usarlo
-    if (FIREBASE_CACHE[collection] && 
-        FIREBASE_CACHE[collection].timestamp > now - CACHE_EXPIRY) {
-        console.log('⚡ Usando cache en memoria:', collection);
-        return FIREBASE_CACHE[collection].data;
-    }
-    
-    // Si no, cargar desde Firebase
-    console.log('📡 Cargando desde Firebase:', collection);
-    if (typeof DB_FIREBASE !== 'undefined' && DB_FIREBASE.load) {
-        await DB_FIREBASE.load(collection);
-    }
-    const data = DB.load(collection);
-    
-    // Guardar en cache
-    FIREBASE_CACHE[collection] = {
-        data: data,
-        timestamp: now
-    };
-    
-    return data;
-}
-
-// Hacer disponible globalmente
-window.loadFromFirebase = loadFromFirebase;
 
 // ============================================
 // TEMAS (15 temas en total)
@@ -269,7 +234,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(`❌ Error al cargar vista "${viewId}":`, error);
+            console.error(` Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -424,8 +389,8 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
-                // ✅ CORRECCIÓN: Siempre cargar home (el Home maneja el modal de bienvenida)
-                const vistaInicial = 'home';
+                const perfilConfigurado = DB.get('perfilConfigurado', false);
+                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
 
                 Views.renderMenu();
                 Views.load(vistaInicial, false);
@@ -448,87 +413,21 @@ const App = {
                     waveTitle.classList.add('wave-applied');
                 }
             } else {
-                // ✅ VERIFICAR SI HAY USUARIO OFFLINE REGISTRADO LOCALMENTE
-                const offlineUser = DB.get('offlineUser', null);
-                
-                if (offlineUser) {
-                    console.log('📡 Modo offline: usuario encontrado localmente');
-                    Auth.currentUser = offlineUser;
-                    Auth.isAdmin = offlineUser.email === 'amayaqsas@gmail.com';
-                    Auth.isOffline = true;
+                Auth.currentUser = null;
+                Auth.isAdmin = false;
 
-                    const authContainer = document.getElementById('authContainer');
-                    const mainApp = document.getElementById('mainApp');
+                const mainApp = document.getElementById('mainApp');
+                const authContainer = document.getElementById('authContainer');
 
-                    if (authContainer) authContainer.classList.remove('show');
+                if (mainApp) mainApp.classList.remove('show');
 
-                    setTimeout(() => {
-                        if (mainApp) mainApp.classList.add('show');
-                    }, 300);
-
-                    const name = offlineUser.nombre || Auth.getUserName(offlineUser);
-                    document.getElementById('menuUserName').textContent = name + ' (Offline)';
-                    document.getElementById('menuUserEmail').textContent = offlineUser.email;
-
-                    const temaGuardado = DB.get('theme', 'lavender');
-                    if (temaGuardado && themes[temaGuardado]) {
-                        Views.applyTheme(temaGuardado, false);
-                    } else {
-                        DB.set('theme', 'lavender');
-                        Views.applyTheme('lavender', false);
+                setTimeout(() => {
+                    if (authContainer) {
+                        authContainer.classList.add('show');
+                        Auth.renderLogin();
                     }
-
-                    // ✅ CORRECCIÓN: Siempre cargar home
-                    const vistaInicial = 'home';
-
-                    Views.renderMenu();
-                    Views.load(vistaInicial, false);
-
-                    this.initBackNavigation();
-                    this.inicializarCampanita();
-
-                    // ✅ Mostrar indicador de modo offline
-                    this.mostrarIndicadorOffline();
-                } else {
-                    // Sin usuario y sin sesión offline: mostrar login
-                    Auth.currentUser = null;
-                    Auth.isAdmin = false;
-
-                    const mainApp = document.getElementById('mainApp');
-                    const authContainer = document.getElementById('authContainer');
-
-                    if (mainApp) mainApp.classList.remove('show');
-
-                    setTimeout(() => {
-                        if (authContainer) {
-                            authContainer.classList.add('show');
-                            Auth.renderLogin();
-                            
-                            // ✅ Mostrar mensaje de sin conexión si no hay internet
-                            const loginError = document.getElementById('loginError');
-                            if (loginError && !navigator.onLine) {
-                                loginError.textContent = '⚠️ Sin conexión a internet. Inicia sesión con tu cuenta registrada.';
-                                loginError.classList.add('show');
-                            }
-                        }
-                    }, 300);
-                }
+                }, 300);
             }
-        });
-
-        // ✅ Detectar cambios de conexión a internet
-        window.addEventListener('online', () => {
-            console.log('🌐 Conexión restaurada');
-            App.showToast('🌐 Conexión restaurada');
-            Auth.isOffline = false;
-            this.ocultarIndicadorOffline();
-        });
-
-        window.addEventListener('offline', () => {
-            console.log(' Sin conexión');
-            App.showToast(' Modo offline activado');
-            Auth.isOffline = true;
-            this.mostrarIndicadorOffline();
         });
 
         const menuBtn = document.getElementById('menuBtn');
@@ -544,80 +443,6 @@ const App = {
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-        }
-    },
-
-    // ✅ NUEVA FUNCIÓN: Manejar usuario offline autenticado
-    handleOfflineUser(user) {
-        console.log('📡 Usuario offline autenticado:', user.email);
-        Auth.currentUser = user;
-        Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
-        Auth.isOffline = true;
-
-        const authContainer = document.getElementById('authContainer');
-        const mainApp = document.getElementById('mainApp');
-
-        if (authContainer) authContainer.classList.remove('show');
-
-        setTimeout(() => {
-            if (mainApp) mainApp.classList.add('show');
-        }, 300);
-
-        const name = user.nombre || Auth.getUserName(user);
-        document.getElementById('menuUserName').textContent = name + ' (Offline)';
-        document.getElementById('menuUserEmail').textContent = user.email;
-
-        const temaGuardado = DB.get('theme', 'lavender');
-        if (temaGuardado && themes[temaGuardado]) {
-            Views.applyTheme(temaGuardado, false);
-        } else {
-            DB.set('theme', 'lavender');
-            Views.applyTheme('lavender', false);
-        }
-
-        // ✅ CORRECCIÓN: Siempre cargar home
-        const vistaInicial = 'home';
-
-        Views.renderMenu();
-        Views.load(vistaInicial, false);
-
-        this.initBackNavigation();
-        this.inicializarCampanita();
-        this.mostrarIndicadorOffline();
-    },
-
-    // ✅ Indicador visual de modo offline
-    mostrarIndicadorOffline() {
-        let indicador = document.getElementById('offlineIndicator');
-        if (!indicador) {
-            indicador = document.createElement('div');
-            indicador.id = 'offlineIndicator';
-            indicador.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: #FF9800;
-                color: white;
-                text-align: center;
-                padding: 8px;
-                font-size: 13px;
-                font-weight: 600;
-                z-index: 9999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-            `;
-            indicador.innerHTML = '📡 Modo Offline - Los datos se guardarán localmente';
-            document.body.appendChild(indicador);
-        }
-    },
-
-    ocultarIndicadorOffline() {
-        const indicador = document.getElementById('offlineIndicator');
-        if (indicador) {
-            indicador.remove();
         }
     },
 
@@ -651,7 +476,7 @@ const App = {
                     btnNotificaciones.classList.remove('has-notifications');
                 }
                 
-                console.log(' Documentos no leídos:', noLeidos);
+                console.log('🔔 Documentos no leídos:', noLeidos);
             } catch (error) {
                 console.error('Error al calcular no leídos:', error);
             }
@@ -677,7 +502,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log('🔙 Botón back presionado');
+            console.log(' Botón back presionado');
             this.handleBackButton();
         });
 
@@ -711,7 +536,7 @@ const App = {
                     backPressTimer = null;
                 }, 2000);
             } else {
-                console.log('👋 Saliendo de la app');
+                console.log(' Saliendo de la app');
                 
                 if (navigator.app) {
                     navigator.app.exitApp();

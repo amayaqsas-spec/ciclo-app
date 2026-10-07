@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales y Caché en Memoria
+// MI-ROL.JS - Calendario con Fechas Reales y Carga desde Firebase
 // ============================================
 
 const MiRol = {
@@ -134,7 +134,7 @@ const MiRol = {
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                         <div>
                                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esSemanaActual ? 'var(--primary)' : 'var(--text)'};">
-                                                ${esSemanaActual ? ' ' : ''}Semana ${semana.numero}
+                                                ${esSemanaActual ? '📍 ' : ''}Semana ${semana.numero}
                                             </h3>
                                             <div style="font-size: 11px; color: var(--text-soft); margin-top: 4px; text-transform: capitalize;">
                                                 ${semana.etiquetaMes}
@@ -173,11 +173,10 @@ const MiRol = {
     },
 
     async init() {
-        // ✅ USAR CACHÉ EN MEMORIA para cargar datos (más rápido en iOS)
-        await loadFromFirebase('rolesSemanal');
-        await loadFromFirebase('configuracionGlobal');
-        await loadFromFirebase('lineas');
-        await loadFromFirebase('terminales');
+        await DB_FIREBASE.load('rolesSemanal');
+        await DB_FIREBASE.load('configuracionGlobal');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
         
         console.log('📅 Mi Rol - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('📅 Mi Rol - líneas cargadas:', DB.load('lineas').length);
@@ -192,10 +191,9 @@ const MiRol = {
     },
 
     async abrirModalEditar() {
-        // ✅ USAR CACHÉ EN MEMORIA para el modal
-        console.log('📅 Cargando líneas y terminales desde cache...');
-        await loadFromFirebase('lineas');
-        await loadFromFirebase('terminales');
+        console.log('📅 Cargando líneas y terminales desde Firebase para el modal...');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
 
         const userLineaId = DB.get('userLineaId');
         const userTerminalId = DB.get('userTerminalId');
@@ -204,8 +202,8 @@ const MiRol = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
-        console.log('📅 Modal - líneas disponibles:', lineas.length);
-        console.log(' Modal - terminales disponibles:', terminales.length);
+        console.log(' Modal - líneas disponibles:', lineas.length);
+        console.log('📅 Modal - terminales disponibles:', terminales.length);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
