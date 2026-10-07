@@ -1,5 +1,5 @@
 // ============================================
-// NUMERO-SEMANA.JS - Módulo de Registro de Números de Semana
+// NUMERO-SEMANA.JS - Con botón "Marcar como Actual" para el Admin
 // ============================================
 
 const NumeroSemana = {
@@ -7,6 +7,9 @@ const NumeroSemana = {
         const numerosSemana = DB.load('numerosSemana');
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
+
+        // Buscar cuál está marcada como actual en Firebase
+        const semanaActualGlobal = DB.get('semanaActualGlobal', null);
 
         return `
             <div class="view active">
@@ -27,11 +30,18 @@ const NumeroSemana = {
                             ${numerosSemana.map(ns => {
                                 const linea = lineas.find(l => l.id === ns.lineaId);
                                 const terminal = terminales.find(t => t.id === ns.terminalId);
+                                const esActual = semanaActualGlobal && 
+                                                 semanaActualGlobal.lineaId === ns.lineaId && 
+                                                 semanaActualGlobal.terminalId === ns.terminalId &&
+                                                 semanaActualGlobal.numero === ns.numero;
 
                                 return `
-                                    <div style="background:var(--surface);padding:16px;border-radius:12px;box-shadow:var(--clay-shadow-sm);">
-                                        <div style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:12px;">
-                                            Semana #${ns.numeroSemana}
+                                    <div style="background:var(--surface);padding:16px;border-radius:12px;box-shadow:var(--clay-shadow-sm);border: 2px solid ${esActual ? 'var(--primary)' : 'transparent'};">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                            <div style="font-size:18px;font-weight:700;color:var(--primary);">
+                                                Semana #${ns.numero}
+                                            </div>
+                                            ${esActual ? '<span style="background:var(--primary);color:white;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;">📍 ACTUAL</span>' : ''}
                                         </div>
                                         
                                         <div style="font-size:14px;margin-bottom:8px;">
@@ -41,7 +51,12 @@ const NumeroSemana = {
                                             <strong>Terminal:</strong> ${terminal ? terminal.nombre : 'Sin terminal'}
                                         </div>
 
-                                        <div style="display:flex;gap:8px;margin-top:12px;">
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                            ${Auth.isAdmin ? `
+                                                <button class="btn-marcar-actual" data-id="${ns.id}" data-numero="${ns.numero}" data-linea="${ns.lineaId}" data-terminal="${ns.terminalId}" style="flex:1;background:${esActual ? 'var(--primary)' : '#4CAF50'};color:white;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">
+                                                    ${esActual ? '✓ Semana Actual' : ' Marcar como Actual'}
+                                                </button>
+                                            ` : ''}
                                             <button class="btn-edit-numero-semana" data-id="${ns.id}" style="flex:1;background:var(--bg-soft);color:var(--primary);border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;">
                                                 Editar
                                             </button>
@@ -63,11 +78,56 @@ const NumeroSemana = {
         await DB_FIREBASE.load('numerosSemana');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('configuracionGlobal'); // ✅ Cargar configuración global
+
+        // Cargar semana actual global desde Firebase
+        const configGlobal = DB.load('configuracionGlobal');
+        const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
+        if (semanaActualConfig) {
+            DB.set('semanaActualGlobal', semanaActualConfig.valor);
+        }
 
         const container = document.getElementById('viewContainer');
         container.innerHTML = this.render();
 
         document.getElementById('btnAddNumeroSemana')?.addEventListener('click', () => this.openModal());
+
+        // ✅ Botón "Marcar como Actual" (solo admin)
+        document.querySelectorAll('.btn-marcar-actual').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const numero = parseInt(btn.dataset.numero);
+                const lineaId = btn.dataset.linea;
+                const terminalId = btn.dataset.terminal;
+
+                if (!confirm(`¿Marcar la Semana #${numero} como la semana actual para todos los usuarios?`)) return;
+
+                const valorConfig = {
+                    tipo: 'semanaActual',
+                    numero: numero,
+                    lineaId: lineaId,
+                    terminalId: terminalId,
+                    updatedAt: Date.now()
+                };
+
+                // Guardar en localStorage
+                DB.set('semanaActualGlobal', valorConfig);
+
+                // ✅ Subir a Firebase para que todos los usuarios lo vean
+                let configGlobal = DB.load('configuracionGlobal');
+                const idx = configGlobal.findIndex(c => c.tipo === 'semanaActual');
+                
+                if (idx !== -1) {
+                    configGlobal[idx] = valorConfig;
+                } else {
+                    configGlobal.push(valorConfig);
+                }
+
+                await DB_FIREBASE.sync('configuracionGlobal', configGlobal);
+
+                App.showToast(`✅ Semana #${numero} marcada como actual`);
+                await this.init();
+            });
+        });
 
         document.querySelectorAll('.btn-edit-numero-semana').forEach(btn => {
             btn.addEventListener('click', () => this.openModal(btn.dataset.id));
@@ -92,7 +152,7 @@ const NumeroSemana = {
             : '<option value="">Primero registra una línea</option>';
 
         const semanaOptions = [1, 2, 3, 4, 5].map(n => 
-            `<option value="${n}" ${data && data.numeroSemana === n ? 'selected' : ''}>Semana ${n}</option>`
+            `<option value="${n}" ${data && data.numero === n ? 'selected' : ''}>Semana ${n}</option>`
         ).join('');
 
         const modalOverlay = App.showModal(`
@@ -128,7 +188,6 @@ const NumeroSemana = {
         const selectLinea = document.getElementById('numeroSemanaLinea');
         const selectTerminal = document.getElementById('numeroSemanaTerminal');
 
-        // Cascada: al cambiar línea, actualizar terminales
         const updateTerminales = () => {
             const lineaId = selectLinea.value;
             const filtradas = terminales.filter(t => t.lineaId === lineaId);
@@ -148,9 +207,9 @@ const NumeroSemana = {
         document.getElementById('btnSave').addEventListener('click', async () => {
             const lineaId = selectLinea.value;
             const terminalId = selectTerminal.value;
-            const numeroSemana = parseInt(document.getElementById('numeroSemanaNumero').value);
+            const numero = parseInt(document.getElementById('numeroSemanaNumero').value);
 
-            if (!lineaId || !terminalId || !numeroSemana) {
+            if (!lineaId || !terminalId || !numero) {
                 App.showToast('Completa todos los campos');
                 return;
             }
@@ -160,19 +219,14 @@ const NumeroSemana = {
             if (editId) {
                 const idx = numerosSemanaData.findIndex(ns => ns.id === editId);
                 if (idx !== -1) {
-                    numerosSemanaData[idx] = { 
-                        ...numerosSemanaData[idx], 
-                        lineaId, 
-                        terminalId, 
-                        numeroSemana
-                    };
+                    numerosSemanaData[idx] = { ...numerosSemanaData[idx], lineaId, terminalId, numero };
                 }
             } else {
                 numerosSemanaData.push({
                     id: DB.generateId(),
                     lineaId,
                     terminalId,
-                    numeroSemana,
+                    numero,
                     createdAt: Date.now()
                 });
             }

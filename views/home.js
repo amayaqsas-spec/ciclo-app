@@ -58,23 +58,27 @@ const Home = {
         let infoServicio = null;
         let errorMensaje = null;
 
-        console.log('🏠 Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
+        // ✅ SEMANA ACTUAL: Leer desde configuración global (Firebase)
+        const configGlobal = DB.load('configuracionGlobal');
+        const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
+
+        if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
+            semanaActualNum = semanaActualConfig.numero;
+            console.log('🏠 Home - Semana actual desde config global:', semanaActualNum);
+        } else {
+            console.log('🏠 Home - No hay semana actual configurada');
+        }
+
+        console.log(' Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
         console.log('🏠 Home - Roles cargados:', rolesSemanal.length);
-        console.log('🏠 Home - Servicios cargados:', servicios.length);
+        console.log(' Home - Servicios cargados:', servicios.length);
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
 
             if (miRol) {
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-                const fechaInicio = new Date(miRol.fechaInicio);
-                fechaInicio.setHours(0, 0, 0, 0);
-                const diasTranscurridos = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-                
-                semanaActualNum = Math.floor(diasTranscurridos / 7) % 5 + 1;
                 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                const diaNombre = diasSemana[hoy.getDay()];
+                const diaNombre = diasSemana[new Date().getDay()];
 
                 console.log('🏠 Home - Semana actual:', semanaActualNum, 'Día:', diaNombre);
 
@@ -170,11 +174,11 @@ const Home = {
                                     📅 Laboral
                                 </button>
                                 <button class="ske-modo-btn" id="btnModoDomingo" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
-                                     Domingo/Festivo
+                                    🌙 Domingo/Festivo
                                 </button>
                             ` : `
                                 <button class="ske-modo-btn" id="btnModoNormal" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === null ? 'var(--primary)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === null ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
-                                    ${diaSemana === 0 ? ' Domingo/Festivo' : '📅 Sábado'}
+                                    ${diaSemana === 0 ? '🌙 Domingo/Festivo' : '📅 Sábado'}
                                 </button>
                                 <button class="ske-modo-btn" id="btnModoLaboralForzado" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'laboral' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'laboral' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
                                     📅 Ver como Laboral
@@ -430,11 +434,13 @@ const Home = {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
             
             if (miRol) {
-                const hoy = new Date();
-                const diasTranscurridos = Math.floor((hoy - new Date(miRol.fechaInicio)) / (1000 * 60 * 60 * 24));
-                const semanaActualNum = Math.floor(diasTranscurridos / 7) % 5 + 1;
+                // ✅ Usar semana actual desde configuración global
+                const configGlobal = DB.load('configuracionGlobal');
+                const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
+                const semanaActualNum = (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) ? semanaActualConfig.numero : 1;
+
                 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                const diaNombre = diasSemana[hoy.getDay()];
+                const diaNombre = diasSemana[new Date().getDay()];
                 const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
                 const posicionHoy = semanaData && semanaData.dias && semanaData.dias[diaNombre] ? semanaData.dias[diaNombre].posicion : null;
 

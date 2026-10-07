@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Semana Actual desde "Número de Semana"
+// MI-ROL.JS - Calendario con Semana Actual desde Configuración Global
 // ============================================
 
 const MiRol = {
@@ -18,7 +18,6 @@ const MiRol = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const rolesSemanal = DB.load('rolesSemanal');
-        const numeroSemanaRegistros = DB.load('numeroSemana'); // ✅ Nuevo: cargar registros de Número de Semana
 
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
@@ -29,17 +28,15 @@ const MiRol = {
         const hoy = new Date();
         const diaActualNombre = diasSemana[hoy.getDay()];
 
-        // ✅ Buscar el registro de "Número de Semana" que coincida con la línea y terminal del usuario
-        let registroSemanaActual = null;
-        if (numeroSemanaRegistros.length > 0 && userLineaId && userTerminalId) {
-            registroSemanaActual = numeroSemanaRegistros.find(ns => 
-                ns.lineaId === userLineaId && ns.terminalId === userTerminalId
-            );
+        // ✅ SEMANA ACTUAL: Leer desde configuración global (Firebase)
+        const configGlobal = DB.load('configuracionGlobal');
+        const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
 
-            if (registroSemanaActual) {
-                semanaActualNum = parseInt(registroSemanaActual.numero) || 1;
-                console.log('📅 Semana actual desde Número de Semana:', semanaActualNum);
-            }
+        if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
+            semanaActualNum = semanaActualConfig.numero;
+            console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
+        } else {
+            console.log('📅 Mi Rol - No hay semana actual configurada');
         }
 
         // Buscar el rol del usuario
@@ -52,7 +49,7 @@ const MiRol = {
                 <!-- HEADER CON INFO DEL PERFIL -->
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);"> Mi Rol</h2>
+                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             ✏️ Editar
                         </button>
@@ -133,7 +130,7 @@ const MiRol = {
     },
 
     init() {
-        console.log(' Mi Rol cargado');
+        console.log('📅 Mi Rol cargado');
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
