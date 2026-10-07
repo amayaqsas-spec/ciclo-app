@@ -15,7 +15,6 @@ const Auth = {
                 <div class="auth-card">
                     <div class="auth-header">
                         <h1 class="auth-title">CICLO</h1>
-                        <p class="auth-subtitle">Sistema de Gestión Ferroviaria</p>
                     </div>
 
                     <div class="auth-form">
@@ -130,39 +129,95 @@ const Auth = {
             }
 
             .auth-header { text-align: center; margin-bottom: 24px; }
-            .auth-title { font-size: 36px; font-weight: 800; color: var(--primary); margin: 0 0 8px 0; letter-spacing: 3px; }
-            .auth-subtitle { font-size: 14px; color: var(--text-soft); margin: 0; }
+            
+            .auth-title {
+                font-size: 36px;
+                font-weight: 800;
+                color: var(--primary);
+                margin: 0;
+                letter-spacing: 3px;
+            }
+
             .auth-form { width: 100%; }
-            .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 20px 0; text-align: center; }
+            
+            .form-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text);
+                margin: 0 0 20px 0;
+                text-align: center;
+            }
+
             .input-group-modern { margin-bottom: 16px; }
-            .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+            
+            .input-label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text);
+                margin-bottom: 6px;
+            }
             
             .input-modern {
-                width: 100%; padding: 12px 14px; border: 2px solid var(--bg-soft); border-radius: 10px;
-                font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box;
+                width: 100%;
+                padding: 12px 14px;
+                border: 2px solid var(--bg-soft);
+                border-radius: 10px;
+                font-size: 15px;
+                background: var(--bg);
+                color: var(--text);
+                transition: all 0.3s ease;
+                box-sizing: border-box;
             }
-            .input-modern:focus { outline: none; border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1); }
+            .input-modern:focus {
+                outline: none;
+                border-color: var(--primary);
+                background: var(--surface);
+                box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1);
+            }
             .input-modern::placeholder { color: var(--text-light); }
 
             .btn-auth-primary {
-                width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-                transition: all 0.3s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 8px;
+                box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
             }
             .btn-auth-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(155, 127, 212, 0.4); }
             .btn-auth-primary:active { transform: translateY(0); }
             .btn-auth-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
             .btn-auth-secondary {
-                width: 100%; padding: 12px; background: var(--bg-soft); color: var(--text);
-                border: 2px solid var(--bg-soft); border-radius: 10px; font-size: 15px; font-weight: 700;
-                cursor: pointer; transition: all 0.3s ease;
+                width: 100%;
+                padding: 12px;
+                background: var(--bg-soft);
+                color: var(--text);
+                border: 2px solid var(--bg-soft);
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
             }
             .btn-auth-secondary:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
 
             .msg-error {
-                background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px;
-                margin-bottom: 14px; display: none; border-left: 4px solid #c33;
+                background: #fee;
+                color: #c33;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-bottom: 14px;
+                display: none;
+                border-left: 4px solid #c33;
             }
             .msg-error.show { display: block; animation: shake 0.5s ease-in-out; }
 
@@ -173,8 +228,13 @@ const Auth = {
             }
 
             .spinner {
-                display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
             }
             @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -202,7 +262,6 @@ const Auth = {
                 <div class="auth-card">
                     <div class="auth-header">
                         <h1 class="auth-title">CICLO</h1>
-                        <p class="auth-subtitle">Sistema de Gestión Ferroviaria</p>
                     </div>
 
                     <div class="auth-form">
@@ -247,8 +306,14 @@ const Auth = {
         const style = document.createElement('style');
         style.textContent = `
             .msg-success {
-                background: #efe; color: #3c3; padding: 10px; border-radius: 8px; font-size: 13px;
-                margin-bottom: 14px; display: none; border-left: 4px solid #3c3;
+                background: #efe;
+                color: #3c3;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                margin-bottom: 14px;
+                display: none;
+                border-left: 4px solid #3c3;
             }
             .msg-success.show { display: block; animation: slideDown 0.3s ease-out; }
             @keyframes slideDown {
@@ -269,7 +334,7 @@ const Auth = {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        console.log('🔐 Intentando login con:', email);
+        console.log(' Intentando login con:', email);
 
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
@@ -286,7 +351,7 @@ const Auth = {
             }
 
             const auth = firebase.auth();
-            console.log('🔑 Llamando a signInWithEmailAndPassword...');
+            console.log(' Llamando a signInWithEmailAndPassword...');
             
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
@@ -388,7 +453,7 @@ const Auth = {
     },
 
     getUserName(user) {
-        console.log(' Obteniendo nombre del usuario...');
+        console.log('👤 Obteniendo nombre del usuario...');
         
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);
@@ -406,7 +471,7 @@ const Auth = {
         
         if (user && user.email) {
             const emailName = user.email.split('@')[0];
-            console.log('️ Usando nombre del correo:', emailName);
+            console.log('⚠️ Usando nombre del correo:', emailName);
             return emailName;
         }
         
