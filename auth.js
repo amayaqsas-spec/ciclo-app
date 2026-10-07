@@ -1,5 +1,5 @@
 // ============================================
-// AUTH.JS - Lógica de Autenticación
+// AUTH.JS - Lógica de Autenticación con Firestore
 // ============================================
 
 const ADMIN_EMAIL = 'amayaqsas@gmail.com';
@@ -334,7 +334,7 @@ const Auth = {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        console.log(' Intentando login con:', email);
+        console.log('🔐 Intentando login con:', email);
 
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
@@ -351,7 +351,7 @@ const Auth = {
             }
 
             const auth = firebase.auth();
-            console.log(' Llamando a signInWithEmailAndPassword...');
+            console.log('🔑 Llamando a signInWithEmailAndPassword...');
             
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
@@ -392,14 +392,36 @@ const Auth = {
             const auth = firebase.auth();
             const cred = await auth.createUserWithEmailAndPassword(email, password);
             
+            const uid = cred.user.uid;
+            console.log('✅ Usuario creado con UID:', uid);
+
+            // ✅ GUARDAR EN FIREBASE FIRESTORE (colección 'usuarios')
+            try {
+                const db = firebase.firestore();
+                await db.collection('usuarios').doc(uid).set({
+                    uid: uid,
+                    nombre: name,
+                    email: email,
+                    fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
+                    rol: 'usuario'
+                });
+                console.log('✅ Usuario guardado en Firestore:', name);
+            } catch (firestoreError) {
+                console.error('⚠️ Error al guardar en Firestore:', firestoreError);
+                // No bloqueamos el registro si falla Firestore
+            }
+
+            // GUARDAR EN LOCALSTORAGE
             DB.set('userName', name);
             console.log('💾 Nombre guardado en localStorage:', name);
             
+            // Actualizar el perfil de Firebase Auth
             await cred.user.updateProfile({ displayName: name });
-            console.log('✅ Perfil de Firebase actualizado con displayName:', name);
+            console.log('✅ Perfil de Firebase Auth actualizado con displayName:', name);
             
             this.showSuccess('registerSuccess', '¡Cuenta creada! Bienvenido ' + name);
 
+            // Limpiar formulario
             document.getElementById('registerName').value = '';
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerPassword').value = '';
@@ -411,6 +433,26 @@ const Auth = {
             this.showError('registerError', this.getAuthError(error.code, error.message));
             btn.innerHTML = '<span>Crear Cuenta</span>';
             btn.disabled = false;
+        }
+    },
+
+    // ✅ NUEVA FUNCIÓN: Cargar nombre desde Firestore
+    async cargarNombreDesdeFirestore(uid) {
+        try {
+            const db = firebase.firestore();
+            const doc = await db.collection('usuarios').doc(uid).get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                console.log('✅ Nombre cargado desde Firestore:', data.nombre);
+                return data.nombre;
+            } else {
+                console.log('⚠️ No se encontró documento en Firestore para UID:', uid);
+                return null;
+            }
+        } catch (error) {
+            console.error('❌ Error al cargar nombre desde Firestore:', error);
+            return null;
         }
     },
 
@@ -455,6 +497,7 @@ const Auth = {
     getUserName(user) {
         console.log('👤 Obteniendo nombre del usuario...');
         
+        // PRIORIDAD 1: Nombre guardado en localStorage
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);
         
@@ -463,15 +506,17 @@ const Auth = {
             return localName.trim();
         }
         
+        // PRIORIDAD 2: displayName de Firebase Auth
         if (user && user.displayName && user.displayName.trim() !== '') {
             console.log('✅ Usando displayName de Firebase:', user.displayName);
             DB.set('userName', user.displayName);
             return user.displayName.trim();
         }
         
+        // PRIORIDAD 3: Parte del correo
         if (user && user.email) {
             const emailName = user.email.split('@')[0];
-            console.log('⚠️ Usando nombre del correo:', emailName);
+            console.log('️ Usando nombre del correo:', emailName);
             return emailName;
         }
         
