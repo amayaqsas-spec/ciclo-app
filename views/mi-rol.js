@@ -138,4 +138,91 @@ const MiRol = {
         const userTerminalId = DB.get('userTerminalId');
         const userNumeroRol = DB.get('userNumeroRol');
 
-        const lineas = DB.load('line
+        const lineas = DB.load('lineas');
+        const terminales = DB.load('terminales');
+
+        const lineaOptions = lineas.length > 0
+            ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
+            : '<option value="">Primero registra una línea</option>';
+
+        const terminalesFiltradas = terminales.filter(t => t.lineaId === userLineaId);
+        const terminalOptions = terminalesFiltradas.length > 0
+            ? '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => `<option value="${t.id}" ${t.id === userTerminalId ? 'selected' : ''}>${t.nombre}</option>`).join('')
+            : '<option value="">No hay terminales</option>';
+
+        const modalOverlay = App.showModal(`
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
+                <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">✏️ Editar Perfil</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Línea *</label>
+                    <select id="editLinea" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                        ${lineaOptions}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Terminal *</label>
+                    <select id="editTerminal" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                        ${terminalOptions}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Número de Rol *</label>
+                    <input type="text" id="editNumeroRol" value="${userNumeroRol || ''}" placeholder="Ej. 1234" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnCancelarEdit" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Cancelar
+                    </button>
+                    <button id="btnGuardarEdit" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        💾 Guardar
+                    </button>
+                </div>
+            </div>
+        `);
+
+        const selectLinea = document.getElementById('editLinea');
+        const selectTerminal = document.getElementById('editTerminal');
+
+        // Cascada: al cambiar línea, actualizar terminales
+        selectLinea.addEventListener('change', () => {
+            const lineaId = selectLinea.value;
+            const filtradas = terminales.filter(t => t.lineaId === lineaId);
+            
+            selectTerminal.innerHTML = filtradas.length === 0
+                ? '<option value="">No hay terminales</option>'
+                : '<option value="">Selecciona terminal</option>' + filtradas.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('');
+        });
+
+        document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
+        
+        document.getElementById('btnGuardarEdit').addEventListener('click', () => {
+            const nuevaLineaId = selectLinea.value;
+            const nuevaTerminalId = selectTerminal.value;
+            const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
+
+            if (!nuevaLineaId || !nuevaTerminalId || !nuevoNumeroRol) {
+                App.showToast('⚠️ Completa todos los campos');
+                return;
+            }
+
+            // Guardar nueva configuración
+            DB.set('userLineaId', nuevaLineaId);
+            DB.set('userTerminalId', nuevaTerminalId);
+            DB.set('userNumeroRol', nuevoNumeroRol);
+
+            App.showToast('✅ Perfil actualizado correctamente');
+            modalOverlay.remove();
+
+            // Recargar la vista
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        });
+    }
+};
+
+export default MiRol;
