@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard Completo con Cronómetro Regresivo
+// HOME.JS - Dashboard con Cronómetro hacia Adelante
 // ============================================
 
 const Home = {
@@ -186,7 +186,7 @@ const Home = {
                                 </span>
                                 ${modoForzado ? `
                                     <span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">
-                                         Modo: ${tipoDiaActual}
+                                        🔄 Modo: ${tipoDiaActual}
                                     </span>
                                 ` : ''}
                             </div>
@@ -411,9 +411,9 @@ const Home = {
         console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('🏠 Home - configuracionGlobal cargada');
         console.log('🏠 Home - servicios cargados:', DB.load('servicios').length);
-        console.log('🏠 Home - líneas cargadas:', DB.load('lineas').length);
+        console.log(' Home - líneas cargadas:', DB.load('lineas').length);
         console.log('🏠 Home - terminales cargadas:', DB.load('terminales').length);
-        console.log(' Home - semanas cargadas:', DB.load('semanas').length);
+        console.log('🏠 Home - semanas cargadas:', DB.load('semanas').length);
 
         const perfilConfigurado = DB.get('perfilConfigurado', false);
         const bienvenidaVista = DB.get('bienvenidaVista', false);
@@ -590,7 +590,7 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ CRONÓMETRO CORREGIDO: Cuenta regresiva completa
+    // ✅ CRONÓMETRO: Cuenta regresiva en descanso, cuenta hacia adelante en atraso
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
 
@@ -619,7 +619,7 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
             // ✅ ESTADO 1: Antes del descanso - mostrar 00:00:00
@@ -637,17 +637,18 @@ const Home = {
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0
-                    ? `️ Tiempo restante de descanso (+${minutosAtraso} min)`
+                    ? `🍽️ Tiempo restante de descanso (+${minutosAtraso} min)`
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
             }
-            // ✅ ESTADO 3: Después del descanso - CUENTA REGRESIVA desde 01:25:00 hasta 00:00:00
+            // ✅ ESTADO 3: Después del descanso - CUENTA HACIA ADELANTE desde 00:00:00 hasta 01:25:00
             else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
-                const diff = minutosLimite - horaActualMinutos;
+                // Calcular tiempo transcurrido desde el final del descanso
+                const diff = horaActualMinutos - minutosFinalAjustado;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
-                const segs = 60 - segundosActuales;
+                const segs = segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea';
                 relojTiempo.style.color = '#FF9800';
@@ -657,10 +658,10 @@ const Home = {
                     relojMensaje.style.color = '#FF9800';
                 }
             }
-            // ✅ ESTADO 4: Se queda en 00:00:00
+            // ✅ ESTADO 4: Se queda en 01:25:00
             else {
-                relojTiempo.textContent = '00:00:00';
-                relojEtiqueta.textContent = 'Tiempo de tolerancia agotado';
+                relojTiempo.textContent = '01:25:00';
+                relojEtiqueta.textContent = 'Tiempo máximo de atraso alcanzado';
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
@@ -688,7 +689,7 @@ const Home = {
 
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
 
-        App.showToast(`️ +${minutosNum} min de atraso agregados al descanso`);
+        App.showToast(`⏱️ +${minutosNum} min de atraso agregados al descanso`);
 
         this.iniciarReloj(servicio);
     }
