@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard Inteligente con Rol Semanal (CORREGIDO)
+// HOME.JS - Dashboard Inteligente con Rol Semanal
 // ============================================
 
 const Home = {
@@ -58,7 +58,7 @@ const Home = {
         let infoServicio = null;
         let errorMensaje = null;
 
-        console.log(' Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
+        console.log('🏠 Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
         console.log('🏠 Home - Roles cargados:', rolesSemanal.length);
         console.log('🏠 Home - Servicios cargados:', servicios.length);
 
@@ -86,7 +86,6 @@ const Home = {
                 console.log('🏠 Home - Posición hoy:', posicionHoy);
 
                 if (posicionHoy !== 'N/A') {
-                    // Buscar tipo de día que coincida
                     const tipoDiaConfig = semanas.find(s => {
                         const tipoNorm = s.tipo.toLowerCase().replace(/\s/g, '');
                         const actualNorm = tipoDiaActual.toLowerCase().replace(/\s/g, '');
@@ -96,7 +95,6 @@ const Home = {
                     console.log('🏠 Home - Tipo de día config:', tipoDiaConfig);
 
                     if (tipoDiaConfig) {
-                        // Buscar servicio que coincida con posición, línea y tipo de día
                         infoServicio = servicios.find(s => {
                             const nombreServicio = String(s.nombre).trim();
                             const posicionNorm = String(posicionHoy).trim();
@@ -127,7 +125,6 @@ const Home = {
 
         return `
             <div class="view active ske-home">
-                <!-- HEADER SALUDO -->
                 <div class="ske-greeting-card">
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
@@ -164,7 +161,6 @@ const Home = {
                     </div>
                 </div>
 
-                <!-- BOTONES DE ALTERNANCIA -->
                 ${mostrarBotones ? `
                     <div class="ske-modo-dia-container" style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div class="ske-modo-dia-label" style="font-size: 13px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase;">Modo de visualización:</div>
@@ -174,11 +170,11 @@ const Home = {
                                     📅 Laboral
                                 </button>
                                 <button class="ske-modo-btn" id="btnModoDomingo" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
-                                    🌙 Domingo/Festivo
+                                     Domingo/Festivo
                                 </button>
                             ` : `
                                 <button class="ske-modo-btn" id="btnModoNormal" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === null ? 'var(--primary)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === null ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
-                                    ${diaSemana === 0 ? '🌙 Domingo/Festivo' : '📅 Sábado'}
+                                    ${diaSemana === 0 ? ' Domingo/Festivo' : '📅 Sábado'}
                                 </button>
                                 <button class="ske-modo-btn" id="btnModoLaboralForzado" style="flex:1; padding: 10px; border-radius: 8px; border: 2px solid var(--bg-soft); background: ${DB.get('modoDiaForzado') === 'laboral' ? 'var(--accent)' : 'var(--surface)'}; color: ${DB.get('modoDiaForzado') === 'laboral' ? 'white' : 'var(--text)'}; font-weight: 600; cursor: pointer;">
                                     📅 Ver como Laboral
@@ -188,7 +184,6 @@ const Home = {
                     </div>
                 ` : ''}
 
-                <!-- CONTENEDOR DE SERVICIO -->
                 <div id="skeServicioDiaContainer">
                     ${errorMensaje ? `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
@@ -215,7 +210,6 @@ const Home = {
                     `}
                 </div>
 
-                <!-- TIEMPO EXTRA -->
                 ${tiempoExtraPendiente.length > 0 ? `
                     <div class="ske-section" style="margin-top: 20px;">
                         <div class="ske-section-header">
@@ -243,7 +237,6 @@ const Home = {
     },
 
     renderServicioDia(info, tipoDia, semanaNum) {
-        // ✅ VALIDACIÓN ROBUSTA
         if (!info || !info.servicio) {
             return `<div style="padding: 20px; text-align: center;">No hay información del servicio disponible.</div>`;
         }
@@ -386,7 +379,6 @@ const Home = {
             });
         }
 
-        // BOTONES DE MODO
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
@@ -425,12 +417,11 @@ const Home = {
             btnModoLaboralForzado.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'laboral');
                 DB.set('fechaModoForzado', this.getFechaLocal(new Date()));
-                App.showToast(' Modo: Laboral (Forzado)');
+                App.showToast('📅 Modo: Laboral (Forzado)');
                 recargarHome();
             });
         }
 
-        // INICIAR RELOJ
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
             const userNumeroRol = DB.get('userNumeroRol');
