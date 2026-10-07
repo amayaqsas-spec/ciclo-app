@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Modal de Bienvenida
+// HOME.JS - Dashboard con Carga Completa de Datos
 // ============================================
 
 const Home = {
@@ -115,6 +115,8 @@ const Home = {
 
         console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('🏠 Home - servicios:', DB.load('servicios').length, 'registros');
+        console.log('🏠 Home - semanas:', DB.load('semanas').length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -125,6 +127,9 @@ const Home = {
                     posicionHoy = semanaData.dias[diaNombreReal].posicion || 'N/A';
                 }
 
+                console.log(' Home - posición hoy:', posicionHoy);
+                console.log('🏠 Home - tipo de día:', tipoDiaActual);
+
                 esReservaHoy = this.esReserva(posicionHoy);
 
                 if (posicionHoy !== 'N/A') {
@@ -132,6 +137,8 @@ const Home = {
                         errorMensaje = `No hay servicios fijos para este tipo de reservas. Hoy tienes asignada la reserva "${posicionHoy}".`;
                     } else {
                         infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
+
+                        console.log('🏠 Home - servicio encontrado:', infoServicio ? 'SÍ' : 'NO');
 
                         if (!infoServicio) {
                             errorMensaje = `No se encontró servicio "${posicionHoy}" para tipo de día "${tipoDiaActual}". Verifica en Registro → Servicios.`;
@@ -212,7 +219,7 @@ const Home = {
                                     📅 Sábado
                                 </button>
                                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                     Domingo/Festivo
+                                    🌙 Domingo/Festivo
                                 </button>
                             ` : `
                                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
@@ -383,7 +390,7 @@ const Home = {
                     <div id="badgeAtraso" style="display: none; text-align: center; margin-bottom: 12px; padding: 8px; background: #ffebee; color: #c62828; border-radius: 8px; font-weight: 700; font-size: 13px;"></div>
 
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                        ⏱️ Agregar Atraso en Línea
+                        ️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
@@ -393,10 +400,21 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
+        // ✅ CARGAR TODOS LOS DATOS NECESARIOS DESDE FIREBASE
+        console.log('🏠 Home - Iniciando carga de datos...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
-        console.log(' Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
-        console.log('🏠 Home - configuracionGlobal cargada');
+        await DB_FIREBASE.load('servicios');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        await DB_FIREBASE.load('semanas');
+        
+        console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+        console.log(' Home - configuracionGlobal cargada');
+        console.log('🏠 Home - servicios cargados:', DB.load('servicios').length);
+        console.log('🏠 Home - líneas cargadas:', DB.load('lineas').length);
+        console.log('🏠 Home - terminales cargadas:', DB.load('terminales').length);
+        console.log('🏠 Home - semanas cargadas:', DB.load('semanas').length);
 
         const perfilConfigurado = DB.get('perfilConfigurado', false);
         const bienvenidaVista = DB.get('bienvenidaVista', false);
@@ -455,7 +473,7 @@ const Home = {
             btnModoLaboral.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'laboral');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast('📅 Modo: Laboral (hasta mañana)');
+                App.showToast(' Modo: Laboral (hasta mañana)');
                 recargarHome();
             });
         }
@@ -473,7 +491,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast('📅 Modo: Automático');
+                App.showToast(' Modo: Automático');
                 recargarHome();
             });
         }
@@ -602,7 +620,7 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
             if (horaActualMinutos < minutosInicio) {
@@ -635,7 +653,7 @@ const Home = {
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
-                    relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
+                    relojMensaje.textContent = '️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#FF9800';
                 }
             } else {
