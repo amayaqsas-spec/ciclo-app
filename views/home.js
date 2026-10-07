@@ -1,10 +1,14 @@
 // ============================================
-// HOME.JS - Dashboard Completo con Cronómetro y Modos
+// HOME.JS - Dashboard con Detección de Reservas
 // ============================================
 
 const Home = {
     relojInterval: null,
     minutosAtraso: 0,
+
+    // ✅ Lista de posiciones que son RESERVAS (no servicios fijos)
+    RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
+               'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
 
     getFechaLocal(fecha) {
         const year = fecha.getFullYear();
@@ -13,13 +17,17 @@ const Home = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ Determina el tipo de día (automático o forzado hasta el día siguiente)
+    // ✅ Verifica si una posición es una reserva
+    esReserva(posicion) {
+        if (!posicion) return false;
+        return this.RESERVAS.includes(posicion.trim());
+    },
+
     getTipoDiaActual() {
         const modoForzado = DB.get('modoDiaForzado', null);
         const fechaForzada = DB.get('fechaModoForzado', null);
         const hoyStr = this.getFechaLocal(new Date());
 
-        // Si la fecha guardada es diferente a hoy, resetear (solo dura 1 día)
         if (modoForzado && fechaForzada !== hoyStr) {
             DB.remove('modoDiaForzado');
             DB.remove('fechaModoForzado');
@@ -29,26 +37,22 @@ const Home = {
         if (modoActual === 'domingo') return 'Domingo/Festivos';
         if (modoActual === 'laboral') return 'Laboral';
 
-        // Automático según el día real
         const dia = new Date().getDay();
         if (dia === 0) return 'Domingo/Festivos';
         if (dia === 6) return 'Sábado';
-        return 'Laboral'; // Lunes a Viernes
+        return 'Laboral';
     },
 
-    // ✅ Buscar servicio según tipo de día y posición
     buscarServicioPorTipo(tipoDia, numeroServicio, userLineaId) {
         if (!numeroServicio || numeroServicio === 'N/A') return null;
 
         const servicios = DB.load('servicios');
-        const semanas = DB.load('semanas'); // Tipos de día registrados
+        const semanas = DB.load('semanas');
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
-        // Normalizar para comparación
         const normalizar = (texto) => texto.toLowerCase().replace(/\s/g, '').replace(/í/g, 'i');
 
-        // Buscar el tipo de día que coincida
         const tipoDiaConfig = semanas.find(s => {
             const tipoNorm = normalizar(s.tipo);
             const actualNorm = normalizar(tipoDia);
@@ -57,7 +61,6 @@ const Home = {
 
         if (!tipoDiaConfig) return null;
 
-        // Buscar el servicio que coincida con línea, tipo de día y número
         const servicio = servicios.find(s => {
             const nombreServicio = String(s.nombre).trim();
             const posicionNorm = String(numeroServicio).trim();
@@ -100,6 +103,7 @@ const Home = {
         let tipoDiaActual = this.getTipoDiaActual();
         let infoServicio = null;
         let errorMensaje = null;
+        let esReservaHoy = false; // ✅ Nueva variable
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaNombreReal = diasSemana[new Date().getDay()];
         const hoy = new Date();
@@ -122,11 +126,20 @@ const Home = {
                     posicionHoy = semanaData.dias[diaNombreReal].posicion || 'N/A';
                 }
 
-                if (posicionHoy !== 'N/A') {
-                    infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
+                // ✅ Verificar si la posición es una reserva
+                esReservaHoy = this.esReserva(posicionHoy);
 
-                    if (!infoServicio) {
-                        errorMensaje = `No se encontró servicio "${posicionHoy}" para tipo de día "${tipoDiaActual}". Verifica en Registro → Servicios.`;
+                if (posicionHoy !== 'N/A') {
+                    if (esReservaHoy) {
+                        // ✅ Si es reserva, mostrar mensaje específico
+                        errorMensaje = `No hay servicios fijos para este tipo de reservas. Hoy tienes asignada la reserva "${posicionHoy}".`;
+                    } else {
+                        // Buscar servicio normalmente
+                        infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
+
+                        if (!infoServicio) {
+                            errorMensaje = `No se encontró servicio "${posicionHoy}" para tipo de día "${tipoDiaActual}". Verifica en Registro → Servicios.`;
+                        }
                     }
                 } else {
                     errorMensaje = `No hay posición asignada para hoy (${diaNombreReal}) en la Semana ${semanaActualNum}.`;
@@ -140,7 +153,7 @@ const Home = {
 
         const tiempoExtraPendiente = DB.load('tiempoExtra').filter(t => !t.cobrado);
         const diaSemana = new Date().getDay();
-        const mostrarBotones = posicionHoy !== 'N/A' && !errorMensaje;
+        const mostrarBotones = posicionHoy !== 'N/A' && !esReservaHoy && !errorMensaje;
         const modoForzado = DB.get('modoDiaForzado', null);
 
         return `
@@ -195,7 +208,7 @@ const Home = {
                         <div style="display: flex; gap: 8px;">
                             ${diaSemana >= 1 && diaSemana <= 5 ? `
                                 <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    📅 Laboral
+                                     Laboral
                                 </button>
                                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
                                     🌙 Domingo/Festivo
@@ -224,10 +237,27 @@ const Home = {
                     ${errorMensaje ? `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                             <div style="margin-bottom: 16px;">
-                                <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; stroke: var(--text-soft); fill: none;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                ${esReservaHoy ? `
+                                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; stroke: var(--accent); fill: none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                ` : `
+                                    <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; stroke: var(--text-soft); fill: none;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                `}
                             </div>
-                            <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
+                            <h3 style="color: var(--text); margin-bottom: 8px;">
+                                ${esReservaHoy ? 'Reserva Asignada' : 'Información no disponible'}
+                            </h3>
                             <p style="color: var(--text-soft); font-size: 14px;">${errorMensaje}</p>
+                            ${!esReservaHoy ? `
+                                <p style="color: var(--text-soft); font-size: 13px; margin-top: 12px;">
+                                    <strong>Datos actuales:</strong><br>
+                                    Línea: ${miLinea ? miLinea.nombre : 'N/A'}<br>
+                                    Terminal: ${miTerminal ? miTerminal.nombre : 'N/A'}<br>
+                                    Rol: ${userNumeroRol || 'N/A'}<br>
+                                    Semana: ${semanaActualNum}<br>
+                                    Posición: ${posicionHoy}<br>
+                                    Tipo de día: ${tipoDiaActual}
+                                </p>
+                            ` : ''}
                         </div>
                     ` : infoServicio ? this.renderServicioDia(infoServicio, tipoDiaActual, posicionHoy) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
@@ -260,6 +290,10 @@ const Home = {
     },
 
     renderServicioDia(info, tipoDia, posicion) {
+        if (!info || !info.servicio) {
+            return `<div style="padding: 20px; text-align: center;">No hay información del servicio disponible.</div>`;
+        }
+
         const { servicio, linea, terminal } = info;
         const trenes = (servicio && servicio.trenes) || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
@@ -350,19 +384,16 @@ const Home = {
                         </div>
                     </div>
 
-                    <!-- CRONÓMETRO -->
                     <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
                         <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">--:--:--</div>
                         <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Calculando...</div>
                         <div id="hsdRelojMensaje" style="font-size: 12px; color: var(--accent); margin-top: 8px; font-style: italic; display: none;"></div>
                     </div>
 
-                    <!-- BADGE DE ATRASO -->
                     <div id="badgeAtraso" style="display: none; text-align: center; margin-bottom: 12px; padding: 8px; background: #ffebee; color: #c62828; border-radius: 8px; font-weight: 700; font-size: 13px;"></div>
 
-                    <!-- BOTÓN AGREGAR ATRASO -->
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                        ⏱️ Agregar Atraso en Línea
+                        ️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
@@ -372,11 +403,9 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
-        // ✅ Cargar configuracionGlobal desde Firebase
         await DB_FIREBASE.load('configuracionGlobal');
-        console.log(' Home - configuracionGlobal cargada');
+        console.log('🏠 Home - configuracionGlobal cargada');
 
-        // Foto de perfil
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
         const welcomeIcon = document.getElementById('welcomeIcon');
@@ -416,7 +445,6 @@ const Home = {
             });
         }
 
-        // ✅ BOTONES DE MODO (persisten hasta el día siguiente)
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
@@ -446,12 +474,11 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast(' Modo: Automático');
+                App.showToast('📅 Modo: Automático');
                 recargarHome();
             });
         }
 
-        // ✅ INICIAR CRONÓMETRO
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
             const userNumeroRol = DB.get('userNumeroRol');
@@ -460,7 +487,6 @@ const Home = {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
 
             if (miRol) {
-                // Semana actual desde config global
                 const configGlobal = DB.load('configuracionGlobal');
                 const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
                 const semanaActualNum = (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) ? semanaActualConfig.numero : 1;
@@ -470,7 +496,7 @@ const Home = {
                 const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
                 const posicionHoy = semanaData && semanaData.dias && semanaData.dias[diaNombre] ? semanaData.dias[diaNombre].posicion : null;
 
-                if (posicionHoy) {
+                if (posicionHoy && !this.esReserva(posicionHoy)) {
                     const tipoDiaActual = this.getTipoDiaActual();
                     const servicioInfo = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
 
@@ -482,7 +508,6 @@ const Home = {
             }
         }
 
-        // Botón avisos
         const btnVerAvisos = document.getElementById('btnVerAvisos');
         if (btnVerAvisos) {
             btnVerAvisos.addEventListener('click', () => {
@@ -502,11 +527,10 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ CRONÓMETRO CON 3 ESTADOS
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
 
-        const MINUTOS_TOLERANCIA = 85; // 1 hora 25 minutos
+        const MINUTOS_TOLERANCIA = 85;
 
         const actualizarReloj = () => {
             const ahora = new Date();
@@ -529,59 +553,51 @@ const Home = {
 
             if (!relojTiempo || !relojEtiqueta) return;
 
-            // Mostrar badge de atraso si hay
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
                 badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
-            // ✅ ESTADO 1: Antes del descanso - cuenta regresiva hasta que inicie
             if (horaActualMinutos < minutosInicio) {
                 const diff = minutosInicio - horaActualMinutos;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = ' Tiempo para iniciar descanso';
+                relojEtiqueta.textContent = '⏳ Tiempo para iniciar descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            }
-            // ✅ ESTADO 2: Durante el descanso - cuenta regresiva del descanso
-            else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
+            } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0
-                    ? `🍽️ Tiempo restante de descanso (+${minutosAtraso} min)`
+                    ? `️ Tiempo restante de descanso (+${minutosAtraso} min)`
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            }
-            // ✅ ESTADO 3: Después del descanso - 85 minutos de tolerancia
-            else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
+            } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = minutosLimite - horaActualMinutos;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = ' Tiempo de tolerancia restante';
+                relojEtiqueta.textContent = '⏰ Tiempo de tolerancia restante';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
                     relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#FF9800';
                 }
-            }
-            // ✅ ESTADO 4: Pasó el tiempo de tolerancia - se queda en 00:00:00
-            else {
+            } else {
                 relojTiempo.textContent = '00:00:00';
                 relojEtiqueta.textContent = 'Tiempo finalizado';
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
-                    relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
+                    relojMensaje.textContent = '️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#c62828';
                 }
             }
@@ -607,7 +623,6 @@ const Home = {
 
         App.showToast(`⏱️ +${minutosNum} min de atraso agregados al descanso`);
 
-        // Reiniciar el reloj con el nuevo tiempo
         this.iniciarReloj(servicio);
     }
 };
