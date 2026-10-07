@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales y Carga desde Firebase
+// MI-ROL.JS - Calendario con Botón Editar/Nuevo Dinámico
 // ============================================
 
 const MiRol = {
@@ -34,10 +34,10 @@ const MiRol = {
 
         if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
             semanaActualNum = semanaActualConfig.numero;
-            console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
+            console.log(' Mi Rol - Semana actual desde config global:', semanaActualNum);
         }
 
-        console.log('📅 Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
@@ -78,13 +78,17 @@ const MiRol = {
             };
         }) : [];
 
+        // ✅ Determinar si hay rol registrado para cambiar el texto del botón
+        const hayRolRegistrado = miRol !== null;
+        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '✏️ Nuevo';
+
         return `
             <div class="view active" style="padding: 20px;">
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            ✏️ Nuevo
+                            ${textoBoton}
                         </button>
                     </div>
                     
@@ -210,9 +214,13 @@ const MiRol = {
             ? '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => `<option value="${t.id}" ${t.id === userTerminalId ? 'selected' : ''}>${t.nombre}</option>`).join('')
             : '<option value="">Selecciona línea primero</option>';
 
+        // ✅ Determinar si es edición o nuevo registro
+        const esEdicion = userNumeroRol && userLineaId;
+        const tituloModal = esEdicion ? '✏️ Editar Perfil' : '✏️ Nuevo Perfil';
+
         const modalOverlay = App.showModal(`
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">✏️ Nuevo Perfil</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">${tituloModal}</h3>
                 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Línea *</label>
@@ -258,7 +266,6 @@ const MiRol = {
 
         document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
         
-        // ✅ SOLUCIÓN: Al guardar, navegar automáticamente a Home
         document.getElementById('btnGuardarEdit').addEventListener('click', () => {
             const nuevaLineaId = selectLinea.value;
             const nuevaTerminalId = selectTerminal.value;
@@ -274,10 +281,9 @@ const MiRol = {
             DB.set('userNumeroRol', nuevoNumeroRol);
             DB.set('perfilConfigurado', true);
 
-            App.showToast('✅ Perfil guardado correctamente');
+            App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();
 
-            // ✅ Navegar automáticamente a Home después de guardar
             setTimeout(() => {
                 console.log('🚀 Navegando a Home automáticamente...');
                 if (window.Views && window.Views.load) {
