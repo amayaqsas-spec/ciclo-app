@@ -67,7 +67,7 @@ const Onboarding = {
     init() {
         // Si ya está configurado, redirigir al home
         if (DB.get('perfilConfigurado') === true) {
-            Views.load('home', false);
+            window.Views.load('home', false);
             return;
         }
 
@@ -108,9 +108,9 @@ const Onboarding = {
 
             App.showToast('✅ Perfil configurado correctamente');
             
-            // Redirigir al Home
+            // ✅ CAMBIO: Usar window.Views en lugar de Views
             setTimeout(() => {
-                Views.load('home', false);
+                window.Views.load('home', false);
             }, 500);
         });
     }
