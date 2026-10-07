@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales
+// MI-ROL.JS - Calendario con Fechas Reales y Carga desde Firebase
 // ============================================
 
 const MiRol = {
@@ -34,11 +34,11 @@ const MiRol = {
 
         if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
             semanaActualNum = semanaActualConfig.numero;
-            console.log(' Mi Rol - Semana actual desde config global:', semanaActualNum);
+            console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
         }
 
-        console.log(' Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
-        console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('📅 Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -84,14 +84,14 @@ const MiRol = {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            ✏️ Editar
+                            ✏️ Nuevo
                         </button>
                     </div>
                     
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -115,7 +115,7 @@ const MiRol = {
                     ` : `
                         <div style="text-align: center; padding: 20px; color: var(--text-soft);">
                             <p style="margin: 0 0 8px 0;">No se encontró tu rol.</p>
-                            <p style="font-size: 13px;">Toca "Editar" para configurar tu perfil.</p>
+                            <p style="font-size: 13px;">Toca "Nuevo" para configurar tu perfil.</p>
                         </div>
                     `}
                 </div>
@@ -169,10 +169,15 @@ const MiRol = {
     },
 
     async init() {
-        // ✅ CARGAR rolesSemanal Y configuracionGlobal DESDE FIREBASE
+        // ✅ CARGAR TODO DESDE FIREBASE
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+        
         console.log('📅 Mi Rol - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+        console.log('📅 Mi Rol - líneas cargadas:', DB.load('lineas').length);
+        console.log('📅 Mi Rol - terminales cargadas:', DB.load('terminales').length);
 
         console.log('📅 Mi Rol cargado');
 
@@ -182,7 +187,12 @@ const MiRol = {
         }
     },
 
-    abrirModalEditar() {
+    async abrirModalEditar() {
+        // ✅ CARGAR LÍNEAS Y TERMINALES DESDE FIREBASE ANTES DE ABRIR EL MODAL
+        console.log(' Cargando líneas y terminales desde Firebase para el modal...');
+        await DB_FIREBASE.load('lineas');
+        await DB_FIREBASE.load('terminales');
+
         const userLineaId = DB.get('userLineaId');
         const userTerminalId = DB.get('userTerminalId');
         const userNumeroRol = DB.get('userNumeroRol');
@@ -190,18 +200,21 @@ const MiRol = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
+        console.log('📅 Modal - líneas disponibles:', lineas.length);
+        console.log('📅 Modal - terminales disponibles:', terminales.length);
+
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
-            : '<option value="">Primero registra una línea</option>';
+            : '<option value="">No hay líneas disponibles</option>';
 
         const terminalesFiltradas = terminales.filter(t => t.lineaId === userLineaId);
         const terminalOptions = terminalesFiltradas.length > 0
             ? '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => `<option value="${t.id}" ${t.id === userTerminalId ? 'selected' : ''}>${t.nombre}</option>`).join('')
-            : '<option value="">No hay terminales</option>';
+            : '<option value="">Selecciona línea primero</option>';
 
         const modalOverlay = App.showModal(`
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">✏️ Editar Perfil</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">✏️ Nuevo Perfil</h3>
                 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Línea *</label>
@@ -253,13 +266,14 @@ const MiRol = {
             const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
 
             if (!nuevaLineaId || !nuevaTerminalId || !nuevoNumeroRol) {
-                App.showToast('️ Completa todos los campos');
+                App.showToast('⚠️ Completa todos los campos');
                 return;
             }
 
             DB.set('userLineaId', nuevaLineaId);
             DB.set('userTerminalId', nuevaTerminalId);
             DB.set('userNumeroRol', nuevoNumeroRol);
+            DB.set('perfilConfigurado', true);
 
             App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();

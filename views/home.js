@@ -113,7 +113,7 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
@@ -212,7 +212,7 @@ const Home = {
                                     📅 Sábado
                                 </button>
                                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    🌙 Domingo/Festivo
+                                     Domingo/Festivo
                                 </button>
                             ` : `
                                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
@@ -322,7 +322,7 @@ const Home = {
 
                 <div style="margin-bottom: 16px;">
                     <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;">
-                         Trenes (${trenes.length})
+                        🚂 Trenes (${trenes.length})
                     </div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
@@ -393,13 +393,11 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
-        // ✅ CARGAR rolesSemanal Y configuracionGlobal DESDE FIREBASE
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
-        console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
-        console.log(' Home - configuracionGlobal cargada');
+        console.log(' Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+        console.log('🏠 Home - configuracionGlobal cargada');
 
-        // ✅ VERIFICAR SI ES PRIMERA VEZ Y MOSTRAR MODAL DE BIENVENIDA
         const perfilConfigurado = DB.get('perfilConfigurado', false);
         const bienvenidaVista = DB.get('bienvenidaVista', false);
 
@@ -457,7 +455,7 @@ const Home = {
             btnModoLaboral.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'laboral');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast(' Modo: Laboral (hasta mañana)');
+                App.showToast('📅 Modo: Laboral (hasta mañana)');
                 recargarHome();
             });
         }
@@ -466,7 +464,7 @@ const Home = {
             btnModoDomingo.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'domingo');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast(' Modo: Domingo/Festivo (hasta mañana)');
+                App.showToast('🌙 Modo: Domingo/Festivo (hasta mañana)');
                 recargarHome();
             });
         }
@@ -519,7 +517,7 @@ const Home = {
         }
     },
 
-    // ✅ MODAL DE BIENVENIDA
+    // ✅ MODAL DE BIENVENIDA CON CAMBIOS SOLICITADOS
     mostrarModalBienvenida() {
         const modalHTML = `
             <div style="background: var(--surface); padding: 32px 24px; border-radius: 20px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
@@ -531,19 +529,19 @@ const Home = {
                     </div>
                     <h2 style="margin: 0 0 8px 0; font-size: 28px; color: var(--primary); font-weight: 800;">¡Bienvenido a CICLO!</h2>
                     <p style="font-size: 15px; color: var(--text); margin: 0; line-height: 1.5;">
-                        Gracias por usar nuestra aplicación de gestión ferroviaria.
+                        Gracias por usar nuestra aplicación de gestión inteligente.
                     </p>
                 </div>
 
                 <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid var(--primary);">
                     <p style="font-size: 14px; color: var(--text); margin: 0; line-height: 1.6; text-align: left;">
-                        <strong> Paso importante:</strong><br>
+                        <strong>⚠️ Paso importante:</strong><br>
                         Para que la app funcione correctamente y puedas ver tus horarios, trenes y descansos, necesitas registrar tu <strong>Número de Rol</strong>.
                         <br><br>
                         <strong>¿Cómo hacerlo?</strong><br>
                         1. Abre el <strong>menú lateral</strong> (☰)<br>
                         2. Entra al módulo <strong>"Mi Rol"</strong><br>
-                        3. Toca el botón <strong>"Editar"</strong><br>
+                        3. Toca el botón <strong>"Nuevo"</strong><br>
                         4. Selecciona tu Línea, Terminal e ingresa tu Número de Rol
                     </p>
                 </div>
@@ -560,7 +558,6 @@ const Home = {
             overlay.remove();
             DB.set('bienvenidaVista', true);
             
-            // Abrir menú lateral y navegar a Mi Rol
             setTimeout(() => {
                 Views.load('mi-rol', true);
                 App.toggleMenu();
@@ -647,7 +644,7 @@ const Home = {
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
-                    relojMensaje.textContent = '️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
+                    relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#c62828';
                 }
             }
