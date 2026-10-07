@@ -11,10 +11,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- ✅ Meta tags para iOS -->
+    <!-- ✅ Meta tags para iOS y Android -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="CICLO">
     
     <title>CICLO</title>
@@ -191,7 +191,7 @@
                             
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('📦 Nueva versión lista, actualizando...');
+                                    console.log(' Nueva versión lista, actualizando...');
                                     
                                     if (window.App && window.App.showToast) {
                                         window.App.showToast('🔄 Actualizando app...');

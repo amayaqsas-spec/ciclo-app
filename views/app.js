@@ -169,7 +169,7 @@ const AppInfo = {
 
                 <!-- VERSIÓN -->
                 <div class="ske-app-footer">
-                    <p>CICLO v1.0 • Desarrollado por amayasily</p>
+                    <p>CICLO v2.2 • Desarrollado por amayasily</p>
                 </div>
             </div>
         `;
