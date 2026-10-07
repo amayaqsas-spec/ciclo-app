@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario Organizador de 5 Semanas con Edición de Perfil
+// MI-ROL.JS - Calendario con Semana Actual desde "Número de Semana"
 // ============================================
 
 const MiRol = {
@@ -18,6 +18,7 @@ const MiRol = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
         const rolesSemanal = DB.load('rolesSemanal');
+        const numeroSemanaRegistros = DB.load('numeroSemana'); // ✅ Nuevo: cargar registros de Número de Semana
 
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
@@ -28,15 +29,22 @@ const MiRol = {
         const hoy = new Date();
         const diaActualNombre = diasSemana[hoy.getDay()];
 
+        // ✅ Buscar el registro de "Número de Semana" que coincida con la línea y terminal del usuario
+        let registroSemanaActual = null;
+        if (numeroSemanaRegistros.length > 0 && userLineaId && userTerminalId) {
+            registroSemanaActual = numeroSemanaRegistros.find(ns => 
+                ns.lineaId === userLineaId && ns.terminalId === userTerminalId
+            );
+
+            if (registroSemanaActual) {
+                semanaActualNum = parseInt(registroSemanaActual.numero) || 1;
+                console.log('📅 Semana actual desde Número de Semana:', semanaActualNum);
+            }
+        }
+
+        // Buscar el rol del usuario
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
-
-            if (miRol) {
-                const fechaInicio = new Date(miRol.fechaInicio);
-                fechaInicio.setHours(0, 0, 0, 0);
-                const diasTranscurridos = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-                semanaActualNum = Math.floor(diasTranscurridos / 7) % 5 + 1;
-            }
         }
 
         return `
@@ -44,16 +52,16 @@ const MiRol = {
                 <!-- HEADER CON INFO DEL PERFIL -->
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
+                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);"> Mi Rol</h2>
                         <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            ️ Editar
+                            ✏️ Editar
                         </button>
                     </div>
                     
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -61,7 +69,7 @@ const MiRol = {
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Número de Rol</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🔢 Número de Rol</div>
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
@@ -125,7 +133,7 @@ const MiRol = {
     },
 
     init() {
-        console.log('📅 Mi Rol cargado');
+        console.log(' Mi Rol cargado');
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
@@ -187,7 +195,6 @@ const MiRol = {
         const selectLinea = document.getElementById('editLinea');
         const selectTerminal = document.getElementById('editTerminal');
 
-        // Cascada: al cambiar línea, actualizar terminales
         selectLinea.addEventListener('change', () => {
             const lineaId = selectLinea.value;
             const filtradas = terminales.filter(t => t.lineaId === lineaId);
@@ -209,7 +216,6 @@ const MiRol = {
                 return;
             }
 
-            // Guardar nueva configuración
             DB.set('userLineaId', nuevaLineaId);
             DB.set('userTerminalId', nuevaTerminalId);
             DB.set('userNumeroRol', nuevoNumeroRol);
@@ -217,7 +223,6 @@ const MiRol = {
             App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();
 
-            // Recargar la vista
             setTimeout(() => {
                 window.location.reload();
             }, 500);
