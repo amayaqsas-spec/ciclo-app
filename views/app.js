@@ -21,20 +21,27 @@ const AppInfo = {
                     </div>
                 </div>
 
-                <!-- BENEFICIOS - FORMATO LISTA -->
+                <!-- BENEFICIOS - FORMATO LISTA MEJORADO -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-benefits">
                             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
-                        <h3>Beneficios de usar CICLO</h3>
+                        <h3>¿Por qué usar CICLO?</h3>
                     </div>
                     <div class="ske-app-benefits-list">
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono"></div>
+                            <div class="ske-app-benefit-icono">
+                                <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
                             <div class="ske-app-benefit-content">
-                                <strong>Gestión de Roles</strong>
-                                <p>Organiza tus turnos y horarios de manera eficiente</p>
+                                <strong>Gestión Inteligente de Roles</strong>
+                                <p>Organiza tus turnos, horarios y posiciones de manera automática y precisa, sincronizando las 5 semanas de rotación en tiempo real para que siempre sepas qué te toca.</p>
                             </div>
                         </div>
                         <div class="ske-app-benefit-item">
@@ -45,29 +52,48 @@ const AppInfo = {
                                 </svg>
                             </div>
                             <div class="ske-app-benefit-content">
-                                <strong>Control de Tiempo</strong>
-                                <p>Monitorea tu descanso y tiempo extra en tiempo real</p>
+                                <strong>Control de Tiempo y Descansos</strong>
+                                <p>Monitorea tu descanso y tiempo extra con un cronómetro inteligente que te alerta sobre tolerancias y posibles atrasos, cuidando tu cumplimiento laboral.</p>
                             </div>
                         </div>
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">🔍</div>
+                            <div class="ske-app-benefit-icono">
+                                <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                            </div>
                             <div class="ske-app-benefit-content">
-                                <strong>Búsqueda Rápida</strong>
-                                <p>Encuentra servicios, trenes y espejos al instante</p>
+                                <strong>Búsqueda Rápida y Eficiente</strong>
+                                <p>Encuentra servicios, trenes, espejos y reservas al instante con filtros optimizados, ahorrándote tiempo valioso en tu operación diaria.</p>
                             </div>
                         </div>
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">💾</div>
+                            <div class="ske-app-benefit-icono">
+                                <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </div>
                             <div class="ske-app-benefit-content">
-                                <strong>Respaldo Seguro</strong>
-                                <p>Exporta e importa tus datos cuando lo necesites</p>
+                                <strong>Respaldo y Sincronización Segura</strong>
+                                <p>Tus datos se guardan en la nube y localmente, permitiéndote exportar e importar tu información con total seguridad y sin riesgo de perder nada.</p>
                             </div>
                         </div>
                         <div class="ske-app-benefit-item">
-                            <div class="ske-app-benefit-icono">🎨</div>
+                            <div class="ske-app-benefit-icono">
+                                <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;">
+                                    <circle cx="13.5" cy="6.5" r="1.5"/>
+                                    <circle cx="17.5" cy="10.5" r="1.5"/>
+                                    <circle cx="8.5" cy="7.5" r="1.5"/>
+                                    <circle cx="6.5" cy="12.5" r="1.5"/>
+                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+                                </svg>
+                            </div>
                             <div class="ske-app-benefit-content">
-                                <strong>Personalización</strong>
-                                <p>Múltiples temas y colores a tu elección</p>
+                                <strong>Personalización Total</strong>
+                                <p>Adapta la aplicación a tu gusto con múltiples temas de colores skeuomórficos, diseñados para ser agradables a la vista en cualquier condición de luz.</p>
                             </div>
                         </div>
                     </div>
@@ -106,13 +132,13 @@ const AppInfo = {
                     </div>
                 </div>
 
-                <!-- PROGRAMACIÓN -->
+                <!-- PROGRAMACIÓN (SIN LA "A") -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-code">
                             <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                         </div>
-                        <h3>Programación, Lógica Relacional "A"</h3>
+                        <h3>Programación y Lógica Relacional</h3>
                     </div>
                     <div class="ske-app-credit-card">
                         <div class="ske-app-credit-logo-large">
@@ -156,14 +182,26 @@ const AppInfo = {
                                 <polyline points="22,6 12,13 2,6"/>
                             </svg>
                         </div>
-                        <h3>Contacto</h3>
+                        <h3>Contacto y Soporte</h3>
                     </div>
+                    
+                    <div style="text-align: center; color: var(--text-soft); font-size: 14px; margin-bottom: 16px; font-weight: 600;">
+                        Errores, sugerencias y/o comentarios:
+                    </div>
+
                     <a href="mailto:amayaqsas@gmail.com" class="ske-app-contact-btn">
                         <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                             <polyline points="22,6 12,13 2,6"/>
                         </svg>
                         <span>amayaqsas@gmail.com</span>
+                    </a>
+
+                    <a href="https://t.me/5545436557" target="_blank" class="ske-app-contact-btn" style="margin-top: 12px; background: #0088cc; color: white; border-color: #0088cc;">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;stroke:none;">
+                            <path d="M21.928 2.528c-.378-.434-.97-.58-1.51-.374L2.22 9.338c-.57.218-.914.79-.85 1.39.063.6.51 1.08 1.1 1.18l4.68.77 1.7 5.53c.16.52.64.88 1.18.88.1 0 .2-.01.3-.04l3.4-1.04 2.5 2.2c.27.24.62.37.97.37.18 0 .36-.04.53-.11.5-.22.82-.72.82-1.27v-4.05l6.3-5.04c.46-.37.67-.98.53-1.56z"/>
+                        </svg>
+                        <span>Telegram: 5545436557</span>
                     </a>
                 </div>
 
