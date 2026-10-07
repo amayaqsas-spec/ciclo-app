@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Carga Completa de Datos
+// HOME.JS - Dashboard con Cronómetro Regresivo en Descanso
 // ============================================
 
 const Home = {
@@ -113,10 +113,10 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
         console.log('🏠 Home - servicios:', DB.load('servicios').length, 'registros');
-        console.log(' Home - semanas:', DB.load('semanas').length, 'registros');
+        console.log('🏠 Home - semanas:', DB.load('semanas').length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -186,7 +186,7 @@ const Home = {
                                 </span>
                                 ${modoForzado ? `
                                     <span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">
-                                         Modo: ${tipoDiaActual}
+                                        🔄 Modo: ${tipoDiaActual}
                                     </span>
                                 ` : ''}
                             </div>
@@ -216,10 +216,10 @@ const Home = {
                                 </button>
                             ` : diaSemana === 6 ? `
                                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    📅 Sábado
+                                     Sábado
                                 </button>
                                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    🌙 Domingo/Festivo
+                                     Domingo/Festivo
                                 </button>
                             ` : `
                                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
@@ -382,8 +382,8 @@ const Home = {
                     </div>
 
                     <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                        <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">--:--:--</div>
-                        <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Calculando...</div>
+                        <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
+                        <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                         <div id="hsdRelojMensaje" style="font-size: 12px; color: var(--accent); margin-top: 8px; font-style: italic; display: none;"></div>
                     </div>
 
@@ -400,7 +400,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
 
-        console.log('🏠 Home - Iniciando carga de datos...');
+        console.log(' Home - Iniciando carga de datos...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -411,7 +411,7 @@ const Home = {
         console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('🏠 Home - configuracionGlobal cargada');
         console.log('🏠 Home - servicios cargados:', DB.load('servicios').length);
-        console.log(' Home - líneas cargadas:', DB.load('lineas').length);
+        console.log('🏠 Home - líneas cargadas:', DB.load('lineas').length);
         console.log('🏠 Home - terminales cargadas:', DB.load('terminales').length);
         console.log('🏠 Home - semanas cargadas:', DB.load('semanas').length);
 
@@ -472,7 +472,7 @@ const Home = {
             btnModoLaboral.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'laboral');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast(' Modo: Laboral (hasta mañana)');
+                App.showToast('📅 Modo: Laboral (hasta mañana)');
                 recargarHome();
             });
         }
@@ -481,7 +481,7 @@ const Home = {
             btnModoDomingo.addEventListener('click', () => {
                 DB.set('modoDiaForzado', 'domingo');
                 DB.set('fechaModoForzado', hoyStr);
-                App.showToast(' Modo: Domingo/Festivo (hasta mañana)');
+                App.showToast('🌙 Modo: Domingo/Festivo (hasta mañana)');
                 recargarHome();
             });
         }
@@ -590,10 +590,11 @@ const Home = {
         return Promise.resolve(true);
     },
 
+    // ✅ CRONÓMETRO MODIFICADO: Solo ESTADO 2 cuenta regresivamente
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
 
-        const MINUTOS_TOLERANCIA = 85;
+        const MINUTOS_TOLERANCIA = 85; // 1 hora 25 minutos
 
         const actualizarReloj = () => {
             const ahora = new Date();
@@ -618,19 +619,18 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
+            // ✅ ESTADO 1: Antes del descanso - mostrar 00:00:00
             if (horaActualMinutos < minutosInicio) {
-                const diff = minutosInicio - horaActualMinutos;
-                const horas = Math.floor(diff / 60);
-                const mins = diff % 60;
-                const segs = 60 - segundosActuales;
-                relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = ' Tiempo para iniciar descanso';
+                relojTiempo.textContent = '00:00:00';
+                relojEtiqueta.textContent = ' Esperando inicio de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
+            }
+            // ✅ ESTADO 2: Durante el descanso - CUENTA REGRESIVA (cambio solicitado)
+            else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
@@ -641,22 +641,26 @@ const Home = {
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
-                const diff = minutosLimite - horaActualMinutos;
+            }
+            // ✅ ESTADO 3: Después del descanso - cuenta hacia adelante hasta 1:25:00
+            else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
+                const diff = horaActualMinutos - minutosInicio;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
-                const segs = 60 - segundosActuales;
+                const segs = segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea';
+                relojEtiqueta.textContent = '️ Tiempo de atraso en línea';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
                     relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#FF9800';
                 }
-            } else {
-                relojTiempo.textContent = '00:00:00';
-                relojEtiqueta.textContent = 'Tiempo finalizado';
+            }
+            // ✅ ESTADO 4: Después de 1:25:00 - se queda en 01:25:00
+            else {
+                relojTiempo.textContent = '01:25:00';
+                relojEtiqueta.textContent = 'Tiempo máximo alcanzado';
                 relojTiempo.style.color = '#c62828';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
@@ -684,7 +688,7 @@ const Home = {
 
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
 
-        App.showToast(`⏱️ +${minutosNum} min de atraso agregados al descanso`);
+        App.showToast(`️ +${minutosNum} min de atraso agregados al descanso`);
 
         this.iniciarReloj(servicio);
     }
