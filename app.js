@@ -389,8 +389,8 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
-                const perfilConfigurado = DB.get('perfilConfigurado', false);
-                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+                // ✅ CORRECCIÓN: Siempre cargar home (el Home maneja el modal de bienvenida)
+                const vistaInicial = 'home';
 
                 Views.renderMenu();
                 Views.load(vistaInicial, false);
@@ -417,7 +417,7 @@ const App = {
                 const offlineUser = DB.get('offlineUser', null);
                 
                 if (offlineUser) {
-                    console.log(' Modo offline: usuario encontrado localmente');
+                    console.log('📡 Modo offline: usuario encontrado localmente');
                     Auth.currentUser = offlineUser;
                     Auth.isAdmin = offlineUser.email === 'amayaqsas@gmail.com';
                     Auth.isOffline = true;
@@ -443,8 +443,8 @@ const App = {
                         Views.applyTheme('lavender', false);
                     }
 
-                    const perfilConfigurado = DB.get('perfilConfigurado', false);
-                    const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+                    // ✅ CORRECCIÓN: Siempre cargar home
+                    const vistaInicial = 'home';
 
                     Views.renderMenu();
                     Views.load(vistaInicial, false);
@@ -490,8 +490,8 @@ const App = {
         });
 
         window.addEventListener('offline', () => {
-            console.log(' Sin conexión');
-            App.showToast(' Modo offline activado');
+            console.log('📡 Sin conexión');
+            App.showToast('📡 Modo offline activado');
             Auth.isOffline = true;
             this.mostrarIndicadorOffline();
         });
@@ -514,7 +514,7 @@ const App = {
 
     // ✅ NUEVA FUNCIÓN: Manejar usuario offline autenticado
     handleOfflineUser(user) {
-        console.log('📡 Usuario offline autenticado:', user.email);
+        console.log(' Usuario offline autenticado:', user.email);
         Auth.currentUser = user;
         Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
         Auth.isOffline = true;
@@ -540,8 +540,8 @@ const App = {
             Views.applyTheme('lavender', false);
         }
 
-        const perfilConfigurado = DB.get('perfilConfigurado', false);
-        const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+        // ✅ CORRECCIÓN: Siempre cargar home
+        const vistaInicial = 'home';
 
         Views.renderMenu();
         Views.load(vistaInicial, false);
@@ -616,7 +616,7 @@ const App = {
                     btnNotificaciones.classList.remove('has-notifications');
                 }
                 
-                console.log('🔔 Documentos no leídos:', noLeidos);
+                console.log(' Documentos no leídos:', noLeidos);
             } catch (error) {
                 console.error('Error al calcular no leídos:', error);
             }
@@ -657,7 +657,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('↩️ Volviendo a:', vistaAnterior);
+            console.log('️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             
