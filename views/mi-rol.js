@@ -1,8 +1,15 @@
 // ============================================
-// MI-ROL.JS - Calendario Organizador de 5 Semanas
+// MI-ROL.JS - Calendario Organizador de 5 Semanas con Edición de Perfil
 // ============================================
 
 const MiRol = {
+    getFechaLocal(fecha) {
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
     render() {
         const userLineaId = DB.get('userLineaId');
         const userTerminalId = DB.get('userTerminalId');
@@ -17,10 +24,9 @@ const MiRol = {
 
         let miRol = null;
         let semanaActualNum = 1;
-        let diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        let hoy = new Date();
-        let diaActualNombre = diasSemana[hoy.getDay()];
-        let fechaHoyStr = this.getFechaLocal(hoy);
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const hoy = new Date();
+        const diaActualNombre = diasSemana[hoy.getDay()];
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -35,37 +41,43 @@ const MiRol = {
 
         return `
             <div class="view active" style="padding: 20px;">
-                <!-- HEADER -->
+                <!-- HEADER CON INFO DEL PERFIL -->
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
-                    <h2 style="margin: 0 0 12px 0; font-size: 22px; color: var(--primary);"> Mi Rol</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
+                        <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            ️ Editar
+                        </button>
+                    </div>
                     
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                            <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft);">Línea</div>
+                            <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
-                            <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft);">Terminal</div>
+                            <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚇 Terminal</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
-                            <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft);">Rol</div>
-                                <div style="font-size: 14px; font-weight: 700; color: var(--text);">#${userNumeroRol || 'N/A'}</div>
+                            <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Número de Rol</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
-                            <div style="background: var(--primary); color: white; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9;">Semana Actual</div>
-                                <div style="font-size: 14px; font-weight: 700;">Semana ${semanaActualNum}</div>
+                            <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;">📆 Semana Actual</div>
+                                <div style="font-size: 18px; font-weight: 800;">Semana ${semanaActualNum}</div>
                             </div>
                         </div>
 
-                        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; text-align: center; border-left: 4px solid var(--primary);">
                             <div style="font-size: 12px; color: var(--text-soft); margin-bottom: 4px;">Hoy es</div>
                             <div style="font-size: 18px; font-weight: 800; color: var(--primary);">${diaActualNombre} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</div>
                         </div>
                     ` : `
                         <div style="text-align: center; padding: 20px; color: var(--text-soft);">
-                            <p>No se encontró tu rol. Contacta al administrador.</p>
+                            <p style="margin: 0 0 8px 0;">No se encontró tu rol.</p>
+                            <p style="font-size: 13px;">Toca "Editar" para configurar tu perfil.</p>
                         </div>
                     `}
                 </div>
@@ -112,17 +124,18 @@ const MiRol = {
         `;
     },
 
-    getFechaLocal(fecha) {
-        const year = fecha.getFullYear();
-        const month = String(fecha.getMonth() + 1).padStart(2, '0');
-        const day = String(fecha.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    init() {
+        console.log('📅 Mi Rol cargado');
+
+        const btnEditarPerfil = document.getElementById('btnEditarPerfil');
+        if (btnEditarPerfil) {
+            btnEditarPerfil.addEventListener('click', () => this.abrirModalEditar());
+        }
     },
 
-    init() {
-        // No necesita inicialización adicional
-        console.log('📅 Mi Rol cargado');
-    }
-};
+    abrirModalEditar() {
+        const userLineaId = DB.get('userLineaId');
+        const userTerminalId = DB.get('userTerminalId');
+        const userNumeroRol = DB.get('userNumeroRol');
 
-export default MiRol;
+        const lineas = DB.load('line
