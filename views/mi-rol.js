@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Semana Actual desde Configuración Global
+// MI-ROL.JS - Calendario con Semana Actual desde Firebase
 // ============================================
 
 const MiRol = {
@@ -37,6 +37,8 @@ const MiRol = {
             console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
         } else {
             console.log('📅 Mi Rol - No hay semana actual configurada');
+            console.log('📅 Mi Rol - userLineaId:', userLineaId);
+            console.log('📅 Mi Rol - configGlobal:', configGlobal);
         }
 
         // Buscar el rol del usuario
@@ -62,7 +64,7 @@ const MiRol = {
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚇 Terminal</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Terminal</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -129,7 +131,11 @@ const MiRol = {
         `;
     },
 
-    init() {
+    async init() {
+        // ✅ CARGAR configuracionGlobal DESDE FIREBASE ANTES DE RENDERIZAR
+        await DB_FIREBASE.load('configuracionGlobal');
+        console.log('📅 Mi Rol - configuracionGlobal cargada desde Firebase');
+
         console.log('📅 Mi Rol cargado');
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');

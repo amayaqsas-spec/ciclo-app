@@ -8,7 +8,7 @@ const NumeroSemana = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
-        // Buscar cuál está marcada como actual en Firebase
+        // Buscar cuál está marcada como actual en localStorage
         const semanaActualGlobal = DB.get('semanaActualGlobal', null);
 
         return `
@@ -54,7 +54,7 @@ const NumeroSemana = {
                                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                                             ${Auth.isAdmin ? `
                                                 <button class="btn-marcar-actual" data-id="${ns.id}" data-numero="${ns.numero}" data-linea="${ns.lineaId}" data-terminal="${ns.terminalId}" style="flex:1;background:${esActual ? 'var(--primary)' : '#4CAF50'};color:white;border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">
-                                                    ${esActual ? '✓ Semana Actual' : ' Marcar como Actual'}
+                                                    ${esActual ? '✓ Semana Actual' : '📍 Marcar como Actual'}
                                                 </button>
                                             ` : ''}
                                             <button class="btn-edit-numero-semana" data-id="${ns.id}" style="flex:1;background:var(--bg-soft);color:var(--primary);border:none;padding:8px;border-radius:6px;font-weight:600;cursor:pointer;">
@@ -75,16 +75,18 @@ const NumeroSemana = {
     },
 
     async init() {
+        // ✅ Cargar TODO desde Firebase primero
         await DB_FIREBASE.load('numerosSemana');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
-        await DB_FIREBASE.load('configuracionGlobal'); // ✅ Cargar configuración global
+        await DB_FIREBASE.load('configuracionGlobal'); // ✅ IMPORTANTE
 
-        // Cargar semana actual global desde Firebase
+        // Leer configuración global actualizada
         const configGlobal = DB.load('configuracionGlobal');
         const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
         if (semanaActualConfig) {
             DB.set('semanaActualGlobal', semanaActualConfig.valor);
+            console.log(' Semana actual desde Firebase:', semanaActualConfig.valor);
         }
 
         const container = document.getElementById('viewContainer');
@@ -99,7 +101,7 @@ const NumeroSemana = {
                 const lineaId = btn.dataset.linea;
                 const terminalId = btn.dataset.terminal;
 
-                if (!confirm(`¿Marcar la Semana #${numero} como la semana actual para todos los usuarios?`)) return;
+                if (!confirm(`¿Marcar la Semana #${numero} como la semana actual para TODOS los usuarios?`)) return;
 
                 const valorConfig = {
                     tipo: 'semanaActual',
@@ -109,10 +111,10 @@ const NumeroSemana = {
                     updatedAt: Date.now()
                 };
 
-                // Guardar en localStorage
+                // ✅ Guardar en localStorage local
                 DB.set('semanaActualGlobal', valorConfig);
 
-                // ✅ Subir a Firebase para que todos los usuarios lo vean
+                // ✅ Subir a Firebase para que TODOS los usuarios lo vean
                 let configGlobal = DB.load('configuracionGlobal');
                 const idx = configGlobal.findIndex(c => c.tipo === 'semanaActual');
                 
@@ -124,7 +126,7 @@ const NumeroSemana = {
 
                 await DB_FIREBASE.sync('configuracionGlobal', configGlobal);
 
-                App.showToast(`✅ Semana #${numero} marcada como actual`);
+                App.showToast(`✅ Semana #${numero} marcada como actual para todos`);
                 await this.init();
             });
         });

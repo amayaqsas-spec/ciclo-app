@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard Inteligente con Rol Semanal
+// HOME.JS - Dashboard con Semana Actual desde Firebase
 // ============================================
 
 const Home = {
@@ -66,12 +66,14 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
             console.log('🏠 Home - Semana actual desde config global:', semanaActualNum);
         } else {
-            console.log('🏠 Home - No hay semana actual configurada');
+            console.log('🏠 Home - No hay semana actual configurada para esta línea');
+            console.log(' Home - userLineaId:', userLineaId);
+            console.log(' Home - configGlobal:', configGlobal);
         }
 
-        console.log(' Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
-        console.log('🏠 Home - Roles cargados:', rolesSemanal.length);
-        console.log(' Home - Servicios cargados:', servicios.length);
+        console.log('🏠 Home - Datos del usuario:', { userLineaId, userTerminalId, userNumeroRol });
+        console.log(' Home - Roles cargados:', rolesSemanal.length);
+        console.log('🏠 Home - Servicios cargados:', servicios.length);
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -107,7 +109,7 @@ const Home = {
                                    s.semanaId === tipoDiaConfig.id;
                         });
 
-                        console.log('🏠 Home - Servicio encontrado:', infoServicio);
+                        console.log(' Home - Servicio encontrado:', infoServicio);
                     }
 
                     if (!infoServicio) {
@@ -334,15 +336,19 @@ const Home = {
                     </div>
 
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        ⏱️ Agregar Atraso en Línea
+                        ️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
         `;
     },
 
-    init() {
+    async init() {
         this.minutosAtraso = 0;
+
+        // ✅ CARGAR configuracionGlobal DESDE FIREBASE ANTES DE RENDERIZAR
+        await DB_FIREBASE.load('configuracionGlobal');
+        console.log(' Home - configuracionGlobal cargada desde Firebase');
 
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
@@ -434,7 +440,6 @@ const Home = {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
             
             if (miRol) {
-                // ✅ Usar semana actual desde configuración global
                 const configGlobal = DB.load('configuracionGlobal');
                 const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
                 const semanaActualNum = (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) ? semanaActualConfig.numero : 1;
