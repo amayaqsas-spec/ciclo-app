@@ -38,7 +38,7 @@ const MiRol = {
         }
 
         console.log('📅 Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
-        console.log(' Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -91,7 +91,7 @@ const MiRol = {
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -169,7 +169,6 @@ const MiRol = {
     },
 
     async init() {
-        // ✅ CARGAR TODO DESDE FIREBASE
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('lineas');
@@ -188,8 +187,7 @@ const MiRol = {
     },
 
     async abrirModalEditar() {
-        // ✅ CARGAR LÍNEAS Y TERMINALES DESDE FIREBASE ANTES DE ABRIR EL MODAL
-        console.log(' Cargando líneas y terminales desde Firebase para el modal...');
+        console.log('📅 Cargando líneas y terminales desde Firebase para el modal...');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
 
@@ -260,6 +258,7 @@ const MiRol = {
 
         document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
         
+        // ✅ SOLUCIÓN: Al guardar, navegar automáticamente a Home
         document.getElementById('btnGuardarEdit').addEventListener('click', () => {
             const nuevaLineaId = selectLinea.value;
             const nuevaTerminalId = selectTerminal.value;
@@ -275,11 +274,17 @@ const MiRol = {
             DB.set('userNumeroRol', nuevoNumeroRol);
             DB.set('perfilConfigurado', true);
 
-            App.showToast('✅ Perfil actualizado correctamente');
+            App.showToast('✅ Perfil guardado correctamente');
             modalOverlay.remove();
 
+            // ✅ Navegar automáticamente a Home después de guardar
             setTimeout(() => {
-                window.location.reload();
+                console.log('🚀 Navegando a Home automáticamente...');
+                if (window.Views && window.Views.load) {
+                    window.Views.load('home', false);
+                } else {
+                    window.location.href = '#home';
+                }
             }, 500);
         });
     }
