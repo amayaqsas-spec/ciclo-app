@@ -1,5 +1,5 @@
 // ============================================
-// APP.JS - Orquestador Principal con navegación back
+// APP.JS - Orquestador Principal con soporte Offline
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
@@ -193,7 +193,7 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log(' Salida cancelada por atraso activo');
+                console.log('🚫 Salida cancelada por atraso activo');
                 return;
             }
         }
@@ -234,7 +234,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(` Error al cargar vista "${viewId}":`, error);
+            console.error(`❌ Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -349,14 +349,17 @@ const Views = {
 // ============================================
 const App = {
     init() {
-        console.log(' App.init() llamado');
+        console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
-            console.error('❌ Firebase no está inicializado. Revisa index.html');
+            console.error(' Firebase no está inicializado. Revisa index.html');
             return;
         }
 
         const auth = firebase.auth();
+
+        // ✅ Configurar persistencia de sesión LOCAL
+        Auth.initPersistence();
 
         auth.onAuthStateChanged(user => {
             console.log('🔐 Auth state changed:', user ? user.email : 'null');
@@ -386,9 +389,11 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
-                // ✅ SIEMPRE CARGAR HOME DIRECTAMENTE (sin onboarding)
+                const perfilConfigurado = DB.get('perfilConfigurado', false);
+                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+
                 Views.renderMenu();
-                Views.load('home', false);
+                Views.load(vistaInicial, false);
 
                 this.initBackNavigation();
                 this.inicializarCampanita();
@@ -408,21 +413,87 @@ const App = {
                     waveTitle.classList.add('wave-applied');
                 }
             } else {
-                Auth.currentUser = null;
-                Auth.isAdmin = false;
+                // ✅ VERIFICAR SI HAY USUARIO OFFLINE REGISTRADO LOCALMENTE
+                const offlineUser = DB.get('offlineUser', null);
+                
+                if (offlineUser) {
+                    console.log(' Modo offline: usuario encontrado localmente');
+                    Auth.currentUser = offlineUser;
+                    Auth.isAdmin = offlineUser.email === 'amayaqsas@gmail.com';
+                    Auth.isOffline = true;
 
-                const mainApp = document.getElementById('mainApp');
-                const authContainer = document.getElementById('authContainer');
+                    const authContainer = document.getElementById('authContainer');
+                    const mainApp = document.getElementById('mainApp');
 
-                if (mainApp) mainApp.classList.remove('show');
+                    if (authContainer) authContainer.classList.remove('show');
 
-                setTimeout(() => {
-                    if (authContainer) {
-                        authContainer.classList.add('show');
-                        Auth.renderLogin();
+                    setTimeout(() => {
+                        if (mainApp) mainApp.classList.add('show');
+                    }, 300);
+
+                    const name = offlineUser.nombre || Auth.getUserName(offlineUser);
+                    document.getElementById('menuUserName').textContent = name + ' (Offline)';
+                    document.getElementById('menuUserEmail').textContent = offlineUser.email;
+
+                    const temaGuardado = DB.get('theme', 'lavender');
+                    if (temaGuardado && themes[temaGuardado]) {
+                        Views.applyTheme(temaGuardado, false);
+                    } else {
+                        DB.set('theme', 'lavender');
+                        Views.applyTheme('lavender', false);
                     }
-                }, 300);
+
+                    const perfilConfigurado = DB.get('perfilConfigurado', false);
+                    const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+
+                    Views.renderMenu();
+                    Views.load(vistaInicial, false);
+
+                    this.initBackNavigation();
+                    this.inicializarCampanita();
+
+                    // ✅ Mostrar indicador de modo offline
+                    this.mostrarIndicadorOffline();
+                } else {
+                    // Sin usuario y sin sesión offline: mostrar login
+                    Auth.currentUser = null;
+                    Auth.isAdmin = false;
+
+                    const mainApp = document.getElementById('mainApp');
+                    const authContainer = document.getElementById('authContainer');
+
+                    if (mainApp) mainApp.classList.remove('show');
+
+                    setTimeout(() => {
+                        if (authContainer) {
+                            authContainer.classList.add('show');
+                            Auth.renderLogin();
+                            
+                            // ✅ Mostrar mensaje de sin conexión si no hay internet
+                            const loginError = document.getElementById('loginError');
+                            if (loginError && !navigator.onLine) {
+                                loginError.textContent = '⚠️ Sin conexión a internet. Inicia sesión con tu cuenta registrada.';
+                                loginError.classList.add('show');
+                            }
+                        }
+                    }, 300);
+                }
             }
+        });
+
+        // ✅ Detectar cambios de conexión a internet
+        window.addEventListener('online', () => {
+            console.log('🌐 Conexión restaurada');
+            App.showToast('🌐 Conexión restaurada');
+            Auth.isOffline = false;
+            this.ocultarIndicadorOffline();
+        });
+
+        window.addEventListener('offline', () => {
+            console.log(' Sin conexión');
+            App.showToast(' Modo offline activado');
+            Auth.isOffline = true;
+            this.mostrarIndicadorOffline();
         });
 
         const menuBtn = document.getElementById('menuBtn');
@@ -438,6 +509,80 @@ const App = {
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        }
+    },
+
+    // ✅ NUEVA FUNCIÓN: Manejar usuario offline autenticado
+    handleOfflineUser(user) {
+        console.log('📡 Usuario offline autenticado:', user.email);
+        Auth.currentUser = user;
+        Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
+        Auth.isOffline = true;
+
+        const authContainer = document.getElementById('authContainer');
+        const mainApp = document.getElementById('mainApp');
+
+        if (authContainer) authContainer.classList.remove('show');
+
+        setTimeout(() => {
+            if (mainApp) mainApp.classList.add('show');
+        }, 300);
+
+        const name = user.nombre || Auth.getUserName(user);
+        document.getElementById('menuUserName').textContent = name + ' (Offline)';
+        document.getElementById('menuUserEmail').textContent = user.email;
+
+        const temaGuardado = DB.get('theme', 'lavender');
+        if (temaGuardado && themes[temaGuardado]) {
+            Views.applyTheme(temaGuardado, false);
+        } else {
+            DB.set('theme', 'lavender');
+            Views.applyTheme('lavender', false);
+        }
+
+        const perfilConfigurado = DB.get('perfilConfigurado', false);
+        const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+
+        Views.renderMenu();
+        Views.load(vistaInicial, false);
+
+        this.initBackNavigation();
+        this.inicializarCampanita();
+        this.mostrarIndicadorOffline();
+    },
+
+    // ✅ Indicador visual de modo offline
+    mostrarIndicadorOffline() {
+        let indicador = document.getElementById('offlineIndicator');
+        if (!indicador) {
+            indicador = document.createElement('div');
+            indicador.id = 'offlineIndicator';
+            indicador.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: #FF9800;
+                color: white;
+                text-align: center;
+                padding: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            `;
+            indicador.innerHTML = '📡 Modo Offline - Los datos se guardarán localmente';
+            document.body.appendChild(indicador);
+        }
+    },
+
+    ocultarIndicadorOffline() {
+        const indicador = document.getElementById('offlineIndicator');
+        if (indicador) {
+            indicador.remove();
         }
     },
 
