@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Cronómetro hacia Adelante
+// HOME.JS - Dashboard Completo con Cronómetro y Botones de Modo Corregidos
 // ============================================
 
 const Home = {
@@ -113,7 +113,7 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
         console.log('🏠 Home - servicios:', DB.load('servicios').length, 'registros');
         console.log('🏠 Home - semanas:', DB.load('semanas').length, 'registros');
@@ -128,7 +128,7 @@ const Home = {
                 }
 
                 console.log('🏠 Home - posición hoy:', posicionHoy);
-                console.log(' Home - tipo de día:', tipoDiaActual);
+                console.log('🏠 Home - tipo de día:', tipoDiaActual);
 
                 esReservaHoy = this.esReserva(posicionHoy);
 
@@ -159,6 +159,50 @@ const Home = {
         const mostrarBotones = posicionHoy !== 'N/A' && !esReservaHoy && !errorMensaje;
         const modoForzado = DB.get('modoDiaForzado', null);
 
+        // ✅ LÓGICA CORREGIDA: Siempre mostrar 2 botones según el día real
+        let botonesModoHTML = '';
+        
+        if (diaSemana >= 1 && diaSemana <= 5) {
+            // Días laborales (Lunes a Viernes): mostrar Laboral y Domingo/Festivo
+            const laboralActivo = modoForzado === null || modoForzado === 'laboral';
+            const domingoActivo = modoForzado === 'domingo';
+            
+            botonesModoHTML = `
+                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                    📅 Laboral
+                </button>
+                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                    🌙 Domingo/Festivo
+                </button>
+            `;
+        } else if (diaSemana === 6) {
+            // Sábado: mostrar Sábado y Domingo/Festivo
+            const sabadoActivo = modoForzado === null;
+            const domingoActivo = modoForzado === 'domingo';
+            
+            botonesModoHTML = `
+                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                     Sábado
+                </button>
+                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                     Domingo/Festivo
+                </button>
+            `;
+        } else {
+            // Domingo: mostrar Domingo/Festivo y Laboral
+            const domingoActivo = modoForzado === null;
+            const laboralActivo = modoForzado === 'laboral';
+            
+            botonesModoHTML = `
+                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                    🌙 Domingo/Festivo
+                </button>
+                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
+                    📅 Laboral
+                </button>
+            `;
+        }
+
         return `
             <div class="view active ske-home">
                 <div class="ske-greeting-card">
@@ -186,7 +230,7 @@ const Home = {
                                 </span>
                                 ${modoForzado ? `
                                     <span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">
-                                        🔄 Modo: ${tipoDiaActual}
+                                         Modo: ${tipoDiaActual}
                                     </span>
                                 ` : ''}
                             </div>
@@ -207,28 +251,7 @@ const Home = {
                             🔄 Modo de visualización
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            ${diaSemana >= 1 && diaSemana <= 5 ? `
-                                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    📅 Laboral
-                                </button>
-                                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    🌙 Domingo/Festivo
-                                </button>
-                            ` : diaSemana === 6 ? `
-                                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                     Sábado
-                                </button>
-                                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'domingo' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'domingo' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    🌙 Domingo/Festivo
-                                </button>
-                            ` : `
-                                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === null ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${modoForzado === null ? 'var(--primary)' : 'var(--surface)'}; color: ${modoForzado === null ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    🌙 Domingo/Festivo
-                                </button>
-                                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${modoForzado === 'laboral' ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${modoForzado === 'laboral' ? 'var(--accent)' : 'var(--surface)'}; color: ${modoForzado === 'laboral' ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                                    📅 Laboral
-                                </button>
-                            `}
+                            ${botonesModoHTML}
                         </div>
                     </div>
                 ` : ''}
@@ -408,10 +431,10 @@ const Home = {
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
         
-        console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+        console.log(' Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('🏠 Home - configuracionGlobal cargada');
         console.log('🏠 Home - servicios cargados:', DB.load('servicios').length);
-        console.log(' Home - líneas cargadas:', DB.load('lineas').length);
+        console.log('🏠 Home - líneas cargadas:', DB.load('lineas').length);
         console.log('🏠 Home - terminales cargadas:', DB.load('terminales').length);
         console.log('🏠 Home - semanas cargadas:', DB.load('semanas').length);
 
@@ -461,6 +484,7 @@ const Home = {
             });
         }
 
+        // ✅ EVENT LISTENERS DE BOTONES DE MODO (siempre se registran si existen)
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
@@ -490,7 +514,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast('📅 Modo: Automático');
+                App.showToast('📅 Modo: Automático (día real)');
                 recargarHome();
             });
         }
@@ -619,7 +643,7 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
             // ✅ ESTADO 1: Antes del descanso - mostrar 00:00:00
@@ -637,20 +661,19 @@ const Home = {
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0
-                    ? `🍽️ Tiempo restante de descanso (+${minutosAtraso} min)`
+                    ? `️ Tiempo restante de descanso (+${minutosAtraso} min)`
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
             }
             // ✅ ESTADO 3: Después del descanso - CUENTA HACIA ADELANTE desde 00:00:00 hasta 01:25:00
             else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
-                // Calcular tiempo transcurrido desde el final del descanso
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
                 const segs = segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea';
+                relojEtiqueta.textContent = '️ Tiempo de atraso en línea';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
