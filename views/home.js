@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard Completo con Cronómetro y Botones de Modo Corregidos
+// HOME.JS - Dashboard Completo con Botones de Modo Siempre Visibles
 // ============================================
 
 const Home = {
@@ -115,8 +115,6 @@ const Home = {
 
         console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
-        console.log('🏠 Home - servicios:', DB.load('servicios').length, 'registros');
-        console.log('🏠 Home - semanas:', DB.load('semanas').length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -156,10 +154,14 @@ const Home = {
 
         const tiempoExtraPendiente = DB.load('tiempoExtra').filter(t => !t.cobrado);
         const diaSemana = new Date().getDay();
-        const mostrarBotones = posicionHoy !== 'N/A' && !esReservaHoy && !errorMensaje;
         const modoForzado = DB.get('modoDiaForzado', null);
 
-        // ✅ LÓGICA CORREGIDA: Siempre mostrar 2 botones según el día real
+        // ✅ CORRECCIÓN: Los botones de modo se muestran SIEMPRE que haya un rol configurado
+        // (independientemente de si hay error o no)
+        const mostrarBotonesModo = userNumeroRol && rolesSemanal.length > 0 && posicionHoy !== 'N/A' && !esReservaHoy;
+        const mostrarServicio = !errorMensaje && infoServicio;
+
+        // ✅ LÓGICA DE BOTONES: Siempre mostrar 2 botones según el día real
         let botonesModoHTML = '';
         
         if (diaSemana >= 1 && diaSemana <= 5) {
@@ -182,10 +184,10 @@ const Home = {
             
             botonesModoHTML = `
                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                     Sábado
+                    📅 Sábado
                 </button>
                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                     Domingo/Festivo
+                    🌙 Domingo/Festivo
                 </button>
             `;
         } else {
@@ -195,10 +197,10 @@ const Home = {
             
             botonesModoHTML = `
                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                    🌙 Domingo/Festivo
+                     Domingo/Festivo
                 </button>
                 <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                    📅 Laboral
+                     Laboral
                 </button>
             `;
         }
@@ -230,7 +232,7 @@ const Home = {
                                 </span>
                                 ${modoForzado ? `
                                     <span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">
-                                         Modo: ${tipoDiaActual}
+                                        🔄 Modo: ${tipoDiaActual}
                                     </span>
                                 ` : ''}
                             </div>
@@ -245,7 +247,7 @@ const Home = {
                     </div>
                 </div>
 
-                ${mostrarBotones ? `
+                ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">
                             🔄 Modo de visualización
@@ -413,7 +415,7 @@ const Home = {
                     <div id="badgeAtraso" style="display: none; text-align: center; margin-bottom: 12px; padding: 8px; background: #ffebee; color: #c62828; border-radius: 8px; font-weight: 700; font-size: 13px;"></div>
 
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                        ⏱️ Agregar Atraso en Línea
+                        ️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
@@ -484,7 +486,7 @@ const Home = {
             });
         }
 
-        // ✅ EVENT LISTENERS DE BOTONES DE MODO (siempre se registran si existen)
+        // ✅ EVENT LISTENERS DE BOTONES DE MODO
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
@@ -514,7 +516,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast('📅 Modo: Automático (día real)');
+                App.showToast(' Modo: Automático (día real)');
                 recargarHome();
             });
         }
@@ -575,7 +577,7 @@ const Home = {
 
                 <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid var(--primary);">
                     <p style="font-size: 14px; color: var(--text); margin: 0; line-height: 1.6; text-align: left;">
-                        <strong>️ Paso importante:</strong><br>
+                        <strong>⚠️ Paso importante:</strong><br>
                         Para que la app funcione correctamente y puedas ver tus horarios, trenes y descansos, necesitas registrar tu <strong>Número de Rol</strong>.
                         <br><br>
                         <strong>¿Cómo hacerlo?</strong><br>
@@ -614,11 +616,10 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ CRONÓMETRO: Cuenta regresiva en descanso, cuenta hacia adelante en atraso
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
 
-        const MINUTOS_TOLERANCIA = 85; // 1 hora 25 minutos
+        const MINUTOS_TOLERANCIA = 85;
 
         const actualizarReloj = () => {
             const ahora = new Date();
@@ -643,18 +644,15 @@ const Home = {
 
             if (minutosAtraso > 0 && badgeAtraso) {
                 badgeAtraso.style.display = 'block';
-                badgeAtraso.textContent = `️ +${minutosAtraso} minutos de atraso agregados`;
+                badgeAtraso.textContent = `⚠️ +${minutosAtraso} minutos de atraso agregados`;
             }
 
-            // ✅ ESTADO 1: Antes del descanso - mostrar 00:00:00
             if (horaActualMinutos < minutosInicio) {
                 relojTiempo.textContent = '00:00:00';
                 relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            }
-            // ✅ ESTADO 2: Durante el descanso - CUENTA REGRESIVA
-            else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
+            } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
@@ -665,24 +663,20 @@ const Home = {
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
-            }
-            // ✅ ESTADO 3: Después del descanso - CUENTA HACIA ADELANTE desde 00:00:00 hasta 01:25:00
-            else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
+            } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 const horas = Math.floor(diff / 60);
                 const mins = diff % 60;
                 const segs = segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '️ Tiempo de atraso en línea';
+                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea';
                 relojTiempo.style.color = '#FF9800';
                 if (relojMensaje) {
                     relojMensaje.style.display = 'block';
                     relojMensaje.textContent = '⚠️ A partir de este momento, si no ha llegado tu tren, es el tiempo de atraso que hay';
                     relojMensaje.style.color = '#FF9800';
                 }
-            }
-            // ✅ ESTADO 4: Se queda en 01:25:00
-            else {
+            } else {
                 relojTiempo.textContent = '01:25:00';
                 relojEtiqueta.textContent = 'Tiempo máximo de atraso alcanzado';
                 relojTiempo.style.color = '#c62828';
