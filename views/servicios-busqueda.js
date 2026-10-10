@@ -187,10 +187,14 @@ const ServiciosBusqueda = {
                                 const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
                                 return `
                                     <div class="ske-servicios-tren-card">
-                                        <div class="ske-servicios-tren-header">${labelTren} <span class="ske-servicios-tren-num">#${numTren}</span></div>
-                                        <div class="ske-servicios-tren-times">
+                                        <div class="ske-servicios-tren-header">
+                                            ${labelTren} <span class="ske-servicios-tren-num">#${numTren}</span>
+                                            ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: auto;">GARAGE</span>' : ''}
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: ${tren.vueltas ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 8px; margin-top: 8px;">
                                             <div class="ske-servicios-time-box"><span class="ske-servicios-time-label">Salida</span><span class="ske-servicios-time-value">${tren.salida || '--:--'}</span></div>
                                             <div class="ske-servicios-time-box"><span class="ske-servicios-time-label">Llegada</span><span class="ske-servicios-time-value">${tren.llegada || '--:--'}</span></div>
+                                            ${tren.vueltas ? `<div class="ske-servicios-time-box"><span class="ske-servicios-time-label">Vueltas</span><span class="ske-servicios-time-value">${tren.vueltas}</span></div>` : ''}
                                         </div>
                                     </div>
                                 `;
