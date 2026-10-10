@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard Completo con Botones de Modo Siempre Visibles
+// HOME.JS - Dashboard Completo con Mejor Búsqueda de Servicios
 // ============================================
 
 const Home = {
@@ -42,41 +42,81 @@ const Home = {
     },
 
     buscarServicioPorTipo(tipoDia, numeroServicio, userLineaId) {
-        if (!numeroServicio || numeroServicio === 'N/A') return null;
+        if (!numeroServicio || numeroServicio === 'N/A') {
+            console.log('❌ No hay número de servicio válido:', numeroServicio);
+            return null;
+        }
 
         const servicios = DB.load('servicios');
         const semanas = DB.load('semanas');
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
-        const normalizar = (texto) => texto.toLowerCase().replace(/\s/g, '').replace(/í/g, 'i');
+        console.log('🔍 Buscando servicio:', { tipoDia, numeroServicio, userLineaId });
+        console.log('📊 Total servicios:', servicios.length);
+        console.log(' Total semanas:', semanas.length);
 
+        // Normalización mejorada (quita tildes, espacios, convierte a minúsculas)
+        const normalizar = (texto) => {
+            if (!texto) return '';
+            return texto.toLowerCase()
+                       .normalize('NFD')
+                       .replace(/[\u0300-\u036f]/g, '') // Quita tildes
+                       .replace(/\s/g, '') // Quita espacios
+                       .trim();
+        };
+
+        const tipoDiaNormalizado = normalizar(tipoDia);
+        console.log('📅 Tipo de día buscado:', tipoDia, '->', tipoDiaNormalizado);
+
+        // Buscar la configuración de semana (tipo de día)
         const tipoDiaConfig = semanas.find(s => {
-            const tipoNorm = normalizar(s.tipo);
-            const actualNorm = normalizar(tipoDia);
-            return tipoNorm === actualNorm && s.lineaId === userLineaId;
+            const tipoNormalizado = normalizar(s.tipo);
+            const coincide = tipoNormalizado === tipoDiaNormalizado && s.lineaId === userLineaId;
+            if (coincide) {
+                console.log('✅ Semana encontrada:', s);
+            }
+            return coincide;
         });
 
-        if (!tipoDiaConfig) return null;
+        if (!tipoDiaConfig) {
+            console.error('❌ No se encontró configuración de semana para:', tipoDia);
+            console.log(' Semanas disponibles:', semanas.map(s => ({ tipo: s.tipo, lineaId: s.lineaId })));
+            return null;
+        }
 
+        // Buscar el servicio
         const servicio = servicios.find(s => {
             const nombreServicio = String(s.nombre).trim();
             const posicionNorm = String(numeroServicio).trim();
-            return nombreServicio === posicionNorm &&
+            const coincide = nombreServicio === posicionNorm &&
                    s.lineaId === userLineaId &&
                    s.semanaId === tipoDiaConfig.id;
+            
+            if (coincide) {
+                console.log('✅ Servicio encontrado:', s);
+            }
+            return coincide;
         });
 
-        if (servicio) {
-            return {
-                servicio,
-                linea: lineas.find(l => l.id === servicio.lineaId),
-                terminal: terminales.find(t => t.id === servicio.terminalId),
-                semana: tipoDiaConfig
-            };
+        if (!servicio) {
+            console.error('❌ No se encontró servicio:', numeroServicio);
+            console.log('📋 Servicios disponibles para esta línea:', 
+                servicios.filter(s => s.lineaId === userLineaId).map(s => ({
+                    nombre: s.nombre,
+                    semanaId: s.semanaId,
+                    terminalId: s.terminalId
+                }))
+            );
+            return null;
         }
 
-        return null;
+        return {
+            servicio,
+            linea: lineas.find(l => l.id === servicio.lineaId),
+            terminal: terminales.find(t => t.id === servicio.terminalId),
+            semana: tipoDiaConfig
+        };
     },
 
     render() {
@@ -113,8 +153,10 @@ const Home = {
             semanaActualNum = semanaActualConfig.numero;
         }
 
-        console.log(' Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
-        console.log('🏠 Home - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('🏠 Home - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Home - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('🏠 Home - servicios:', DB.load('servicios').length, 'registros');
+        console.log('🏠 Home - semanas:', DB.load('semanas').length, 'registros');
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -136,7 +178,7 @@ const Home = {
                     } else {
                         infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
 
-                        console.log('🏠 Home - servicio encontrado:', infoServicio ? 'SÍ' : 'NO');
+                        console.log(' Home - servicio encontrado:', infoServicio ? 'SÍ' : 'NO');
 
                         if (!infoServicio) {
                             errorMensaje = `No se encontró servicio "${posicionHoy}" para tipo de día "${tipoDiaActual}". Verifica en Registro → Servicios.`;
@@ -154,18 +196,16 @@ const Home = {
 
         const tiempoExtraPendiente = DB.load('tiempoExtra').filter(t => !t.cobrado);
         const diaSemana = new Date().getDay();
+        const mostrarBotones = posicionHoy !== 'N/A' && !esReservaHoy && !errorMensaje;
         const modoForzado = DB.get('modoDiaForzado', null);
 
         // ✅ CORRECCIÓN: Los botones de modo se muestran SIEMPRE que haya un rol configurado
-        // (independientemente de si hay error o no)
         const mostrarBotonesModo = userNumeroRol && rolesSemanal.length > 0 && posicionHoy !== 'N/A' && !esReservaHoy;
-        const mostrarServicio = !errorMensaje && infoServicio;
 
         // ✅ LÓGICA DE BOTONES: Siempre mostrar 2 botones según el día real
         let botonesModoHTML = '';
         
         if (diaSemana >= 1 && diaSemana <= 5) {
-            // Días laborales (Lunes a Viernes): mostrar Laboral y Domingo/Festivo
             const laboralActivo = modoForzado === null || modoForzado === 'laboral';
             const domingoActivo = modoForzado === 'domingo';
             
@@ -178,7 +218,6 @@ const Home = {
                 </button>
             `;
         } else if (diaSemana === 6) {
-            // Sábado: mostrar Sábado y Domingo/Festivo
             const sabadoActivo = modoForzado === null;
             const domingoActivo = modoForzado === 'domingo';
             
@@ -191,16 +230,15 @@ const Home = {
                 </button>
             `;
         } else {
-            // Domingo: mostrar Domingo/Festivo y Laboral
             const domingoActivo = modoForzado === null;
             const laboralActivo = modoForzado === 'laboral';
             
             botonesModoHTML = `
                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                     Domingo/Festivo
+                    🌙 Domingo/Festivo
                 </button>
                 <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">
-                     Laboral
+                    📅 Laboral
                 </button>
             `;
         }
@@ -415,7 +453,7 @@ const Home = {
                     <div id="badgeAtraso" style="display: none; text-align: center; margin-bottom: 12px; padding: 8px; background: #ffebee; color: #c62828; border-radius: 8px; font-weight: 700; font-size: 13px;"></div>
 
                     <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                        ️ Agregar Atraso en Línea
+                        ⏱️ Agregar Atraso en Línea
                     </button>
                 </div>
             </div>
@@ -433,7 +471,7 @@ const Home = {
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
         
-        console.log(' Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
+        console.log('🏠 Home - rolesSemanal cargado:', DB.load('rolesSemanal').length);
         console.log('🏠 Home - configuracionGlobal cargada');
         console.log('🏠 Home - servicios cargados:', DB.load('servicios').length);
         console.log('🏠 Home - líneas cargadas:', DB.load('lineas').length);
@@ -486,7 +524,6 @@ const Home = {
             });
         }
 
-        // ✅ EVENT LISTENERS DE BOTONES DE MODO
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const btnModoNormal = document.getElementById('btnModoNormal');
@@ -516,7 +553,7 @@ const Home = {
             btnModoNormal.addEventListener('click', () => {
                 DB.remove('modoDiaForzado');
                 DB.remove('fechaModoForzado');
-                App.showToast(' Modo: Automático (día real)');
+                App.showToast('📅 Modo: Automático (día real)');
                 recargarHome();
             });
         }
@@ -659,7 +696,7 @@ const Home = {
                 const segs = 60 - segundosActuales;
                 relojTiempo.textContent = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0
-                    ? `️ Tiempo restante de descanso (+${minutosAtraso} min)`
+                    ? `🍽️ Tiempo restante de descanso (+${minutosAtraso} min)`
                     : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
                 if (relojMensaje) relojMensaje.style.display = 'none';
