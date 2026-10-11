@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Fechas Reales y Carga desde Firebase
+// MI-ROL.JS - Calendario con Cálculo Automático de Semana
 // ============================================
 
 const MiRol = {
@@ -8,6 +8,41 @@ const MiRol = {
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
         const day = String(fecha.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    },
+
+    // ✅ CALCULAR SEMANA ACTUAL AUTOMÁTICAMENTE
+    calcularSemanaActual() {
+        const configGlobal = DB.load('configuracionGlobal');
+        const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
+        
+        if (!configInicio || !configInicio.fechaInicio) {
+            console.log('⚠️ No hay fecha de inicio configurada');
+            return 1; // Default
+        }
+
+        const fechaInicio = new Date(configInicio.fechaInicio);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        fechaInicio.setHours(0, 0, 0, 0);
+
+        // Calcular diferencia en días
+        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
+        
+        // Calcular semanas transcurridas
+        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
+        
+        // Calcular semana actual (ciclo de 5 semanas)
+        const semanaInicial = configInicio.semanaInicial || 1;
+        const semanaActual = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
+
+        console.log('📅 Cálculo automático de semana:');
+        console.log('  Fecha inicio:', configInicio.fechaInicio);
+        console.log('  Semana inicial:', semanaInicial);
+        console.log('  Días transcurridos:', diferenciaDias);
+        console.log('  Semanas transcurridas:', semanasTranscurridas);
+        console.log('  Semana actual calculada:', semanaActual);
+
+        return semanaActual;
     },
 
     render() {
@@ -23,34 +58,40 @@ const MiRol = {
         const miTerminal = terminales.find(t => t.id === userTerminalId);
 
         let miRol = null;
-        let semanaActualNum = 1;
+        
+        // ✅ USAR CÁLCULO AUTOMÁTICO
+        const semanaActualNum = this.calcularSemanaActual();
+        
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
         const diaActualNombre = diasSemana[hoy.getDay()];
 
-        const configGlobal = DB.load('configuracionGlobal');
-        const semanaActualConfig = configGlobal.find(c => c.tipo === 'semanaActual');
-
-        if (semanaActualConfig && semanaActualConfig.lineaId === userLineaId) {
-            semanaActualNum = semanaActualConfig.numero;
-            console.log('📅 Mi Rol - Semana actual desde config global:', semanaActualNum);
-        }
-
         console.log('📅 Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
         console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
+        console.log('📅 Mi Rol - Semana actual calculada:', semanaActualNum);
 
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
             console.log('📅 Mi Rol - miRol encontrado:', miRol ? 'SÍ' : 'NO');
         }
 
+        // ✅ Calcular fechas usando ciclo de 5 semanas
+        const TOTAL_SEMANAS = 5;
         const diaDeSemanaHoy = hoy.getDay();
         const domingoSemanaActual = new Date(hoy);
         domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
 
         const semanasConFechas = miRol ? miRol.semanas.map(semana => {
-            const diferencia = semana.numero - semanaActualNum;
+            // ✅ Calcular diferencia considerando el ciclo de 5 semanas
+            let diferencia = semana.numero - semanaActualNum;
+            
+            // Si la diferencia es negativa, "da la vuelta" al ciclo
+            if (diferencia < 0) {
+                diferencia += TOTAL_SEMANAS;
+            }
+            
+            // Calcular el domingo de esta semana
             const domingoSemana = new Date(domingoSemanaActual);
             domingoSemana.setDate(domingoSemanaActual.getDate() + (diferencia * 7));
 
@@ -78,9 +119,8 @@ const MiRol = {
             };
         }) : [];
 
-        // ✅ Determinar si hay rol registrado para cambiar el texto del botón
         const hayRolRegistrado = miRol !== null;
-        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '✏️ Nuevo';
+        const textoBoton = hayRolRegistrado ? '️ Editar' : '✏️ Nuevo';
 
         return `
             <div class="view active" style="padding: 20px;">
@@ -107,7 +147,7 @@ const MiRol = {
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;">📆 Semana Actual</div>
+                                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;"> Semana Actual</div>
                                 <div style="font-size: 18px; font-weight: 800;">Semana ${semanaActualNum}</div>
                             </div>
                         </div>
@@ -202,8 +242,8 @@ const MiRol = {
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
 
-        console.log(' Modal - líneas disponibles:', lineas.length);
-        console.log('📅 Modal - terminales disponibles:', terminales.length);
+        console.log('📅 Modal - líneas disponibles:', lineas.length);
+        console.log(' Modal - terminales disponibles:', terminales.length);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -214,7 +254,6 @@ const MiRol = {
             ? '<option value="">Selecciona terminal</option>' + terminalesFiltradas.map(t => `<option value="${t.id}" ${t.id === userTerminalId ? 'selected' : ''}>${t.nombre}</option>`).join('')
             : '<option value="">Selecciona línea primero</option>';
 
-        // ✅ Determinar si es edición o nuevo registro
         const esEdicion = userNumeroRol && userLineaId;
         const tituloModal = esEdicion ? '✏️ Editar Perfil' : '✏️ Nuevo Perfil';
 
