@@ -8801,3 +8801,40 @@ html, body {
         border-radius: 0;
     }
 }
+/* ✅ FIX: Selects legibles en modo oscuro */
+select option {
+    background: var(--surface, #3D3650);
+    color: var(--text, #FFFFFF);
+    padding: 10px;
+    font-size: 14px;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+    background: var(--primary, #5C5470);
+    color: white;
+}
+
+/* Para navegadores que no respetan el estilo de options */
+select {
+    background-color: var(--surface, #3D3650);
+    color: var(--text, #FFFFFF);
+    border: 2px solid var(--bg-soft, #352F44);
+}
+
+select:focus {
+    border-color: var(--primary, #5C5470);
+    outline: none;
+}
+
+/* Fix específico para el select de búsqueda de servicios */
+.ske-servicios-select option {
+    background: var(--surface, #3D3650);
+    color: var(--text, #FFFFFF);
+}
+
+.ske-servicios-select option:hover {
+    background: var(--primary, #5C5470);
+    color: white;
+}
