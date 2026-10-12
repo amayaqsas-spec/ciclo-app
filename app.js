@@ -12,7 +12,7 @@ const themes = {
     ocean: { '--bg': '#E6F4F6', '--bg-soft': '#D5EEF5', '--surface': '#EEF8FA', '--primary': '#5FB8D4', '--primary-soft': '#8CCCE0', '--accent': '#3D9ABF', '--text': '#2E4A5C', '--text-soft': '#6B828E', '--text-light': '#9BB0BE', '--clay-shadow': '8px 8px 16px #C4DCE0, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C4DCE0, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C4DCE0, inset -4px -4px 8px #FFFFFF' },
     mint: { '--bg': '#E6F6EE', '--bg-soft': '#D5F5E8', '--surface': '#EEFAF4', '--primary': '#5FD4A8', '--primary-soft': '#8CE0C0', '--accent': '#3DBF8A', '--text': '#2E5C4A', '--text-soft': '#6B8E7A', '--text-light': '#9BBEA8', '--clay-shadow': '8px 8px 16px #C4E0D4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C4E0D4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C4E0D4, inset -4px -4px 8px #FFFFFF' },
     peach: { '--bg': '#F6EEE6', '--bg-soft': '#F5E0D5', '--surface': '#FAF4EE', '--primary': '#D49B7F', '--primary-soft': '#E0B8A5', '--accent': '#BF7C5C', '--text': '#5C3D2E', '--text-soft': '#8E7A6B', '--text-light': '#BEA89B', '--clay-shadow': '8px 8px 16px #E0D4C4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0D4C4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0D4C4, inset -4px -4px 8px #FFFFFF' },
-    night: { '--bg': '#2A2438', '--bg-soft': '#352F44', '--surface': '#3D3650', '--primary': '#5C5470', '--primary-soft': '#7A7290', '--accent': '#DBD8E3', '--text': '#FFFFFF', '--text-soft': '#C8C4D4', '--text-light': '#9A96A8', '--clay-shadow': '8px 8px 16px #1A1528, -8px -8px 16px #3A3448', '--clay-shadow-sm': '4px 4px 8px #1A1528, -4px -4px 8px #3A3448', '--clay-inset': 'inset 4px 4px 8px #1A1528, inset -4px -4px 8px #3A3448' },
+    night: { '--bg': '#2A2438', '--bg-soft': '#352F44', '--surface': '#3D3650', '--primary': '#5C5470', '--primary-soft': '#7A7290', '--accent': '#DBD8E3', '--text': '#FFFFFF', '--text-soft': '#C8C4D4', '--text-light': '#9A96A8', '--night-blue': '#005192', '--clay-shadow': '8px 8px 16px #1A1528, -8px -8px 16px #3A3448', '--clay-shadow-sm': '4px 4px 8px #1A1528, -4px -4px 8px #3A3448', '--clay-inset': 'inset 4px 4px 8px #1A1528, inset -4px -4px 8px #3A3448' },
     orange: { '--bg': '#EEEEEE', '--bg-soft': '#E0E0E0', '--surface': '#F5F5F5', '--primary': '#FD7014', '--primary-soft': '#FF8C3A', '--accent': '#FF6B00', '--text': '#222831', '--text-soft': '#5A6070', '--text-light': '#8A90A0', '--clay-shadow': '8px 8px 16px #C8C8C8, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #C8C8C8, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #C8C8C8, inset -4px -4px 8px #FFFFFF' },
     berry: { '--bg': '#F9FDFD', '--bg-soft': '#F0E8F0', '--surface': '#FFFFFF', '--primary': '#DE539D', '--primary-soft': '#E87FB5', '--accent': '#4EBFC1', '--text': '#3D2E3D', '--text-soft': '#7A6B7A', '--text-light': '#A89BA8', '--clay-shadow': '8px 8px 16px #E0D4DC, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E0D4DC, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E0D4DC, inset -4px -4px 8px #FFFFFF' },
     pastas: { '--bg': '#FFF8F0', '--bg-soft': '#FFF0E0', '--surface': '#FFFAF5', '--primary': '#D7561F', '--primary-soft': '#E87840', '--accent': '#2A8528', '--text': '#3D2E1E', '--text-soft': '#7A6B5B', '--text-light': '#A89B8B', '--clay-shadow': '8px 8px 16px #E8D4C4, -8px -8px 16px #FFFFFF', '--clay-shadow-sm': '4px 4px 8px #E8D4C4, -4px -4px 8px #FFFFFF', '--clay-inset': 'inset 4px 4px 8px #E8D4C4, inset -4px -4px 8px #FFFFFF' },
@@ -234,7 +234,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(` Error al cargar vista "${viewId}":`, error);
+            console.error(`❌ Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -352,7 +352,7 @@ const App = {
         console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
-            console.error(' Firebase no está inicializado. Revisa index.html');
+            console.error('❌ Firebase no está inicializado. Revisa index.html');
             return;
         }
 
@@ -502,7 +502,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -536,7 +536,7 @@ const App = {
                     backPressTimer = null;
                 }, 2000);
             } else {
-                console.log(' Saliendo de la app');
+                console.log('👋 Saliendo de la app');
                 
                 if (navigator.app) {
                     navigator.app.exitApp();
