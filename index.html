@@ -6,12 +6,10 @@
     <meta name="theme-color" content="#9B7FD4">
     <meta name="description" content="Aplicación de gestión inteligente de roles y horarios">
     
-    <!-- Prevenir caché -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <!-- Meta tags iOS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -19,20 +17,16 @@
     
     <title>CICLO</title>
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Firebase SIN defer -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-    <!-- Inicialización Firebase -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
@@ -50,55 +44,53 @@
         window.firebase = firebase;
     </script>
 
-    <!-- ✅ DETECTOR DE ACTUALIZACIÓN AUTOMÁTICA -->
+    <!-- ✅ DETECTOR CORREGIDO: SIN BUCLE INFINITO -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=' + Date.now(), { 
-                    scope: '/',
-                    updateViaCache: 'none'  // ← CLAVE: fuerza verificar en servidor
-                })
-                .then(reg => {
-                    console.log('✅ SW registrado:', reg.scope);
-                    
-                    // ✅ Detectar cuando hay una nueva versión
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        console.log('📥 Nueva versión descargándose...');
+                navigator.serviceWorker.register('./sw.js', { scope: '/' })
+                    .then(reg => {
+                        console.log('✅ SW registrado:', reg.scope);
                         
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('✅ Nueva versión lista, recargando automáticamente...');
-                                
-                                if (window.App && window.App.showToast) {
-                                    window.App.showToast('🔄 Actualizando app...');
+                        // ✅ Solo recargar UNA vez cuando hay nueva versión
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            console.log('📥 Nueva versión descargándose...');
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // ✅ Verificar si ya recargamos recientemente (evita bucle)
+                                    const lastReload = localStorage.getItem('lastSWReload');
+                                    const now = Date.now();
+                                    
+                                    if (!lastReload || (now - parseInt(lastReload)) > 30000) {
+                                        console.log('✅ Nueva versión lista, recargando...');
+                                        localStorage.setItem('lastSWReload', now.toString());
+                                        
+                                        if (window.App && window.App.showToast) {
+                                            window.App.showToast('🔄 Actualizando...');
+                                        }
+                                        
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 1000);
+                                    } else {
+                                        console.log('⏭️ Recarga reciente, omitiendo para evitar bucle');
+                                    }
                                 }
-                                
-                                // Recargar después de 1.5 segundos
-                                setTimeout(() => {
-                                    window.location.reload(true);
-                                }, 1500);
-                            }
+                            });
                         });
-                    });
 
-                    // ✅ Detectar cuando el SW cambia de controlador
-                    navigator.serviceWorker.addEventListener('controllerchange', () => {
-                        console.log('🔄 Service Worker cambió, recargando...');
-                        window.location.reload(true);
-                    });
-
-                    // Verificar actualizaciones cada 2 minutos
-                    setInterval(() => {
-                        reg.update();
-                    }, 2 * 60 * 1000);
-                })
-                .catch(err => console.error('❌ Error al registrar SW:', err));
+                        // ✅ Verificar actualizaciones cada 5 minutos (no muy frecuente)
+                        setInterval(() => {
+                            reg.update();
+                        }, 5 * 60 * 1000);
+                    })
+                    .catch(err => console.error('❌ Error al registrar SW:', err));
             });
         }
     </script>
 
-    <!-- Splash screen -->
     <script>
         (function() {
             function initSplash() {
@@ -134,7 +126,6 @@
 </head>
 <body>
 
-    <!-- SPLASH SCREEN -->
     <div id="splashScreen">
         <div class="splash-logo">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -146,7 +137,6 @@
         <div class="splash-subtitle">Gestión inteligente</div>
     </div>
 
-    <!-- WAVE TRANSITION -->
     <div class="wave-container">
         <div class="wave" id="wave">
             <svg viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,10 +145,8 @@
         </div>
     </div>
 
-    <!-- AUTH CONTAINER -->
     <div id="authContainer"></div>
 
-    <!-- MAIN APP -->
     <div id="mainApp">
         <header class="app-header">
             <div class="header-left">
@@ -178,7 +166,6 @@
 
         <div class="app-content" id="viewContainer"></div>
 
-        <!-- SIDE MENU -->
         <div class="side-menu-overlay" id="menuOverlay"></div>
         <nav class="side-menu" id="sideMenu">
             <div class="side-menu-header">
@@ -198,16 +185,13 @@
         </nav>
     </div>
 
-    <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
-    <!-- Scripts base -->
     <script src="ciclo_tracking_module.js"></script>
     <script src="db.js"></script>
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
 
-    <!-- Botón ojito -->
     <script>
     (function() {
         function agregarBotonOjito() {
