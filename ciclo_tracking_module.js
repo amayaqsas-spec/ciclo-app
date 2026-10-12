@@ -1,12 +1,12 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento Independiente de Vueltas
+// CICLO_TRACKING_MODULE.JS - Seguimiento de Vueltas Desglosado
 // ============================================
 
 const CicloTracking = {
-    DWELL_TIME_MS: 166000,
+    DWELL_TIME_MS: 166000, // 2 min 46 seg
     RECOVERY_THRESHOLD_MIN: 82.5,
     POST_SHIFT_TOLERANCE_MS: 140 * 60 * 1000,
-    STORAGE_KEY: 'ciclo_tracking_state_v2',
+    STORAGE_KEY: 'ciclo_tracking_state_v3',
 
     state: {
         turnoId: null,
@@ -27,14 +27,14 @@ const CicloTracking = {
         
         const container = await this.waitForElement('#skeServicioDiaContainer');
         if (!container) {
-            console.warn('⚠️ [CicloTracking] No se encontró contenedor de servicios');
+            console.warn('️ [CicloTracking] No se encontró contenedor de servicios');
             return;
         }
 
         this.extractServiceData();
         
         if (!this.servicioData) {
-            console.log('ℹ️ [CicloTracking] No hay servicio disponible para seguimiento');
+            console.log('️ [CicloTracking] No hay servicio disponible para seguimiento');
             return;
         }
 
@@ -135,6 +135,47 @@ const CicloTracking = {
         return `${year}-${month}-${day}`;
     },
 
+    // ✅ NUEVA FUNCIÓN: Calcular horas aproximadas de cada vuelta
+    calcularHorasVueltas(tren) {
+        const [hSalida, mSalida] = (tren.salida || '00:00').split(':').map(Number);
+        const [hLlegada, mLlegada] = (tren.llegada || '00:00').split(':').map(Number);
+        const vueltas = tren.vueltas || 1;
+
+        const salidaMinutos = hSalida * 60 + mSalida;
+        let llegadaMinutos = hLlegada * 60 + mLlegada;
+        
+        // Si la llegada es menor que la salida, es del día siguiente
+        if (llegadaMinutos < salidaMinutos) {
+            llegadaMinutos += 24 * 60;
+        }
+
+        const duracionTotalMinutos = llegadaMinutos - salidaMinutos;
+        const duracionPorVuelta = duracionTotalMinutos / vueltas;
+        const dwellTimeMinutos = this.DWELL_TIME_MS / 60000; // 2.77 minutos
+
+        const vueltasDesglosadas = [];
+        for (let i = 1; i <= vueltas; i++) {
+            const horaSalidaVuelta = salidaMinutos + (i - 1) * duracionPorVuelta;
+            const horaLlegadaVuelta = horaSalidaVuelta + duracionPorVuelta;
+            
+            // Convertir a formato HH:MM
+            const hSal = Math.floor(horaSalidaVuelta / 60) % 24;
+            const mSal = Math.floor(horaSalidaVuelta % 60);
+            const hLleg = Math.floor(horaLlegadaVuelta / 60) % 24;
+            const mLleg = Math.floor(horaLlegadaVuelta % 60);
+
+            vueltasDesglosadas.push({
+                numero: i,
+                horaSalida: `${String(hSal).padStart(2, '0')}:${String(mSal).padStart(2, '0')}`,
+                horaLlegada: `${String(hLleg).padStart(2, '0')}:${String(mLleg).padStart(2, '0')}`,
+                esOrigen: i % 2 === 1, // Vueltas impares: origen → destino
+                esDestino: i % 2 === 0  // Vueltas pares: destino → origen
+            });
+        }
+
+        return vueltasDesglosadas;
+    },
+
     loadState() {
         try {
             const saved = localStorage.getItem(this.STORAGE_KEY);
@@ -160,7 +201,7 @@ const CicloTracking = {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
         } catch (e) {
-            console.error(' [CicloTracking] Error al guardar:', e);
+            console.error('❌ [CicloTracking] Error al guardar:', e);
         }
     },
 
@@ -181,7 +222,7 @@ const CicloTracking = {
     checkExpiration() {
         const now = Date.now();
         if (this.state.expirationTime && now > this.state.expirationTime) {
-            console.log(' [CicloTracking] Turno expirado. Reset automático.');
+            console.log('⏰ [CicloTracking] Turno expirado. Reset automático.');
             this.resetState();
         }
     },
@@ -204,6 +245,10 @@ const CicloTracking = {
     renderTrackingPanel() {
         const container = document.getElementById('skeServicioDiaContainer');
         if (!container || !this.servicioData) return;
+
+        // Remover panel anterior si existe
+        const panelAnterior = document.getElementById('ct-tracking-panel');
+        if (panelAnterior) panelAnterior.remove();
 
         const panel = document.createElement('div');
         panel.id = 'ct-tracking-panel';
@@ -245,7 +290,7 @@ const CicloTracking = {
                 ">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <h4 style="margin: 0; font-size: 16px; color: var(--night-blue, var(--primary)); font-weight: 700;">
-                            ${esTrenCompletado ? '✓ ' : esTrenActivo ? ' ' : ''}${labelTren} #${numTren}
+                            ${esTrenCompletado ? '✓ ' : esTrenActivo ? '📍 ' : ''}${labelTren} #${numTren}
                         </h4>
                         ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;">GARAGE</span>' : ''}
                     </div>
@@ -267,39 +312,54 @@ const CicloTracking = {
             `;
 
             if (esTrenActivo) {
-                html += `<div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">Progreso de Vueltas:</div>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">`;
+                // ✅ Desglose de vueltas con horas aproximadas
+                const vueltasDesglosadas = this.calcularHorasVueltas(tren);
+                
+                html += `<div style="margin-bottom: 12px;">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Vueltas:</div>`;
 
-                for (let v = 1; v <= vueltas; v++) {
-                    const vueltaKey = `${trenIdx}_${v}`;
+                vueltasDesglosadas.forEach((vuelta, idx) => {
+                    const vueltaKey = `${trenIdx}_${vuelta.numero}`;
                     const estaCompletada = this.state.vueltasCompletadas[vueltaKey];
-                    const esVueltaActual = v === this.state.currentVuelta;
+                    const esVueltaActual = vuelta.numero === this.state.currentVuelta;
+                    const direccion = vuelta.esOrigen ? 'Origen → Destino' : 'Destino → Origen';
                     
                     html += `
-                        <button class="ct-btn-vuelta" data-tren="${trenIdx}" data-vuelta="${v}" style="
-                            flex: 1;
-                            min-width: 70px;
-                            padding: 10px 6px;
-                            background: ${estaCompletada ? 'var(--primary)' : 'var(--surface)'};
-                            color: ${estaCompletada ? 'white' : 'var(--text)'};
-                            border: 2px solid ${esVueltaActual ? 'var(--accent)' : 'var(--bg-soft)'};
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 10px;
+                            margin-bottom: 6px;
+                            background: ${estaCompletada ? 'var(--primary)' : esVueltaActual ? 'var(--accent)' : 'var(--surface)'};
                             border-radius: 8px;
-                            font-size: 12px;
-                            font-weight: 700;
-                            cursor: ${estaCompletada ? 'default' : 'pointer'};
-                            transition: all 0.2s;
+                            border: 2px solid ${esVueltaActual ? 'var(--accent)' : 'transparent'};
                         ">
-                            ${estaCompletada ? `✓ V${v}` : esVueltaActual ? `📍 V${v}` : `V${v}`}
-                        </button>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; font-weight: 700; color: ${estaCompletada || esVueltaActual ? 'white' : 'var(--text)'};">
+                                    ${estaCompletada ? '✓ ' : esVueltaActual ? ' ' : ''}Vuelta ${vuelta.numero}
+                                </div>
+                                <div style="font-size: 10px; color: ${estaCompletada || esVueltaActual ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">
+                                    ${direccion}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; color: ${estaCompletada || esVueltaActual ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">Llegada aprox.</div>
+                                <div style="font-size: 14px; font-weight: 800; color: ${estaCompletada || esVueltaActual ? 'white' : 'var(--night-blue, var(--text))'};">
+                                    ${vuelta.horaLlegada}
+                                </div>
+                            </div>
+                        </div>
                     `;
-                }
+                });
+
                 html += `</div>`;
 
                 html += `
                     <button class="ct-btn-llegada" data-tren="${trenIdx}" style="
                         width: 100%;
                         padding: 12px;
-                        background: var(--accent);
+                        background: #FF9800;
                         color: white;
                         border: none;
                         border-radius: 10px;
@@ -310,9 +370,10 @@ const CicloTracking = {
                         align-items: center;
                         justify-content: center;
                         gap: 8px;
-                        box-shadow: 0 4px 12px rgba(124, 92, 191, 0.3);
+                        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+                        transition: all 0.2s;
                     ">
-                         Marcar Llegada a Terminal Final
+                        📍 Marcar Llegada a Terminal
                     </button>
                 `;
 
@@ -387,7 +448,6 @@ const CicloTracking = {
                         font-size: 13px;
                         font-weight: 600;
                         text-align: center;
-                        animation: pulse 2s infinite;
                     ">
                         ⚙️ Estado de regulación: Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional (Ciclo de Recuperación Acumulado).
                     </div>
@@ -402,41 +462,12 @@ const CicloTracking = {
     },
 
     attachEventListeners() {
-        document.querySelectorAll('.ct-btn-vuelta').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const trenIdx = parseInt(btn.dataset.tren);
-                const vuelta = parseInt(btn.dataset.vuelta);
-                this.marcarVuelta(trenIdx, vuelta);
-            });
-        });
-
         document.querySelectorAll('.ct-btn-llegada').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const trenIdx = parseInt(btn.dataset.tren);
                 this.marcarLlegada(trenIdx);
             });
         });
-    },
-
-    marcarVuelta(trenIdx, vueltaNum) {
-        const vueltaKey = `${trenIdx}_${vueltaNum}`;
-        if (this.state.vueltasCompletadas[vueltaKey]) return;
-
-        const ahora = new Date();
-        const horaActual = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-
-        this.state.vueltasCompletadas[vueltaKey] = {
-            hora: horaActual,
-            timestamp: ahora.getTime()
-        };
-
-        if (vueltaNum === this.state.currentVuelta) {
-            this.state.currentVuelta = vueltaNum + 1;
-        }
-
-        this.saveState();
-        this.renderTrackingPanel();
-        App.showToast(`✅ Vuelta ${vueltaNum} completada a las ${horaActual}`);
     },
 
     marcarLlegada(trenIdx) {
