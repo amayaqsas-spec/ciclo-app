@@ -157,14 +157,14 @@ const Home = {
             const laboralActivo = modoForzado === null || modoForzado === 'laboral';
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
-                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
             `;
         } else if (diaSemana === 6) {
             const sabadoActivo = modoForzado === null;
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
-                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Sábado</button>
+                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Sábado</button>
                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
             `;
         } else {
@@ -251,7 +251,7 @@ const Home = {
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;">🚂 Trenes (${trenes.length})</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;"> Trenes (${trenes.length})</div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
                         const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
@@ -333,7 +333,7 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
         if (btnModoNormal) btnModoNormal.addEventListener('click', () => { DB.remove('modoDiaForzado'); DB.remove('fechaModoForzado'); App.showToast('📅 Modo: Automático'); recargarHome(); });
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
@@ -345,7 +345,7 @@ const Home = {
 
             if (miRol) {
                 const configGlobal = DB.load('configuracionGlobal');
-                const semanaActualConfig = configGlobal.find(c => c.tipo === 'inicioCiclo') || { semanaInicial: 1, fechaInicio: new Date().toISOString() }; // Fallback seguro
+                const semanaActualConfig = configGlobal.find(c => c.tipo === 'inicioCiclo') || { semanaInicial: 1, fechaInicio: new Date().toISOString() };
                 const hoyFecha = new Date(); hoyFecha.setHours(0,0,0,0);
                 const fechaInicio = new Date(semanaActualConfig.fechaInicio + 'T00:00:00'); fechaInicio.setHours(0,0,0,0);
                 const diferenciaDias = Math.floor((hoyFecha - fechaInicio) / (1000 * 60 * 60 * 24));
@@ -369,6 +369,11 @@ const Home = {
 
         const btnVerAvisos = document.getElementById('btnVerAvisos');
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
+
+        // ✅ INTEGRACIÓN: Inicializar módulo de seguimiento operativo
+        if (typeof CicloTracking !== 'undefined') {
+            setTimeout(() => CicloTracking.init(), 500);
+        }
     },
 
     mostrarModalBienvenida() {
@@ -377,7 +382,20 @@ const Home = {
         document.getElementById('btnEntendidoBienvenida').addEventListener('click', () => { overlay.remove(); DB.set('bienvenidaVista', true); setTimeout(() => { Views.load('mi-rol', true); App.toggleMenu(); }, 300); });
     },
 
-    onLeave() { if (this.relojInterval) { clearInterval(this.relojInterval); this.relojInterval = null; } this.minutosAtraso = 0; return Promise.resolve(true); },
+    onLeave() {
+        if (this.relojInterval) {
+            clearInterval(this.relojInterval);
+            this.relojInterval = null;
+        }
+        
+        // ✅ LIMPIEZA: Detener módulo de seguimiento al salir
+        if (typeof CicloTracking !== 'undefined') {
+            CicloTracking.destroy();
+        }
+        
+        this.minutosAtraso = 0;
+        return Promise.resolve(true);
+    },
 
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
@@ -403,7 +421,7 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
