@@ -24,15 +24,15 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
-    <!-- ✅ CSS primero (sin defer) -->
+    <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- ✅ Firebase SIN defer (carga sincrónica para que esté listo antes que app.js) -->
+    <!-- Firebase SIN defer -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-    <!-- ✅ INICIALIZACIÓN FIREBASE (sincrónica, antes que app.js) -->
+    <!-- Inicialización Firebase -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBeH3eFUPeUmis1fUUDOIgK6--69p-WkEM",
@@ -50,21 +50,55 @@
         window.firebase = firebase;
     </script>
 
-    <!-- ✅ Service Worker ligero -->
+    <!-- ✅ DETECTOR DE ACTUALIZACIÓN AUTOMÁTICA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        console.log('✅ SW registrado');
-                        setInterval(() => reg.update(), 10 * 60 * 1000);
-                    })
-                    .catch(err => console.log('SW error:', err));
+                navigator.serviceWorker.register('./sw.js?v=' + Date.now(), { 
+                    scope: '/',
+                    updateViaCache: 'none'  // ← CLAVE: fuerza verificar en servidor
+                })
+                .then(reg => {
+                    console.log('✅ SW registrado:', reg.scope);
+                    
+                    // ✅ Detectar cuando hay una nueva versión
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        console.log('📥 Nueva versión descargándose...');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('✅ Nueva versión lista, recargando automáticamente...');
+                                
+                                if (window.App && window.App.showToast) {
+                                    window.App.showToast('🔄 Actualizando app...');
+                                }
+                                
+                                // Recargar después de 1.5 segundos
+                                setTimeout(() => {
+                                    window.location.reload(true);
+                                }, 1500);
+                            }
+                        });
+                    });
+
+                    // ✅ Detectar cuando el SW cambia de controlador
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        console.log('🔄 Service Worker cambió, recargando...');
+                        window.location.reload(true);
+                    });
+
+                    // Verificar actualizaciones cada 2 minutos
+                    setInterval(() => {
+                        reg.update();
+                    }, 2 * 60 * 1000);
+                })
+                .catch(err => console.error('❌ Error al registrar SW:', err));
             });
         }
     </script>
 
-    <!-- ✅ Splash screen -->
+    <!-- Splash screen -->
     <script>
         (function() {
             function initSplash() {
@@ -167,13 +201,13 @@
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
-    <!-- ✅ Scripts base en orden correcto (Firebase ya está listo) -->
+    <!-- Scripts base -->
     <script src="ciclo_tracking_module.js"></script>
     <script src="db.js"></script>
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
 
-    <!-- ✅ Botón ojito -->
+    <!-- Botón ojito -->
     <script>
     (function() {
         function agregarBotonOjito() {
