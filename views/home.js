@@ -5,6 +5,7 @@
 const Home = {
     relojInterval: null,
     minutosAtraso: 0,
+    infoServicio: null, // ✅ Variable global para compartir entre render() e init()
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -94,7 +95,6 @@ const Home = {
         let semanaActualNum = 1;
         let posicionHoy = 'N/A';
         let tipoDiaActual = this.getTipoDiaActual();
-        let infoServicio = null;
         let errorMensaje = null;
         let esReservaHoy = false;
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -116,6 +116,9 @@ const Home = {
             semanaActualNum = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
         }
 
+        // ✅ Guardar infoServicio como propiedad del objeto
+        this.infoServicio = null;
+
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
 
@@ -131,8 +134,8 @@ const Home = {
                     if (esReservaHoy) {
                         errorMensaje = `No hay servicios fijos para este tipo de reservas. Hoy tienes asignada la reserva "${posicionHoy}".`;
                     } else {
-                        infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
-                        if (!infoServicio) {
+                        this.infoServicio = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
+                        if (!this.infoServicio) {
                             errorMensaje = `No se encontró servicio "${posicionHoy}" para tipo de día "${tipoDiaActual}".`;
                         }
                     }
@@ -157,14 +160,14 @@ const Home = {
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
                 <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
+                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
             `;
         } else if (diaSemana === 6) {
             const sabadoActivo = modoForzado === null;
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Sábado</button>
-                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
+                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
             `;
         } else {
             const domingoActivo = modoForzado === null;
@@ -211,7 +214,7 @@ const Home = {
                             <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
                             <p style="color: var(--text-soft); font-size: 14px;">${errorMensaje}</p>
                         </div>
-                    ` : infoServicio ? this.renderServicioDia(infoServicio, tipoDiaActual, posicionHoy) : `
+                    ` : this.infoServicio ? this.renderServicioDia(this.infoServicio, tipoDiaActual, posicionHoy) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                             <h3>Sin servicio asignado</h3>
                             <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
@@ -253,7 +256,7 @@ const Home = {
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;">🚂 Trenes (${trenes.length})</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;"> Trenes (${trenes.length})</div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
                         const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
@@ -286,7 +289,7 @@ const Home = {
                         <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                         <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                     </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
+                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">️ Agregar Atraso al Tiempo de Alimentos</button>
                 </div>
             </div>
         `;
@@ -335,22 +338,24 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
         if (btnModoNormal) btnModoNormal.addEventListener('click', () => { DB.remove('modoDiaForzado'); DB.remove('fechaModoForzado'); App.showToast('📅 Modo: Automático'); recargarHome(); });
 
+        // ✅ CORRECCIÓN: Usar this.infoServicio en lugar de infoServicio
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
             btnAtraso.addEventListener('click', () => {
-                if (infoServicio && infoServicio.servicio) {
-                    this.agregarAtraso(infoServicio.servicio);
+                if (this.infoServicio && this.infoServicio.servicio) {
+                    this.agregarAtraso(this.infoServicio.servicio);
                 } else {
                     App.showToast('⚠️ No hay servicio disponible para agregar atraso');
                 }
             });
         }
 
-        if (infoServicio && infoServicio.servicio) {
-            this.iniciarReloj(infoServicio.servicio);
+        // ✅ CORRECCIÓN: Usar this.infoServicio
+        if (this.infoServicio && this.infoServicio.servicio) {
+            this.iniciarReloj(this.infoServicio.servicio);
         }
 
         const btnVerAvisos = document.getElementById('btnVerAvisos');
@@ -358,12 +363,15 @@ const Home = {
 
         // ✅ INTEGRACIÓN: Inicializar módulo de seguimiento independiente
         if (typeof CicloTracking !== 'undefined') {
+            console.log('️ [Home] Iniciando CicloTracking...');
             setTimeout(() => CicloTracking.init(), 800);
+        } else {
+            console.warn('⚠️ [Home] CicloTracking no está disponible');
         }
     },
 
     mostrarModalBienvenida() {
-        const modalHTML = `<div style="background: var(--surface); padding: 32px 24px; border-radius: 20px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"><div style="margin-bottom: 20px;"><div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;"><svg viewBox="0 0 24 24" style="width: 40px; height: 40px; fill: white;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div><h2 style="margin: 0 0 8px 0; font-size: 28px; color: var(--primary); font-weight: 800;">¡Bienvenido a CICLO!</h2><p style="font-size: 15px; color: var(--text); margin: 0; line-height: 1.5;">Gracias por usar nuestra aplicación de gestión inteligente.</p></div><div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid var(--primary);"><p style="font-size: 14px; color: var(--text); margin: 0; line-height: 1.6; text-align: left;"><strong>⚠️ Paso importante:</strong><br>Para que la app funcione correctamente, necesitas registrar tu <strong>Número de Rol</strong>.<br><br><strong>¿Cómo hacerlo?</strong><br>1. Abre el menú lateral ()<br>2. Entra a "Mi Rol"<br>3. Toca "Nuevo"<br>4. Selecciona tu Línea, Terminal e ingresa tu Rol</p></div><button id="btnEntendidoBienvenida" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;">Entendido, ir a Mi Rol</button></div>`;
+        const modalHTML = `<div style="background: var(--surface); padding: 32px 24px; border-radius: 20px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"><div style="margin-bottom: 20px;"><div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;"><svg viewBox="0 0 24 24" style="width: 40px; height: 40px; fill: white;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div><h2 style="margin: 0 0 8px 0; font-size: 28px; color: var(--primary); font-weight: 800;">¡Bienvenido a CICLO!</h2><p style="font-size: 15px; color: var(--text); margin: 0; line-height: 1.5;">Gracias por usar nuestra aplicación de gestión inteligente.</p></div><div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid var(--primary);"><p style="font-size: 14px; color: var(--text); margin: 0; line-height: 1.6; text-align: left;"><strong>️ Paso importante:</strong><br>Para que la app funcione correctamente, necesitas registrar tu <strong>Número de Rol</strong>.<br><br><strong>¿Cómo hacerlo?</strong><br>1. Abre el menú lateral (☰)<br>2. Entra a "Mi Rol"<br>3. Toca "Nuevo"<br>4. Selecciona tu Línea, Terminal e ingresa tu Rol</p></div><button id="btnEntendidoBienvenida" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;">Entendido, ir a Mi Rol</button></div>`;
         const overlay = App.showModal(modalHTML);
         document.getElementById('btnEntendidoBienvenida').addEventListener('click', () => { overlay.remove(); DB.set('bienvenidaVista', true); setTimeout(() => { Views.load('mi-rol', true); App.toggleMenu(); }, 300); });
     },
@@ -400,7 +408,7 @@ const Home = {
             if (!relojTiempo || !relojEtiqueta) return;
 
             if (horaActualMinutos < minutosInicio) {
-                relojTiempo.textContent = '00:00:00'; relojEtiqueta.textContent = '⏳ Esperando inicio de descanso'; relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                relojTiempo.textContent = '00:00:00'; relojEtiqueta.textContent = ' Esperando inicio de descanso'; relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
