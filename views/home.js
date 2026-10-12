@@ -157,22 +157,22 @@ const Home = {
             const laboralActivo = modoForzado === null || modoForzado === 'laboral';
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
-                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
+                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
                 <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
             `;
         } else if (diaSemana === 6) {
             const sabadoActivo = modoForzado === null;
             const domingoActivo = modoForzado === 'domingo';
             botonesModoHTML = `
-                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Sábado</button>
-                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Sábado</button>
+                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
             `;
         } else {
             const domingoActivo = modoForzado === null;
             const laboralActivo = modoForzado === 'laboral';
             botonesModoHTML = `
                 <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
-                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
             `;
         }
 
@@ -191,7 +191,7 @@ const Home = {
                             <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
                             <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;"> Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
                             </div>
                         </div>
@@ -201,7 +201,7 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">${botonesModoHTML}</div>
                     </div>
                 ` : ''}
@@ -251,7 +251,7 @@ const Home = {
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;"> Trenes (${trenes.length})</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; text-transform: uppercase;">🚂 Trenes (${trenes.length})</div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
                         const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
@@ -284,7 +284,7 @@ const Home = {
                         <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                         <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                     </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 14px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">⏱️ Agregar Atraso en Línea</button>
+                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
                 </div>
             </div>
         `;
@@ -334,37 +334,23 @@ const Home = {
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
-        if (btnModoNormal) btnModoNormal.addEventListener('click', () => { DB.remove('modoDiaForzado'); DB.remove('fechaModoForzado'); App.showToast('📅 Modo: Automático'); recargarHome(); });
+        if (btnModoNormal) btnModoNormal.addEventListener('click', () => { DB.remove('modoDiaForzado'); DB.remove('fechaModoForzado'); App.showToast(' Modo: Automático'); recargarHome(); });
 
+        // ✅ CORRECCIÓN: El botón de atraso se activa independientemente del servicio
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
-            const userNumeroRol = DB.get('userNumeroRol');
-            const userLineaId = DB.get('userLineaId');
-            const rolesSemanal = DB.load('rolesSemanal');
-            const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
-
-            if (miRol) {
-                const configGlobal = DB.load('configuracionGlobal');
-                const semanaActualConfig = configGlobal.find(c => c.tipo === 'inicioCiclo') || { semanaInicial: 1, fechaInicio: new Date().toISOString() };
-                const hoyFecha = new Date(); hoyFecha.setHours(0,0,0,0);
-                const fechaInicio = new Date(semanaActualConfig.fechaInicio + 'T00:00:00'); fechaInicio.setHours(0,0,0,0);
-                const diferenciaDias = Math.floor((hoyFecha - fechaInicio) / (1000 * 60 * 60 * 24));
-                const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-                const semanaActualNum = ((semanasTranscurridas + (semanaActualConfig.semanaInicial || 1) - 1) % 5) + 1;
-
-                const diaNombre = diasSemana[new Date().getDay()];
-                const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
-                const posicionHoy = semanaData && semanaData.dias && semanaData.dias[diaNombre] ? semanaData.dias[diaNombre].posicion : null;
-
-                if (posicionHoy && !this.esReserva(posicionHoy)) {
-                    const tipoDiaActual = this.getTipoDiaActual();
-                    const servicioInfo = this.buscarServicioPorTipo(tipoDiaActual, posicionHoy, userLineaId);
-                    if (servicioInfo && servicioInfo.servicio) {
-                        this.iniciarReloj(servicioInfo.servicio);
-                        btnAtraso.addEventListener('click', () => this.agregarAtraso(servicioInfo.servicio));
-                    }
+            btnAtraso.addEventListener('click', () => {
+                if (infoServicio && infoServicio.servicio) {
+                    this.agregarAtraso(infoServicio.servicio);
+                } else {
+                    App.showToast('⚠️ No hay servicio disponible para agregar atraso');
                 }
-            }
+            });
+        }
+
+        // Iniciar reloj si hay servicio
+        if (infoServicio && infoServicio.servicio) {
+            this.iniciarReloj(infoServicio.servicio);
         }
 
         const btnVerAvisos = document.getElementById('btnVerAvisos');
@@ -421,12 +407,12 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; relojTiempo.style.color = '#FF9800';
+                relojEtiqueta.textContent = '️ Tiempo de atraso en línea'; relojTiempo.style.color = '#FF9800';
             } else {
                 relojTiempo.textContent = '01:25:00'; relojEtiqueta.textContent = 'Tiempo máximo de atraso alcanzado'; relojTiempo.style.color = '#c62828';
             }
@@ -436,12 +422,12 @@ const Home = {
     },
 
     agregarAtraso(servicio) {
-        const minutos = prompt('¿Cuántos minutos de atraso en línea deseas agregar?');
+        const minutos = prompt('¿Cuántos minutos de atraso deseas agregar al tiempo de alimentos?');
         if (minutos === null) return;
         const minutosNum = parseInt(minutos);
         if (isNaN(minutosNum) || minutosNum <= 0) { App.showToast('Ingresa un número válido'); return; }
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-        App.showToast(`⏱️ +${minutosNum} min agregados`);
+        App.showToast(`⏱️ +${minutosNum} min agregados al descanso`);
         this.iniciarReloj(servicio);
     }
 };
