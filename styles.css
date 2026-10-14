@@ -8883,3 +8883,40 @@ body {
         -webkit-overflow-scrolling: touch !important;
     }
 }
+/* ============================================
+   ✅ CENTRAR APP EN PANTALLA
+   ============================================ */
+
+body {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #1a1a1a !important; /* Fondo oscuro para que se vea bien en PC */
+}
+
+#mainApp {
+    margin: 0 auto !important;
+    max-width: 480px !important; /* Ancho máximo tipo móvil */
+    width: 100% !important;
+    height: 100vh !important;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5) !important; /* Sombra elegante */
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+
+/* En móviles, que ocupe toda la pantalla */
+@media (max-width: 480px) {
+    body {
+        background: var(--bg) !important;
+    }
+    
+    #mainApp {
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        height: 100vh !important;
+    }
+}
