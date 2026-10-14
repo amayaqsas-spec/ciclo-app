@@ -8920,3 +8920,47 @@ body {
         height: 100vh !important;
     }
 }
+/* ============================================
+   ✅ CORRECCIÓN: Ocultar Splash Screen correctamente
+   ============================================ */
+
+#splashScreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 100000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--bg, #F0E6F6) !important;
+    transition: opacity 0.5s ease, visibility 0.5s ease !important;
+}
+
+/* ✅ Clase .hide que oculta el splash */
+#splashScreen.hide {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Wave transition también debe ocultarse */
+.wave-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.6s ease !important;
+}
+
+.wave-container .wave.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
