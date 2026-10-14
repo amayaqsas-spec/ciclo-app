@@ -1,5 +1,5 @@
 // ============================================
-// AUTH.JS - Autenticación con soporte Offline y Correcciones iOS
+// AUTH.JS - Autenticación con soporte Offline
 // ============================================
 
 const ADMIN_EMAIL = 'amayaqsas@gmail.com';
@@ -16,173 +16,175 @@ const Auth = {
                 console.log('✅ Persistencia de sesión configurada: LOCAL');
             }
         } catch (error) {
-            console.warn('️ No se pudo configurar persistencia:', error);
+            console.warn('⚠️ No se pudo configurar persistencia:', error);
         }
     },
 
-    // ✅ Función para cerrar menús y forzar resize en iOS
+    // ✅ Función auxiliar para cerrar menús (compatible con todas las plataformas)
     cleanupUI() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
         if (sideMenu) sideMenu.classList.remove('active');
         if (menuOverlay) menuOverlay.classList.remove('active');
         
-        const authContainer = document.getElementById('authContainer');
-        const mainApp = document.getElementById('mainApp');
-        
-        if (authContainer) {
-            authContainer.style.display = 'none';
-            authContainer.classList.remove('show');
-            authContainer.innerHTML = '';
-        }
-        
-        if (mainApp) {
-            mainApp.style.display = 'flex';
-            mainApp.classList.add('show');
-        }
-        
-        // ✅ Forzar recálculo del viewport MÚLTIPLES veces para iOS
-        const forceResize = () => {
+        setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
-            document.body.style.height = window.innerHeight + 'px';
-            
-            const viewContainer = document.getElementById('viewContainer');
-            if (viewContainer) {
-                const headerHeight = document.querySelector('.app-header')?.offsetHeight || 60;
-                viewContainer.style.height = (window.innerHeight - headerHeight) + 'px';
-                viewContainer.style.overflowY = 'auto';
-                viewContainer.style.webkitOverflowScrolling = 'touch';
-            }
-        };
-        
-        setTimeout(forceResize, 100);
-        setTimeout(forceResize, 300);
-        setTimeout(forceResize, 500);
-        setTimeout(forceResize, 1000);
+        }, 100);
     },
 
     renderLogin() {
         const container = document.getElementById('authContainer');
-        if (!container) return;
-        
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = 'none';
-            mainApp.classList.remove('show');
-        }
-
-        container.style.display = 'block';
-        container.classList.add('show');
-
         container.innerHTML = `
-            <div class="auth-wrapper-ios">
-                <div class="auth-card-ios">
-                    <div class="auth-header-ios">
-                        <div class="auth-logo-ios">CICLO</div>
-                        <p class="auth-subtitle-ios">Iniciar Sesión</p>
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">CICLO</h1>
                     </div>
 
-                    <div class="auth-form-ios">
+                    <div class="auth-form">
+                        <h2 class="form-title">Iniciar Sesión</h2>
+                        
                         <div class="msg-error" id="loginError"></div>
 
-                        <div class="input-group-ios">
-                            <label class="input-label-ios">Correo Electrónico</label>
-                            <input type="email" id="loginEmail" class="input-ios" placeholder="tu@correo.com" autocomplete="email">
+                        <div class="input-group-modern">
+                            <label class="input-label">Correo Electrónico</label>
+                            <input type="email" id="loginEmail" class="input-modern" placeholder="tu@correo.com" autocomplete="email">
                         </div>
 
-                        <div class="input-group-ios">
-                            <label class="input-label-ios">Contraseña</label>
-                            <input type="password" id="loginPassword" class="input-ios" placeholder="••••••••" autocomplete="current-password">
+                        <div class="input-group-modern">
+                            <label class="input-label">Contraseña</label>
+                            <input type="password" id="loginPassword" class="input-modern" placeholder="••••••••" autocomplete="current-password">
                         </div>
 
-                        <button class="btn-primary-ios" id="btnLogin">
-                            Iniciar Sesión
+                        <button class="btn-auth-primary" id="btnLogin">
+                            <span>Iniciar Sesión</span>
                         </button>
 
-                        <button class="btn-secondary-ios" id="goRegister">
-                            Crear una cuenta nueva
+                        <button class="btn-auth-secondary" id="goRegister" style="margin-top: 12px;">
+                            <span>Crear una cuenta nueva</span>
                         </button>
                     </div>
+                </div>
+
+                <div class="auth-background">
+                    <div class="auth-bg-circle"></div>
+                    <div class="auth-bg-circle"></div>
+                    <div class="auth-bg-circle"></div>
                 </div>
             </div>
         `;
 
         const style = document.createElement('style');
         style.textContent = `
-            .auth-wrapper-ios {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
+            .auth-container {
+                min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
-                padding-top: calc(20px + env(safe-area-inset-top));
-                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+                position: relative;
+                overflow: hidden;
                 background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
-                z-index: 10000;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
             }
-            .auth-card-ios {
+            .auth-background {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                overflow: hidden;
+                z-index: 0;
+            }
+            .auth-bg-circle {
+                position: absolute;
+                border-radius: 50%;
+                background: var(--primary);
+                opacity: 0.1;
+                animation: float 20s infinite ease-in-out;
+            }
+            .auth-bg-circle:nth-child(1) { width: 300px; height: 300px; top: -150px; right: -100px; animation-delay: 0s; }
+            .auth-bg-circle:nth-child(2) { width: 200px; height: 200px; bottom: -100px; left: -50px; animation-delay: 5s; }
+            .auth-bg-circle:nth-child(3) { width: 150px; height: 150px; top: 50%; left: 50%; animation-delay: 10s; }
+            @keyframes float {
+                0%, 100% { transform: translate(0, 0) scale(1); }
+                33% { transform: translate(30px, -30px) scale(1.1); }
+                66% { transform: translate(-20px, 20px) scale(0.9); }
+            }
+            .auth-card {
                 background: var(--surface);
-                border-radius: 24px;
-                padding: 32px 24px;
-                max-width: 360px;
+                border-radius: 20px;
+                padding: 32px 28px;
+                max-width: 400px;
                 width: 100%;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                animation: slideUpIOS 0.4s ease-out;
+                box-shadow: var(--clay-shadow);
+                position: relative;
+                z-index: 1;
+                animation: slideUp 0.5s ease-out;
             }
-            @keyframes slideUpIOS {
-                from { opacity: 0; transform: translateY(50px); }
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(30px); }
                 to { opacity: 1; transform: translateY(0); }
             }
-            .auth-header-ios { text-align: center; margin-bottom: 32px; }
-            .auth-logo-ios { font-size: 36px; font-weight: 800; color: var(--primary); margin-bottom: 8px; letter-spacing: 2px; }
-            .auth-subtitle-ios { font-size: 16px; color: var(--text-soft); margin: 0; }
-            .auth-form-ios { display: flex; flex-direction: column; gap: 16px; }
-            .input-group-ios { display: flex; flex-direction: column; gap: 6px; }
-            .input-label-ios { font-size: 13px; font-weight: 600; color: var(--text); }
-            .input-ios {
-                width: 100%; padding: 14px 16px; border: 2px solid var(--bg-soft); border-radius: 12px;
-                font-size: 16px; background: var(--bg); color: var(--text); box-sizing: border-box;
-                -webkit-appearance: none;
+            .auth-header { text-align: center; margin-bottom: 24px; }
+            .auth-title { font-size: 36px; font-weight: 800; color: var(--primary); margin: 0; letter-spacing: 3px; }
+            .auth-form { width: 100%; }
+            .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 20px 0; text-align: center; }
+            .input-group-modern { margin-bottom: 16px; }
+            .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+            .input-modern {
+                width: 100%; padding: 12px 14px; border: 2px solid var(--bg-soft); border-radius: 10px;
+                font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box;
             }
-            .input-ios:focus { outline: none; border-color: var(--primary); background: var(--surface); }
-            .btn-primary-ios {
-                width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
-                cursor: pointer; margin-top: 8px; box-shadow: 0 4px 16px rgba(155, 127, 212, 0.3);
-                -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+            .input-modern:focus { outline: none; border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1); }
+            .input-modern::placeholder { color: var(--text-light); }
+            .btn-auth-primary {
+                width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
+                transition: all 0.3s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
             }
-            .btn-primary-ios:active { transform: scale(0.98); }
-            .btn-primary-ios:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-            .btn-secondary-ios {
-                width: 100%; padding: 16px; background: var(--bg-soft); color: var(--text);
-                border: 2px solid var(--bg-soft); border-radius: 12px; font-size: 15px; font-weight: 600;
-                cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+            .btn-auth-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(155, 127, 212, 0.4); }
+            .btn-auth-primary:active { transform: translateY(0); }
+            .btn-auth-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+            .btn-auth-secondary {
+                width: 100%; padding: 12px; background: var(--bg-soft); color: var(--text);
+                border: 2px solid var(--bg-soft); border-radius: 10px; font-size: 15px; font-weight: 700;
+                cursor: pointer; transition: all 0.3s ease;
             }
-            .btn-secondary-ios:active { background: var(--bg); border-color: var(--primary); color: var(--primary); transform: scale(0.98); }
+            .btn-auth-secondary:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
             .msg-error {
-                background: #fee; color: #c33; padding: 12px; border-radius: 8px; font-size: 13px;
-                display: none; border-left: 4px solid #c33; margin-bottom: 8px;
+                background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px;
+                margin-bottom: 14px; display: none; border-left: 4px solid #c33;
             }
-            .msg-error.show { display: block; animation: shakeIOS 0.5s ease-in-out; }
-            @keyframes shakeIOS {
+            .msg-error.show { display: block; animation: shake 0.5s ease-in-out; }
+            @keyframes shake {
                 0%, 100% { transform: translateX(0); }
                 25% { transform: translateX(-10px); }
                 75% { transform: translateX(10px); }
             }
             .spinner {
-                display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3);
+                display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3);
                 border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;
             }
             @keyframes spin { to { transform: rotate(360deg); } }
+            
+            /* ✅ Correcciones específicas para iOS (no afectan Android/PC) */
+            .ios-device .auth-container {
+                min-height: 100vh;
+                min-height: calc(var(--vh, 1vh) * 100);
+            }
+            .ios-device .input-modern,
+            .ios-device .btn-auth-primary,
+            .ios-device .btn-auth-secondary {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            .ios-device .input-modern {
+                -webkit-appearance: none;
+            }
+            
             @media (max-width: 480px) {
-                .auth-card-ios { padding: 28px 20px; }
-                .auth-logo-ios { font-size: 32px; }
+                .auth-card { padding: 28px 24px; max-width: 360px; }
+                .auth-title { font-size: 32px; }
+                .form-title { font-size: 17px; }
+                .input-modern { padding: 11px 13px; }
+                .btn-auth-primary, .btn-auth-secondary { padding: 11px; font-size: 15px; }
             }
         `;
         document.head.appendChild(style);
@@ -196,48 +198,48 @@ const Auth = {
 
     renderRegister() {
         const container = document.getElementById('authContainer');
-        if (!container) return;
-
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = 'none';
-        }
-
         container.innerHTML = `
-            <div class="auth-wrapper-ios">
-                <div class="auth-card-ios">
-                    <div class="auth-header-ios">
-                        <div class="auth-logo-ios">CICLO</div>
-                        <p class="auth-subtitle-ios">Crear Cuenta</p>
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">CICLO</h1>
                     </div>
 
-                    <div class="auth-form-ios">
+                    <div class="auth-form">
+                        <h2 class="form-title">Crear Cuenta</h2>
+                        
                         <div class="msg-error" id="registerError"></div>
                         <div class="msg-success" id="registerSuccess"></div>
 
-                        <div class="input-group-ios">
-                            <label class="input-label-ios">Nombre/Seudónimo</label>
-                            <input type="text" id="registerName" class="input-ios" placeholder="Tu nombre" autocomplete="name">
+                        <div class="input-group-modern">
+                            <label class="input-label">Nombre/Seudónimo</label>
+                            <input type="text" id="registerName" class="input-modern" placeholder="Tu nombre" autocomplete="name">
                         </div>
 
-                        <div class="input-group-ios">
-                            <label class="input-label-ios">Correo Electrónico</label>
-                            <input type="email" id="registerEmail" class="input-ios" placeholder="tu@correo.com" autocomplete="email">
+                        <div class="input-group-modern">
+                            <label class="input-label">Correo Electrónico</label>
+                            <input type="email" id="registerEmail" class="input-modern" placeholder="tu@correo.com" autocomplete="email">
                         </div>
 
-                        <div class="input-group-ios">
-                            <label class="input-label-ios">Contraseña</label>
-                            <input type="password" id="registerPassword" class="input-ios" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                        <div class="input-group-modern">
+                            <label class="input-label">Contraseña</label>
+                            <input type="password" id="registerPassword" class="input-modern" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
                         </div>
 
-                        <button class="btn-primary-ios" id="btnRegister">
-                            Crear Cuenta
+                        <button class="btn-auth-primary" id="btnRegister">
+                            <span>Crear Cuenta</span>
                         </button>
 
-                        <button class="btn-secondary-ios" id="btnBackLogin">
-                            Volver al Login
+                        <button class="btn-auth-secondary" id="btnBackLogin" style="margin-top: 12px;">
+                            <span>Volver al Login</span>
                         </button>
                     </div>
+                </div>
+
+                <div class="auth-background">
+                    <div class="auth-bg-circle"></div>
+                    <div class="auth-bg-circle"></div>
+                    <div class="auth-bg-circle"></div>
                 </div>
             </div>
         `;
@@ -245,11 +247,11 @@ const Auth = {
         const style = document.createElement('style');
         style.textContent = `
             .msg-success {
-                background: #efe; color: #3c3; padding: 12px; border-radius: 8px; font-size: 13px;
-                display: none; border-left: 4px solid #3c3; margin-bottom: 8px;
+                background: #efe; color: #3c3; padding: 10px; border-radius: 8px; font-size: 13px;
+                margin-bottom: 14px; display: none; border-left: 4px solid #3c3;
             }
-            .msg-success.show { display: block; animation: slideDownIOS 0.3s ease-out; }
-            @keyframes slideDownIOS {
+            .msg-success.show { display: block; animation: slideDown 0.3s ease-out; }
+            @keyframes slideDown {
                 from { opacity: 0; transform: translateY(-10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
@@ -284,12 +286,10 @@ const Auth = {
             }
 
             const auth = firebase.auth();
-            console.log(' Llamando a signInWithEmailAndPassword...');
+            console.log('🔑 Llamando a signInWithEmailAndPassword...');
             
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
-            
-            this.cleanupUI();
             
         } catch (error) {
             console.error('❌ Error de login:', error.code, error.message);
@@ -301,7 +301,7 @@ const Auth = {
             }
             
             this.showError('loginError', this.getAuthError(error.code, error.message));
-            btn.innerHTML = 'Iniciar Sesión';
+            btn.innerHTML = '<span>Iniciar Sesión</span>';
             btn.disabled = false;
         }
     },
@@ -327,9 +327,9 @@ const Auth = {
             this.cleanupUI();
             this.triggerOfflineAuth();
         } else {
-            this.showError('loginError', 'Credenciales incorrectas o usuario no registrado');
+            this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
             const btn = document.getElementById('btnLogin');
-            btn.innerHTML = 'Iniciar Sesión';
+            btn.innerHTML = '<span>Iniciar Sesión</span>';
             btn.disabled = false;
         }
     },
@@ -405,21 +405,17 @@ const Auth = {
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerPassword').value = '';
             
-            setTimeout(() => {
-                this.cleanupUI();
-            }, 1500);
-            
         } catch (error) {
             console.error('❌ Error de registro:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log(' Error de red, registrando localmente...');
+                console.log('📡 Error de red, registrando localmente...');
                 this.handleOfflineRegister(name, email, password);
                 return;
             }
             
             this.showError('registerError', this.getAuthError(error.code, error.message));
-            btn.innerHTML = 'Crear Cuenta';
+            btn.innerHTML = '<span>Crear Cuenta</span>';
             btn.disabled = false;
         }
     },
@@ -428,9 +424,9 @@ const Auth = {
         const savedUsers = DB.get('registeredUsers', []);
         
         if (savedUsers.find(u => u.email === email)) {
-            this.showError('registerError', 'Este correo ya está registrado');
+            this.showError('registerError', 'Este correo ya está registrado en este dispositivo');
             const btn = document.getElementById('btnRegister');
-            btn.innerHTML = 'Crear Cuenta';
+            btn.innerHTML = '<span>Crear Cuenta</span>';
             btn.disabled = false;
             return;
         }
@@ -448,19 +444,15 @@ const Auth = {
         DB.set('userName', name);
 
         console.log('✅ Usuario registrado offline:', name);
-        this.showSuccess('registerSuccess', '¡Cuenta creada offline!');
+        this.showSuccess('registerSuccess', '¡Cuenta creada offline! Se sincronizará cuando haya internet.');
 
         document.getElementById('registerName').value = '';
         document.getElementById('registerEmail').value = '';
         document.getElementById('registerPassword').value = '';
 
         const btn = document.getElementById('btnRegister');
-        btn.innerHTML = 'Crear Cuenta';
+        btn.innerHTML = '<span>Crear Cuenta</span>';
         btn.disabled = false;
-        
-        setTimeout(() => {
-            this.cleanupUI();
-        }, 1500);
     },
 
     showError(elementId, msg) {
@@ -490,7 +482,9 @@ const Auth = {
             'auth/weak-password': 'Contraseña muy débil (mín. 6 caracteres)',
             'auth/invalid-email': 'Correo inválido',
             'auth/too-many-requests': 'Demasiados intentos. Espera un momento',
-            'auth/network-request-failed': 'Sin conexión a internet'
+            'auth/network-request-failed': 'Sin conexión a internet. Intentando modo offline...',
+            'auth/api-key-not-valid': 'API Key de Firebase inválida',
+            'auth/app-not-authorized': 'App no autorizada en Firebase'
         };
         
         if (errors[code]) return errors[code];
@@ -500,31 +494,37 @@ const Auth = {
     },
 
     getUserName(user) {
+        console.log('👤 Obteniendo nombre del usuario...');
+        
         const localName = DB.get('userName');
+        console.log(' Nombre en localStorage:', localName);
         
         if (localName && localName.trim() !== '') {
+            console.log('✅ Usando nombre de localStorage:', localName);
             return localName.trim();
         }
         
         if (user && user.displayName && user.displayName.trim() !== '') {
+            console.log('✅ Usando displayName de Firebase:', user.displayName);
             DB.set('userName', user.displayName);
             return user.displayName.trim();
         }
         
         if (user && user.email) {
-            return user.email.split('@')[0];
+            const emailName = user.email.split('@')[0];
+            console.log('️ Usando nombre del correo:', emailName);
+            return emailName;
         }
         
+        console.log('⚠️ No se encontró nombre, usando "Usuario"');
         return 'Usuario';
     },
 
     async logout() {
-        console.log(' Cerrando sesión...');
+        console.log('🚪 Cerrando sesión...');
         DB.remove('userName');
         DB.remove('offlineUser');
         this.isOffline = false;
-        
-        this.cleanupUI();
         
         if (firebase && firebase.auth) {
             await firebase.auth().signOut();

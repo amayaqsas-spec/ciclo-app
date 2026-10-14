@@ -1,5 +1,5 @@
 // ============================================
-// APP.JS - Orquestador Principal con soporte Offline y Correcciones iOS
+// APP.JS - Orquestador Principal con soporte Offline
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
@@ -32,9 +32,6 @@ const themeNames = {
     panaderia: 'Panadería', marino: 'Marino', bosque: 'Bosque', vino: 'Vino'
 };
 
-// ============================================
-// MAPA DE VISTAS
-// ============================================
 const viewModules = {
     home: './views/home.js',
     'mi-rol': './views/mi-rol.js',
@@ -64,9 +61,6 @@ const navigationHistory = ['home'];
 let backPressTimer = null;
 let isExiting = false;
 
-// ============================================
-// NAVEGACIÓN DE VISTAS
-// ============================================
 const Views = {
     current: 'home',
 
@@ -190,7 +184,7 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log('🚫 Salida cancelada por atraso activo');
+                console.log(' Salida cancelada por atraso activo');
                 return;
             }
         }
@@ -231,7 +225,7 @@ const Views = {
             view.init();
 
         } catch (error) {
-            console.error(` Error al cargar vista "${viewId}":`, error);
+            console.error(`❌ Error al cargar vista "${viewId}":`, error);
             container.innerHTML = `
                 <div class="view active" style="text-align:center;padding:40px 20px;">
                     <p style="color:var(--text-soft);">Error al cargar el módulo</p>
@@ -341,12 +335,9 @@ const Views = {
     }
 };
 
-// ============================================
-// APP - Orquestador
-// ============================================
 const App = {
     init() {
-        console.log('🚀 App.init() llamado');
+        console.log(' App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
             console.error('❌ Firebase no está inicializado. Revisa index.html');
@@ -367,31 +358,10 @@ const App = {
                 const authContainer = document.getElementById('authContainer');
                 const mainApp = document.getElementById('mainApp');
 
-                // ✅ Ocultar auth container completamente
-                if (authContainer) {
-                    authContainer.style.display = 'none';
-                    authContainer.classList.remove('show');
-                    authContainer.innerHTML = '';
-                }
+                if (authContainer) authContainer.classList.remove('show');
 
-                // ✅ Mostrar mainApp con display flex
                 setTimeout(() => {
-                    if (mainApp) {
-                        mainApp.style.display = 'flex';
-                        mainApp.classList.add('show');
-                        
-                        // ✅ Forzar recálculo del layout para iOS
-                        window.dispatchEvent(new Event('resize'));
-                        document.body.style.height = window.innerHeight + 'px';
-                        
-                        const viewContainer = document.getElementById('viewContainer');
-                        if (viewContainer) {
-                            const headerHeight = document.querySelector('.app-header')?.offsetHeight || 60;
-                            viewContainer.style.height = (window.innerHeight - headerHeight) + 'px';
-                            viewContainer.style.overflowY = 'auto';
-                            viewContainer.style.webkitOverflowScrolling = 'touch';
-                        }
-                    }
+                    if (mainApp) mainApp.classList.add('show');
                 }, 300);
 
                 const name = Auth.getUserName(user);
@@ -436,14 +406,10 @@ const App = {
                 const mainApp = document.getElementById('mainApp');
                 const authContainer = document.getElementById('authContainer');
 
-                if (mainApp) {
-                    mainApp.style.display = 'none';
-                    mainApp.classList.remove('show');
-                }
+                if (mainApp) mainApp.classList.remove('show');
 
                 setTimeout(() => {
                     if (authContainer) {
-                        authContainer.style.display = 'block';
                         authContainer.classList.add('show');
                         Auth.renderLogin();
                     }
@@ -523,7 +489,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log('🔙 Botón back presionado');
+            console.log(' Botón back presionado');
             this.handleBackButton();
         });
 
@@ -532,7 +498,7 @@ const App = {
 
     handleBackButton() {
         console.log('📜 Historial actual:', navigationHistory);
-        console.log(' Vista actual:', Views.current);
+        console.log('📍 Vista actual:', Views.current);
 
         if (navigationHistory.length > 1) {
             navigationHistory.pop();
@@ -608,9 +574,6 @@ const App = {
 window.App = App;
 window.Views = Views;
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
 function startApp() {
     console.log('✅ DOM listo, iniciando app...');
     App.init();

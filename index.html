@@ -147,7 +147,7 @@
 
     <div id="authContainer"></div>
 
-    <div id="mainApp" style="display: none;">
+    <div id="mainApp">
         <header class="app-header">
             <div class="header-left">
                 <button class="menu-btn" id="menuBtn">
@@ -192,37 +192,24 @@
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
 
-    <!-- ✅ SCRIPT: Corrección de viewport para iOS Safari -->
+    <!-- ✅ SCRIPT: Detección de iOS y corrección de viewport (NO afecta Android/PC) -->
     <script>
     (function() {
-        function setViewportHeight() {
-            let vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-            document.body.style.height = `${window.innerHeight}px`;
-            console.log(' Viewport height:', window.innerHeight + 'px');
-        }
-
-        setViewportHeight();
-
-        window.addEventListener('orientationchange', () => {
-            setTimeout(setViewportHeight, 100);
-        });
-
-        window.addEventListener('resize', setViewportHeight);
-
-        document.addEventListener('focusout', () => {
-            setTimeout(setViewportHeight, 100);
-        });
-
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         
         if (isIOS) {
-            console.log('📱 iOS detectado, aplicando correcciones...');
+            console.log('📱 iOS detectado, aplicando correcciones específicas...');
             document.body.classList.add('ios-device');
             
-            setTimeout(setViewportHeight, 500);
-            setTimeout(setViewportHeight, 1000);
-            setTimeout(setViewportHeight, 2000);
+            function setViewportHeight() {
+                let vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+
+            setViewportHeight();
+            window.addEventListener('resize', setViewportHeight);
+            window.addEventListener('orientationchange', () => setTimeout(setViewportHeight, 100));
+            document.addEventListener('focusout', () => setTimeout(setViewportHeight, 100));
         }
     })();
     </script>
