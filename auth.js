@@ -16,11 +16,11 @@ const Auth = {
                 console.log('✅ Persistencia de sesión configurada: LOCAL');
             }
         } catch (error) {
-            console.warn('⚠️ No se pudo configurar persistencia:', error);
+            console.warn('️ No se pudo configurar persistencia:', error);
         }
     },
 
-    // ✅ Función auxiliar para cerrar menús (compatible con todas las plataformas)
+    // ✅ Función auxiliar para cerrar menús
     cleanupUI() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
@@ -32,8 +32,35 @@ const Auth = {
         }, 100);
     },
 
+    // ✅ NUEVO: Asegurar que el contenedor ocupe toda la pantalla
+    ensureAuthContainerFullHeight() {
+        const container = document.getElementById('authContainer');
+        if (container) {
+            container.style.position = 'fixed';
+            container.style.top = '0';
+            container.style.left = '0';
+            container.style.right = '0';
+            container.style.bottom = '0';
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.zIndex = '9999';
+            container.style.display = 'block';
+        }
+    },
+
     renderLogin() {
         const container = document.getElementById('authContainer');
+        if (!container) return;
+        
+        // ✅ Asegurar que el contenedor ocupe toda la pantalla
+        this.ensureAuthContainerFullHeight();
+        
+        // ✅ Ocultar mainApp
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+        }
+
         container.innerHTML = `
             <div class="auth-container">
                 <div class="auth-card">
@@ -77,14 +104,20 @@ const Auth = {
         const style = document.createElement('style');
         style.textContent = `
             .auth-container {
-                min-height: 100vh;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
-                position: relative;
-                overflow: hidden;
                 background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+                z-index: 1;
+                overflow: hidden;
             }
             .auth-background {
                 position: absolute;
@@ -164,7 +197,7 @@ const Auth = {
             }
             @keyframes spin { to { transform: rotate(360deg); } }
             
-            /* ✅ Correcciones específicas para iOS (no afectan Android/PC) */
+            /* ✅ Correcciones específicas para iOS */
             .ios-device .auth-container {
                 min-height: 100vh;
                 min-height: calc(var(--vh, 1vh) * 100);
@@ -198,6 +231,15 @@ const Auth = {
 
     renderRegister() {
         const container = document.getElementById('authContainer');
+        if (!container) return;
+
+        this.ensureAuthContainerFullHeight();
+
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+        }
+
         container.innerHTML = `
             <div class="auth-container">
                 <div class="auth-card">
@@ -295,7 +337,7 @@ const Auth = {
             console.error('❌ Error de login:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log('📡 Error de red, intentando login offline...');
+                console.log(' Error de red, intentando login offline...');
                 this.handleOfflineLogin(email, password);
                 return;
             }
@@ -382,7 +424,7 @@ const Auth = {
                 });
                 console.log('✅ Usuario guardado en Firestore:', name);
             } catch (firestoreError) {
-                console.error('⚠️ Error al guardar en Firestore:', firestoreError);
+                console.error('️ Error al guardar en Firestore:', firestoreError);
             }
 
             const savedUsers = DB.get('registeredUsers', []);
@@ -409,7 +451,7 @@ const Auth = {
             console.error('❌ Error de registro:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log('📡 Error de red, registrando localmente...');
+                console.log(' Error de red, registrando localmente...');
                 this.handleOfflineRegister(name, email, password);
                 return;
             }
@@ -497,7 +539,7 @@ const Auth = {
         console.log('👤 Obteniendo nombre del usuario...');
         
         const localName = DB.get('userName');
-        console.log(' Nombre en localStorage:', localName);
+        console.log('📦 Nombre en localStorage:', localName);
         
         if (localName && localName.trim() !== '') {
             console.log('✅ Usando nombre de localStorage:', localName);
@@ -512,7 +554,7 @@ const Auth = {
         
         if (user && user.email) {
             const emailName = user.email.split('@')[0];
-            console.log('️ Usando nombre del correo:', emailName);
+            console.log('⚠️ Usando nombre del correo:', emailName);
             return emailName;
         }
         
