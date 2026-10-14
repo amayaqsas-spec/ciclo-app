@@ -24,6 +24,41 @@
 
     <link rel="stylesheet" href="styles.css">
 
+    <!-- ✅ ESTILOS BASE CRÍTICOS - ANTES del CSS de la app -->
+    <style>
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+        #authContainer {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        #authContainer.show {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #mainApp {
+            display: none;
+        }
+        #mainApp.show {
+            display: block;
+        }
+    </style>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -112,8 +147,7 @@
         </div>
     </div>
 
-    <!-- ✅ ESTILOS INLINE DIRECTOS PARA GARANTIZAR QUE OCUPEN TODA LA PANTALLA -->
-    <div id="authContainer" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:none;"></div>
+    <div id="authContainer"></div>
 
     <div id="mainApp">
         <header class="app-header">

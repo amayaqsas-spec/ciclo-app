@@ -30,28 +30,7 @@ const Auth = {
         }, 100);
     },
 
-    // ✅ CLAVE: Mostrar el contenedor con display:flex para centrar
-    showAuthContainer() {
-        const container = document.getElementById('authContainer');
-        if (container) {
-            container.style.display = 'flex';
-            container.style.alignItems = 'center';
-            container.style.justifyContent = 'center';
-        }
-    },
-
-    // ✅ Ocultar el contenedor
-    hideAuthContainer() {
-        const container = document.getElementById('authContainer');
-        if (container) {
-            container.style.display = 'none';
-            container.innerHTML = '';
-        }
-    },
-
     renderLogin() {
-        this.showAuthContainer();
-        
         const container = document.getElementById('authContainer');
         if (!container) return;
 
@@ -98,28 +77,30 @@ const Auth = {
         const style = document.createElement('style');
         style.textContent = `
             .auth-login-wrapper {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 20px;
-                background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
-                position: relative;
-                overflow: hidden;
+                width: 100vw !important;
+                height: 100vh !important;
+                min-height: 100vh !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 20px !important;
+                background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%) !important;
+                position: relative !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
             }
             .auth-background {
-                position: absolute;
-                top: 0; left: 0; right: 0; bottom: 0;
-                overflow: hidden;
-                z-index: 0;
+                position: absolute !important;
+                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+                overflow: hidden !important;
+                z-index: 0 !important;
             }
             .auth-bg-circle {
-                position: absolute;
-                border-radius: 50%;
-                background: var(--primary);
-                opacity: 0.1;
-                animation: float 20s infinite ease-in-out;
+                position: absolute !important;
+                border-radius: 50% !important;
+                background: var(--primary) !important;
+                opacity: 0.1 !important;
+                animation: float 20s infinite ease-in-out !important;
             }
             .auth-bg-circle:nth-child(1) { width: 300px; height: 300px; top: -150px; right: -100px; animation-delay: 0s; }
             .auth-bg-circle:nth-child(2) { width: 200px; height: 200px; bottom: -100px; left: -50px; animation-delay: 5s; }
@@ -130,15 +111,16 @@ const Auth = {
                 66% { transform: translate(-20px, 20px) scale(0.9); }
             }
             .auth-card {
-                background: var(--surface);
-                border-radius: 20px;
-                padding: 32px 28px;
-                max-width: 400px;
-                width: 100%;
-                box-shadow: var(--clay-shadow);
-                position: relative;
-                z-index: 1;
-                animation: slideUp 0.5s ease-out;
+                background: var(--surface) !important;
+                border-radius: 20px !important;
+                padding: 32px 28px !important;
+                max-width: 400px !important;
+                width: 100% !important;
+                box-shadow: var(--clay-shadow) !important;
+                position: relative !important;
+                z-index: 1 !important;
+                animation: slideUp 0.5s ease-out !important;
+                box-sizing: border-box !important;
             }
             @keyframes slideUp {
                 from { opacity: 0; transform: translateY(30px); }
@@ -151,13 +133,13 @@ const Auth = {
             .input-group-modern { margin-bottom: 16px; }
             .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
             .input-modern {
-                width: 100%; padding: 12px 14px; border: 2px solid var(--bg-soft); border-radius: 10px;
-                font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box;
+                width: 100% !important; padding: 12px 14px !important; border: 2px solid var(--bg-soft); border-radius: 10px;
+                font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box !important;
             }
             .input-modern:focus { outline: none; border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1); }
             .input-modern::placeholder { color: var(--text-light); }
             .btn-auth-primary {
-                width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                width: 100% !important; padding: 12px !important; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
                 color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
                 transition: all 0.3s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
             }
@@ -165,7 +147,7 @@ const Auth = {
             .btn-auth-primary:active { transform: translateY(0); }
             .btn-auth-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
             .btn-auth-secondary {
-                width: 100%; padding: 12px; background: var(--bg-soft); color: var(--text);
+                width: 100% !important; padding: 12px !important; background: var(--bg-soft); color: var(--text);
                 border: 2px solid var(--bg-soft); border-radius: 10px; font-size: 15px; font-weight: 700;
                 cursor: pointer; transition: all 0.3s ease;
             }
@@ -186,11 +168,11 @@ const Auth = {
             }
             @keyframes spin { to { transform: rotate(360deg); } }
             @media (max-width: 480px) {
-                .auth-card { padding: 28px 24px; max-width: 360px; }
-                .auth-title { font-size: 32px; }
-                .form-title { font-size: 17px; }
-                .input-modern { padding: 11px 13px; }
-                .btn-auth-primary, .btn-auth-secondary { padding: 11px; font-size: 15px; }
+                .auth-card { padding: 28px 24px !important; max-width: 360px !important; }
+                .auth-title { font-size: 32px !important; }
+                .form-title { font-size: 17px !important; }
+                .input-modern { padding: 11px 13px !important; }
+                .btn-auth-primary, .btn-auth-secondary { padding: 11px !important; font-size: 15px !important; }
             }
         `;
         document.head.appendChild(style);
@@ -203,8 +185,6 @@ const Auth = {
     },
 
     renderRegister() {
-        this.showAuthContainer();
-        
         const container = document.getElementById('authContainer');
         if (!container) return;
 
@@ -302,7 +282,7 @@ const Auth = {
             console.log('✅ Login exitoso');
             
         } catch (error) {
-            console.error(' Error de login:', error.code, error.message);
+            console.error('❌ Error de login:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
                 console.log('📡 Error de red, intentando login offline...');
@@ -334,7 +314,7 @@ const Auth = {
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
-            this.hideAuthContainer();
+            this.cleanupUI();
             this.triggerOfflineAuth();
         } else {
             this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
@@ -404,7 +384,7 @@ const Auth = {
                 fechaRegistro: Date.now()
             });
             DB.set('registeredUsers', savedUsers);
-            console.log('💾 Usuario guardado localmente para offline');
+            console.log(' Usuario guardado localmente para offline');
 
             DB.set('userName', name);
             await cred.user.updateProfile({ displayName: name });
@@ -504,7 +484,7 @@ const Auth = {
     },
 
     getUserName(user) {
-        console.log('👤 Obteniendo nombre del usuario...');
+        console.log(' Obteniendo nombre del usuario...');
         
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);
