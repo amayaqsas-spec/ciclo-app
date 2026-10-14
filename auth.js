@@ -25,16 +25,36 @@ const Auth = {
         const menuOverlay = document.getElementById('menuOverlay');
         if (sideMenu) sideMenu.classList.remove('active');
         if (menuOverlay) menuOverlay.classList.remove('active');
-        
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
         }, 100);
     },
 
+    // ✅ CLAVE: Mostrar el contenedor con display:flex para centrar
+    showAuthContainer() {
+        const container = document.getElementById('authContainer');
+        if (container) {
+            container.style.display = 'flex';
+            container.style.alignItems = 'center';
+            container.style.justifyContent = 'center';
+        }
+    },
+
+    // ✅ Ocultar el contenedor
+    hideAuthContainer() {
+        const container = document.getElementById('authContainer');
+        if (container) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+    },
+
     renderLogin() {
+        this.showAuthContainer();
+        
         const container = document.getElementById('authContainer');
         if (!container) return;
-        
+
         container.innerHTML = `
             <div class="auth-login-wrapper">
                 <div class="auth-card">
@@ -183,6 +203,8 @@ const Auth = {
     },
 
     renderRegister() {
+        this.showAuthContainer();
+        
         const container = document.getElementById('authContainer');
         if (!container) return;
 
@@ -274,13 +296,13 @@ const Auth = {
             }
 
             const auth = firebase.auth();
-            console.log(' Llamando a signInWithEmailAndPassword...');
+            console.log('🔑 Llamando a signInWithEmailAndPassword...');
             
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
             
         } catch (error) {
-            console.error('❌ Error de login:', error.code, error.message);
+            console.error(' Error de login:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
                 console.log('📡 Error de red, intentando login offline...');
@@ -312,6 +334,7 @@ const Auth = {
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
+            this.hideAuthContainer();
             this.triggerOfflineAuth();
         } else {
             this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
@@ -508,7 +531,7 @@ const Auth = {
     },
 
     async logout() {
-        console.log(' Cerrando sesión...');
+        console.log('🚪 Cerrando sesión...');
         DB.remove('userName');
         DB.remove('offlineUser');
         this.isOffline = false;
