@@ -31,45 +31,12 @@ const Auth = {
         }, 100);
     },
 
-    // ✅ CLAVE: Aplicar estilos al contenedor padre para que ocupe toda la pantalla
-    prepareAuthContainer() {
-        const container = document.getElementById('authContainer');
-        if (!container) return;
-        
-        // ✅ Aplicar estilos inline para garantizar que ocupe toda la pantalla
-        container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:9999;display:block;overflow:hidden;';
-        
-        // ✅ Ocultar mainApp durante el login
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = 'none';
-        }
-    },
-
-    // ✅ Restaurar contenedor al salir del login
-    restoreAuthContainer() {
-        const container = document.getElementById('authContainer');
-        if (container) {
-            container.style.cssText = '';
-            container.classList.remove('show');
-            container.innerHTML = '';
-        }
-        
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = '';
-            mainApp.classList.add('show');
-        }
-    },
-
     renderLogin() {
         const container = document.getElementById('authContainer');
         if (!container) return;
         
-        this.prepareAuthContainer();
-
         container.innerHTML = `
-            <div class="auth-container">
+            <div class="auth-login-wrapper">
                 <div class="auth-card">
                     <div class="auth-header">
                         <h1 class="auth-title">CICLO</h1>
@@ -110,12 +77,7 @@ const Auth = {
 
         const style = document.createElement('style');
         style.textContent = `
-            .auth-container {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
+            .auth-login-wrapper {
                 width: 100%;
                 height: 100%;
                 display: flex;
@@ -123,7 +85,7 @@ const Auth = {
                 justify-content: center;
                 padding: 20px;
                 background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
-                z-index: 1;
+                position: relative;
                 overflow: hidden;
             }
             .auth-background {
@@ -224,10 +186,8 @@ const Auth = {
         const container = document.getElementById('authContainer');
         if (!container) return;
 
-        this.prepareAuthContainer();
-
         container.innerHTML = `
-            <div class="auth-container">
+            <div class="auth-login-wrapper">
                 <div class="auth-card">
                     <div class="auth-header">
                         <h1 class="auth-title">CICLO</h1>
@@ -297,7 +257,7 @@ const Auth = {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        console.log(' Intentando login con:', email);
+        console.log('🔐 Intentando login con:', email);
 
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
@@ -314,7 +274,7 @@ const Auth = {
             }
 
             const auth = firebase.auth();
-            console.log('🔑 Llamando a signInWithEmailAndPassword...');
+            console.log(' Llamando a signInWithEmailAndPassword...');
             
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
@@ -352,7 +312,6 @@ const Auth = {
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
-            this.restoreAuthContainer();
             this.triggerOfflineAuth();
         } else {
             this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
@@ -410,7 +369,7 @@ const Auth = {
                 });
                 console.log('✅ Usuario guardado en Firestore:', name);
             } catch (firestoreError) {
-                console.error('️ Error al guardar en Firestore:', firestoreError);
+                console.error('⚠️ Error al guardar en Firestore:', firestoreError);
             }
 
             const savedUsers = DB.get('registeredUsers', []);
@@ -437,7 +396,7 @@ const Auth = {
             console.error('❌ Error de registro:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log(' Error de red, registrando localmente...');
+                console.log('📡 Error de red, registrando localmente...');
                 this.handleOfflineRegister(name, email, password);
                 return;
             }
@@ -522,7 +481,7 @@ const Auth = {
     },
 
     getUserName(user) {
-        console.log(' Obteniendo nombre del usuario...');
+        console.log('👤 Obteniendo nombre del usuario...');
         
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);
@@ -549,7 +508,7 @@ const Auth = {
     },
 
     async logout() {
-        console.log('🚪 Cerrando sesión...');
+        console.log(' Cerrando sesión...');
         DB.remove('userName');
         DB.remove('offlineUser');
         this.isOffline = false;
