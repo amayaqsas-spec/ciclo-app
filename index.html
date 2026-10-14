@@ -18,20 +18,19 @@
     
     <title>CICLO</title>
     
-    <!-- ✅ ESTILOS CRÍTICOS ANTES DE styles.css - Con !important para que nada los sobrescriba -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png">
+
+    <!-- ✅ ESTILOS CRÍTICOS - Antes de styles.css -->
     <style>
-        * {
-            box-sizing: border-box !important;
-        }
+        * { box-sizing: border-box !important; }
         html, body {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
             height: 100% !important;
             overflow: hidden !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
         }
         #authContainer {
             position: fixed !important;
@@ -45,7 +44,6 @@
             display: none !important;
             margin: 0 !important;
             padding: 0 !important;
-            overflow: hidden !important;
         }
         #authContainer.show {
             display: flex !important;
@@ -54,25 +52,32 @@
         }
         #mainApp {
             display: none !important;
-            width: 100% !important;
-            height: 100% !important;
         }
         #mainApp.show {
             display: block !important;
         }
-        #splashScreen, .wave-container {
+        #splashScreen {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
-            z-index: 99998 !important;
+            z-index: 100000 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: var(--bg, #F0E6F6) !important;
+        }
+        .wave-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important;
+            pointer-events: none !important;
         }
     </style>
-
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
-    <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -108,39 +113,6 @@
                     .catch(err => console.log('SW error:', err));
             });
         }
-    </script>
-
-    <script>
-        (function() {
-            function initSplash() {
-                setTimeout(function() {
-                    var splash = document.getElementById('splashScreen');
-                    if (splash) splash.classList.add('hide');
-                    
-                    setTimeout(function() {
-                        var wave = document.getElementById('wave');
-                        if (wave) wave.classList.add('active');
-                        
-                        setTimeout(function() {
-                            var auth = document.getElementById('authContainer');
-                            if (auth) {
-                                auth.classList.add('show');
-                                if (window.Auth && Auth.renderLogin) Auth.renderLogin();
-                            }
-                            setTimeout(function() {
-                                if (wave) wave.classList.remove('active');
-                            }, 600);
-                        }, 500);
-                    }, 100);
-                }, 2000);
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initSplash);
-            } else {
-                setTimeout(initSplash, 100);
-            }
-        })();
     </script>
 </head>
 <body>

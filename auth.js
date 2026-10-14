@@ -8,7 +8,7 @@ const Auth = {
     currentUser: null,
     isAdmin: false,
     isOffline: false,
-    isLoggingIn: false, // ✅ Prevenir doble login
+    isLoggingIn: false,
 
     async initPersistence() {
         try {
@@ -31,7 +31,6 @@ const Auth = {
         }, 100);
     },
 
-    // ✅ Resetear el botón de login
     resetLoginButton() {
         const btn = document.getElementById('btnLogin');
         if (btn) {
@@ -40,8 +39,9 @@ const Auth = {
         }
     },
 
-    // ✅ Ocultar authContainer y mostrar mainApp
+    // ✅ NUEVA: Transición limpia del login a la app
     transitionToApp() {
+        console.log('🔄 Transición a la app...');
         const authContainer = document.getElementById('authContainer');
         const mainApp = document.getElementById('mainApp');
         
@@ -52,9 +52,16 @@ const Auth = {
         }
         
         if (mainApp) {
-            mainApp.classList.add('show');
             mainApp.style.display = 'block';
+            setTimeout(() => {
+                mainApp.classList.add('show');
+            }, 50);
         }
+        
+        // Forzar resize
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 200);
     },
 
     renderLogin() {
@@ -283,7 +290,6 @@ const Auth = {
     },
 
     async handleLogin() {
-        // ✅ Prevenir doble click
         if (this.isLoggingIn) return;
         this.isLoggingIn = true;
 
@@ -295,6 +301,7 @@ const Auth = {
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
             this.isLoggingIn = false;
+            this.resetLoginButton();
             return;
         }
 
@@ -313,10 +320,9 @@ const Auth = {
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
             
-            // ✅ Limpiar el authContainer después del login exitoso
-            setTimeout(() => {
-                this.transitionToApp();
-            }, 500);
+            // ✅ La transición la maneja onAuthStateChanged en app.js
+            // Solo reseteamos el flag
+            this.isLoggingIn = false;
             
         } catch (error) {
             console.error('❌ Error de login:', error.code, error.message);
@@ -409,7 +415,7 @@ const Auth = {
                 });
                 console.log('✅ Usuario guardado en Firestore:', name);
             } catch (firestoreError) {
-                console.error('️ Error al guardar en Firestore:', firestoreError);
+                console.error('⚠️ Error al guardar en Firestore:', firestoreError);
             }
 
             const savedUsers = DB.get('registeredUsers', []);
