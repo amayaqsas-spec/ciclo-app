@@ -32,6 +32,9 @@ const themeNames = {
     panaderia: 'Panadería', marino: 'Marino', bosque: 'Bosque', vino: 'Vino'
 };
 
+// ============================================
+// MAPA DE VISTAS
+// ============================================
 const viewModules = {
     home: './views/home.js',
     'mi-rol': './views/mi-rol.js',
@@ -57,10 +60,16 @@ const viewModules = {
 
 const loadedModules = {};
 
+// ============================================
+// HISTORIAL DE NAVEGACIÓN
+// ============================================
 const navigationHistory = ['home'];
 let backPressTimer = null;
 let isExiting = false;
 
+// ============================================
+// NAVEGACIÓN DE VISTAS
+// ============================================
 const Views = {
     current: 'home',
 
@@ -335,6 +344,9 @@ const Views = {
     }
 };
 
+// ============================================
+// APP - Orquestador
+// ============================================
 const App = {
     init() {
         console.log('🚀 App.init() llamado');
@@ -346,6 +358,7 @@ const App = {
 
         const auth = firebase.auth();
 
+        // ✅ Configurar persistencia de sesión LOCAL
         Auth.initPersistence();
 
         auth.onAuthStateChanged(user => {
@@ -355,14 +368,22 @@ const App = {
                 Auth.currentUser = user;
                 Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
 
+                // ✅ Ocultar authContainer y mostrar mainApp correctamente
                 const authContainer = document.getElementById('authContainer');
                 const mainApp = document.getElementById('mainApp');
 
-                if (authContainer) authContainer.classList.remove('show');
+                if (authContainer) {
+                    authContainer.classList.remove('show');
+                    authContainer.style.display = 'none';
+                    authContainer.innerHTML = '';
+                }
 
                 setTimeout(() => {
-                    if (mainApp) mainApp.classList.add('show');
-                }, 300);
+                    if (mainApp) {
+                        mainApp.classList.add('show');
+                        mainApp.style.display = 'block';
+                    }
+                }, 100);
 
                 const name = Auth.getUserName(user);
                 document.getElementById('menuUserName').textContent = name;
@@ -406,11 +427,15 @@ const App = {
                 const mainApp = document.getElementById('mainApp');
                 const authContainer = document.getElementById('authContainer');
 
-                if (mainApp) mainApp.classList.remove('show');
+                if (mainApp) {
+                    mainApp.classList.remove('show');
+                    mainApp.style.display = 'none';
+                }
 
                 setTimeout(() => {
                     if (authContainer) {
                         authContainer.classList.add('show');
+                        authContainer.style.display = 'flex';
                         Auth.renderLogin();
                     }
                 }, 300);
@@ -504,7 +529,7 @@ const App = {
             navigationHistory.pop();
             const vistaAnterior = navigationHistory[navigationHistory.length - 1];
             
-            console.log('↩️ Volviendo a:', vistaAnterior);
+            console.log('️ Volviendo a:', vistaAnterior);
             
             Views.load(vistaAnterior, false);
             
@@ -574,6 +599,9 @@ const App = {
 window.App = App;
 window.Views = Views;
 
+// ============================================
+// INICIALIZACIÓN
+// ============================================
 function startApp() {
     console.log('✅ DOM listo, iniciando app...');
     App.init();

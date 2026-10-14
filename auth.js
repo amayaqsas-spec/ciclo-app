@@ -8,6 +8,7 @@ const Auth = {
     currentUser: null,
     isAdmin: false,
     isOffline: false,
+    isLoggingIn: false, // ✅ Prevenir doble login
 
     async initPersistence() {
         try {
@@ -28,6 +29,32 @@ const Auth = {
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
         }, 100);
+    },
+
+    // ✅ Resetear el botón de login
+    resetLoginButton() {
+        const btn = document.getElementById('btnLogin');
+        if (btn) {
+            btn.innerHTML = '<span>Iniciar Sesión</span>';
+            btn.disabled = false;
+        }
+    },
+
+    // ✅ Ocultar authContainer y mostrar mainApp
+    transitionToApp() {
+        const authContainer = document.getElementById('authContainer');
+        const mainApp = document.getElementById('mainApp');
+        
+        if (authContainer) {
+            authContainer.classList.remove('show');
+            authContainer.style.display = 'none';
+            authContainer.innerHTML = '';
+        }
+        
+        if (mainApp) {
+            mainApp.classList.add('show');
+            mainApp.style.display = 'block';
+        }
     },
 
     renderLogin() {
@@ -256,6 +283,10 @@ const Auth = {
     },
 
     async handleLogin() {
+        // ✅ Prevenir doble click
+        if (this.isLoggingIn) return;
+        this.isLoggingIn = true;
+
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
@@ -263,6 +294,7 @@ const Auth = {
 
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
+            this.isLoggingIn = false;
             return;
         }
 
@@ -281,8 +313,14 @@ const Auth = {
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
             
+            // ✅ Limpiar el authContainer después del login exitoso
+            setTimeout(() => {
+                this.transitionToApp();
+            }, 500);
+            
         } catch (error) {
             console.error('❌ Error de login:', error.code, error.message);
+            this.isLoggingIn = false;
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
                 console.log('📡 Error de red, intentando login offline...');
@@ -291,8 +329,7 @@ const Auth = {
             }
             
             this.showError('loginError', this.getAuthError(error.code, error.message));
-            btn.innerHTML = '<span>Iniciar Sesión</span>';
-            btn.disabled = false;
+            this.resetLoginButton();
         }
     },
 
@@ -303,6 +340,7 @@ const Auth = {
         if (user) {
             console.log('✅ Login offline exitoso para:', user.email);
             this.isOffline = true;
+            this.isLoggingIn = false;
             
             this.currentUser = {
                 uid: user.uid || 'offline-' + Date.now(),
@@ -314,13 +352,12 @@ const Auth = {
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
-            this.cleanupUI();
+            this.transitionToApp();
             this.triggerOfflineAuth();
         } else {
             this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
-            const btn = document.getElementById('btnLogin');
-            btn.innerHTML = '<span>Iniciar Sesión</span>';
-            btn.disabled = false;
+            this.isLoggingIn = false;
+            this.resetLoginButton();
         }
     },
 
@@ -372,7 +409,7 @@ const Auth = {
                 });
                 console.log('✅ Usuario guardado en Firestore:', name);
             } catch (firestoreError) {
-                console.error('⚠️ Error al guardar en Firestore:', firestoreError);
+                console.error('️ Error al guardar en Firestore:', firestoreError);
             }
 
             const savedUsers = DB.get('registeredUsers', []);
@@ -384,7 +421,7 @@ const Auth = {
                 fechaRegistro: Date.now()
             });
             DB.set('registeredUsers', savedUsers);
-            console.log(' Usuario guardado localmente para offline');
+            console.log('💾 Usuario guardado localmente para offline');
 
             DB.set('userName', name);
             await cred.user.updateProfile({ displayName: name });
@@ -399,7 +436,7 @@ const Auth = {
             console.error('❌ Error de registro:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log('📡 Error de red, registrando localmente...');
+                console.log(' Error de red, registrando localmente...');
                 this.handleOfflineRegister(name, email, password);
                 return;
             }
@@ -515,6 +552,7 @@ const Auth = {
         DB.remove('userName');
         DB.remove('offlineUser');
         this.isOffline = false;
+        this.isLoggingIn = false;
         
         if (firebase && firebase.auth) {
             await firebase.auth().signOut();
