@@ -1,5 +1,5 @@
 // ============================================
-// AUTH.JS - Autenticación con soporte Offline y Correcciones iOS
+// AUTH.JS - Autenticación con correcciones iOS
 // ============================================
 
 const ADMIN_EMAIL = 'amayaqsas@gmail.com';
@@ -9,7 +9,6 @@ const Auth = {
     isAdmin: false,
     isOffline: false,
 
-    // ✅ Configurar persistencia LOCAL (sesión se mantiene sin internet)
     async initPersistence() {
         try {
             if (firebase && firebase.auth) {
@@ -17,18 +16,17 @@ const Auth = {
                 console.log('✅ Persistencia de sesión configurada: LOCAL');
             }
         } catch (error) {
-            console.warn('⚠️ No se pudo configurar persistencia:', error);
+            console.warn('️ No se pudo configurar persistencia:', error);
         }
     },
 
-    // ✅ Función auxiliar para limpiar UI y cerrar menús (Corrección iOS)
+    // ✅ Función para cerrar menús y forzar resize en iOS
     cleanupUI() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
         if (sideMenu) sideMenu.classList.remove('active');
         if (menuOverlay) menuOverlay.classList.remove('active');
         
-        // Forzar recálculo del viewport en iOS Safari
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
         }, 100);
@@ -38,158 +36,218 @@ const Auth = {
         const container = document.getElementById('authContainer');
         if (!container) return;
         
-        // ✅ Asegurar que el contenedor principal esté oculto al mostrar login
+        // ✅ Ocultar mainApp completamente
         const mainApp = document.getElementById('mainApp');
-        if (mainApp) mainApp.classList.remove('show');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+            mainApp.classList.remove('show');
+        }
 
         container.innerHTML = `
-            <div class="auth-container">
-                <div class="auth-card">
-                    <div class="auth-header">
-                        <h1 class="auth-title">CICLO</h1>
+            <div class="auth-wrapper-ios">
+                <div class="auth-card-ios">
+                    <div class="auth-header-ios">
+                        <div class="auth-logo-ios">CICLO</div>
+                        <p class="auth-subtitle-ios">Iniciar Sesión</p>
                     </div>
 
-                    <div class="auth-form">
-                        <h2 class="form-title">Iniciar Sesión</h2>
-                        
+                    <div class="auth-form-ios">
                         <div class="msg-error" id="loginError"></div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Correo Electrónico</label>
-                            <input type="email" id="loginEmail" class="input-modern" placeholder="tu@correo.com" autocomplete="email">
+                        <div class="input-group-ios">
+                            <label class="input-label-ios">Correo Electrónico</label>
+                            <input type="email" id="loginEmail" class="input-ios" placeholder="tu@correo.com" autocomplete="email">
                         </div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Contraseña</label>
-                            <input type="password" id="loginPassword" class="input-modern" placeholder="••••••••" autocomplete="current-password">
+                        <div class="input-group-ios">
+                            <label class="input-label-ios">Contraseña</label>
+                            <input type="password" id="loginPassword" class="input-ios" placeholder="••••••••" autocomplete="current-password">
                         </div>
 
-                        <button class="btn-auth-primary" id="btnLogin">
-                            <span>Iniciar Sesión</span>
+                        <button class="btn-primary-ios" id="btnLogin">
+                            Iniciar Sesión
                         </button>
 
-                        <button class="btn-auth-secondary" id="goRegister" style="margin-top: 12px;">
-                            <span>Crear una cuenta nueva</span>
+                        <button class="btn-secondary-ios" id="goRegister">
+                            Crear una cuenta nueva
                         </button>
                     </div>
-                </div>
-
-                <div class="auth-background">
-                    <div class="auth-bg-circle"></div>
-                    <div class="auth-bg-circle"></div>
-                    <div class="auth-bg-circle"></div>
                 </div>
             </div>
         `;
 
+        // ✅ CSS específico para iOS con safe area
         const style = document.createElement('style');
         style.textContent = `
-            .auth-container {
-                position: fixed; /* ✅ Corrección iOS: Evita ventanas superpuestas */
-                inset: 0;
+            .auth-wrapper-ios {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 20px;
+                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
                 background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
-                z-index: 9999;
+                z-index: 10000;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
-            .auth-background {
-                position: absolute;
-                top: 0; left: 0; right: 0; bottom: 0;
-                overflow: hidden;
-                z-index: 0;
-                pointer-events: none;
-            }
-            .auth-bg-circle {
-                position: absolute;
-                border-radius: 50%;
-                background: var(--primary);
-                opacity: 0.1;
-                animation: float 20s infinite ease-in-out;
-            }
-            .auth-bg-circle:nth-child(1) { width: 300px; height: 300px; top: -150px; right: -100px; animation-delay: 0s; }
-            .auth-bg-circle:nth-child(2) { width: 200px; height: 200px; bottom: -100px; left: -50px; animation-delay: 5s; }
-            .auth-bg-circle:nth-child(3) { width: 150px; height: 150px; top: 50%; left: 50%; animation-delay: 10s; }
-            @keyframes float {
-                0%, 100% { transform: translate(0, 0) scale(1); }
-                33% { transform: translate(30px, -30px) scale(1.1); }
-                66% { transform: translate(-20px, 20px) scale(0.9); }
-            }
-            .auth-card {
+            .auth-card-ios {
                 background: var(--surface);
-                border-radius: 20px;
-                padding: 32px 28px;
-                max-width: 400px;
-                width: 100%;
-                box-shadow: var(--clay-shadow);
-                position: relative;
-                z-index: 1;
-                animation: slideUp 0.5s ease-out;
+                border-radius: 24px;
+                padding: 32px 24px;
+                max-width: 360px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                margin: 20px;
+                animation: slideUpIOS 0.4s ease-out;
             }
-            @keyframes slideUp {
-                from { opacity: 0; transform: translateY(30px); }
+            @keyframes slideUpIOS {
+                from { opacity: 0; transform: translateY(50px); }
                 to { opacity: 1; transform: translateY(0); }
             }
-            .auth-header { text-align: center; margin-bottom: 24px; }
-            .auth-title { font-size: 36px; font-weight: 800; color: var(--primary); margin: 0; letter-spacing: 3px; }
-            .auth-form { width: 100%; }
-            .form-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 20px 0; text-align: center; }
-            .input-group-modern { margin-bottom: 16px; }
-            .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-            .input-modern {
-                width: 100%; padding: 12px 14px; border: 2px solid var(--bg-soft); border-radius: 10px;
-                font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box;
-                -webkit-appearance: none; /* ✅ Corrección iOS para inputs */
+            .auth-header-ios {
+                text-align: center;
+                margin-bottom: 32px;
             }
-            .input-modern:focus { outline: none; border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1); }
-            .input-modern::placeholder { color: var(--text-light); }
-            .btn-auth-primary {
-                width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; 
-                cursor: pointer; transition: all 0.2s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
-                -webkit-tap-highlight-color: transparent; /* ✅ Corrección iOS: elimina flash azul al tocar */
-                touch-action: manipulation; /* ✅ Corrección iOS: elimina delay de 300ms */
+            .auth-logo-ios {
+                font-size: 36px;
+                font-weight: 800;
+                color: var(--primary);
+                margin-bottom: 8px;
+                letter-spacing: 2px;
             }
-            .btn-auth-primary:active { transform: scale(0.98); }
-            .btn-auth-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-            .btn-auth-secondary {
-                width: 100%; padding: 14px; background: var(--bg-soft); color: var(--text);
-                border: 2px solid var(--bg-soft); border-radius: 10px; font-size: 15px; font-weight: 700;
-                cursor: pointer; transition: all 0.2s ease;
+            .auth-subtitle-ios {
+                font-size: 16px;
+                color: var(--text-soft);
+                margin: 0;
+            }
+            .auth-form-ios {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .input-group-ios {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .input-label-ios {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text);
+            }
+            .input-ios {
+                width: 100%;
+                padding: 14px 16px;
+                border: 2px solid var(--bg-soft);
+                border-radius: 12px;
+                font-size: 16px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+                -webkit-appearance: none;
+            }
+            .input-ios:focus {
+                outline: none;
+                border-color: var(--primary);
+                background: var(--surface);
+            }
+            .btn-primary-ios {
+                width: 100%;
+                padding: 16px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                margin-top: 8px;
+                box-shadow: 0 4px 16px rgba(155, 127, 212, 0.3);
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
             }
-            .btn-auth-secondary:active { transform: scale(0.98); background: var(--bg); border-color: var(--primary); color: var(--primary); }
-            .msg-error {
-                background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px;
-                margin-bottom: 14px; display: none; border-left: 4px solid #c33;
+            .btn-primary-ios:active {
+                transform: scale(0.98);
             }
-            .msg-error.show { display: block; animation: shake 0.5s ease-in-out; }
-            @keyframes shake {
+            .btn-primary-ios:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-secondary-ios {
+                width: 100%;
+                padding: 16px;
+                background: var(--bg-soft);
+                color: var(--text);
+                border: 2px solid var(--bg-soft);
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            .btn-secondary-ios:active {
+                background: var(--bg);
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: scale(0.98);
+            }
+            .msg-error {
+                background: #fee;
+                color: #c33;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                display: none;
+                border-left: 4px solid #c33;
+                margin-bottom: 8px;
+            }
+            .msg-error.show {
+                display: block;
+                animation: shakeIOS 0.5s ease-in-out;
+            }
+            @keyframes shakeIOS {
                 0%, 100% { transform: translateX(0); }
                 25% { transform: translateX(-10px); }
                 75% { transform: translateX(10px); }
             }
             .spinner {
-                display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3);
-                border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
             }
-            @keyframes spin { to { transform: rotate(360deg); } }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
             @media (max-width: 480px) {
-                .auth-card { padding: 28px 24px; max-width: 360px; }
-                .auth-title { font-size: 32px; }
-                .form-title { font-size: 17px; }
-                .input-modern { padding: 11px 13px; }
-                .btn-auth-primary, .btn-auth-secondary { padding: 12px; font-size: 15px; }
+                .auth-card-ios {
+                    padding: 28px 20px;
+                    width: 95%;
+                    margin: 15px;
+                }
+                .auth-logo-ios {
+                    font-size: 32px;
+                }
+                .input-ios, .btn-primary-ios, .btn-secondary-ios {
+                    padding: 14px 16px;
+                }
             }
         `;
         document.head.appendChild(style);
 
+        // ✅ Event listeners
         document.getElementById('btnLogin').addEventListener('click', () => this.handleLogin());
         document.getElementById('goRegister').addEventListener('click', () => this.renderRegister());
+        
         document.getElementById('loginPassword').addEventListener('keypress', e => {
             if (e.key === 'Enter') this.handleLogin();
         });
@@ -199,60 +257,69 @@ const Auth = {
         const container = document.getElementById('authContainer');
         if (!container) return;
 
+        // ✅ Asegurar que mainApp esté oculto
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+        }
+
         container.innerHTML = `
-            <div class="auth-container">
-                <div class="auth-card">
-                    <div class="auth-header">
-                        <h1 class="auth-title">CICLO</h1>
+            <div class="auth-wrapper-ios">
+                <div class="auth-card-ios">
+                    <div class="auth-header-ios">
+                        <div class="auth-logo-ios">CICLO</div>
+                        <p class="auth-subtitle-ios">Crear Cuenta</p>
                     </div>
 
-                    <div class="auth-form">
-                        <h2 class="form-title">Crear Cuenta</h2>
-                        
+                    <div class="auth-form-ios">
                         <div class="msg-error" id="registerError"></div>
                         <div class="msg-success" id="registerSuccess"></div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Nombre/Seudónimo</label>
-                            <input type="text" id="registerName" class="input-modern" placeholder="Tu nombre" autocomplete="name">
+                        <div class="input-group-ios">
+                            <label class="input-label-ios">Nombre/Seudónimo</label>
+                            <input type="text" id="registerName" class="input-ios" placeholder="Tu nombre" autocomplete="name">
                         </div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Correo Electrónico</label>
-                            <input type="email" id="registerEmail" class="input-modern" placeholder="tu@correo.com" autocomplete="email">
+                        <div class="input-group-ios">
+                            <label class="input-label-ios">Correo Electrónico</label>
+                            <input type="email" id="registerEmail" class="input-ios" placeholder="tu@correo.com" autocomplete="email">
                         </div>
 
-                        <div class="input-group-modern">
-                            <label class="input-label">Contraseña</label>
-                            <input type="password" id="registerPassword" class="input-modern" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                        <div class="input-group-ios">
+                            <label class="input-label-ios">Contraseña</label>
+                            <input type="password" id="registerPassword" class="input-ios" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
                         </div>
 
-                        <button class="btn-auth-primary" id="btnRegister">
-                            <span>Crear Cuenta</span>
+                        <button class="btn-primary-ios" id="btnRegister">
+                            Crear Cuenta
                         </button>
 
-                        <button class="btn-auth-secondary" id="btnBackLogin" style="margin-top: 12px;">
-                            <span>Volver al Login</span>
+                        <button class="btn-secondary-ios" id="btnBackLogin">
+                            Volver al Login
                         </button>
                     </div>
-                </div>
-
-                <div class="auth-background">
-                    <div class="auth-bg-circle"></div>
-                    <div class="auth-bg-circle"></div>
-                    <div class="auth-bg-circle"></div>
                 </div>
             </div>
         `;
 
+        // ✅ CSS para mensaje de éxito
         const style = document.createElement('style');
         style.textContent = `
             .msg-success {
-                background: #efe; color: #3c3; padding: 10px; border-radius: 8px; font-size: 13px;
-                margin-bottom: 14px; display: none; border-left: 4px solid #3c3;
+                background: #efe;
+                color: #3c3;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 13px;
+                display: none;
+                border-left: 4px solid #3c3;
+                margin-bottom: 8px;
             }
-            .msg-success.show { display: block; animation: slideDown 0.3s ease-out; }
-            @keyframes slideDown {
+            .msg-success.show {
+                display: block;
+                animation: slideDownIOS 0.3s ease-out;
+            }
+            @keyframes slideDownIOS {
                 from { opacity: 0; transform: translateY(-10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
@@ -261,6 +328,7 @@ const Auth = {
 
         document.getElementById('btnRegister').addEventListener('click', () => this.handleRegister());
         document.getElementById('btnBackLogin').addEventListener('click', () => this.renderLogin());
+        
         document.getElementById('registerPassword').addEventListener('keypress', e => {
             if (e.key === 'Enter') this.handleRegister();
         });
@@ -292,13 +360,12 @@ const Auth = {
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
             
-            // ✅ Corrección iOS: Limpiar UI y forzar resize
+            // ✅ Corrección iOS: Limpiar UI
             this.cleanupUI();
             
         } catch (error) {
             console.error('❌ Error de login:', error.code, error.message);
             
-            // ✅ Si es error de red, intentar login offline
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
                 console.log('📡 Error de red, intentando login offline...');
                 this.handleOfflineLogin(email, password);
@@ -306,12 +373,11 @@ const Auth = {
             }
             
             this.showError('loginError', this.getAuthError(error.code, error.message));
-            btn.innerHTML = '<span>Iniciar Sesión</span>';
+            btn.innerHTML = 'Iniciar Sesión';
             btn.disabled = false;
         }
     },
 
-    // ✅ LOGIN OFFLINE: Verificar credenciales contra datos locales
     handleOfflineLogin(email, password) {
         const savedUsers = DB.get('registeredUsers', []);
         const user = savedUsers.find(u => u.email === email && u.password === password);
@@ -320,7 +386,6 @@ const Auth = {
             console.log('✅ Login offline exitoso para:', user.email);
             this.isOffline = true;
             
-            // Simular sesión de Firebase
             this.currentUser = {
                 uid: user.uid || 'offline-' + Date.now(),
                 email: user.email,
@@ -328,24 +393,19 @@ const Auth = {
             };
             this.isAdmin = user.email === ADMIN_EMAIL;
             
-            // Guardar en localStorage
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
-            // ✅ Corrección iOS: Limpiar UI y forzar resize
             this.cleanupUI();
-            
-            // Disparar evento de auth
             this.triggerOfflineAuth();
         } else {
-            this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
+            this.showError('loginError', 'Credenciales incorrectas o usuario no registrado');
             const btn = document.getElementById('btnLogin');
-            btn.innerHTML = '<span>Iniciar Sesión</span>';
+            btn.innerHTML = 'Iniciar Sesión';
             btn.disabled = false;
         }
     },
 
-    // ✅ Disparar evento para que la app sepa que hay un usuario offline
     triggerOfflineAuth() {
         if (window.App && window.App.handleOfflineUser) {
             window.App.handleOfflineUser(this.currentUser);
@@ -357,7 +417,7 @@ const Auth = {
         const email = document.getElementById('registerEmail').value.trim();
         const password = document.getElementById('registerPassword').value;
 
-        console.log('📝 Intentando registro:', { name, email });
+        console.log(' Intentando registro:', { name, email });
 
         if (!name || !email || !password) {
             this.showError('registerError', 'Completa todos los campos');
@@ -383,7 +443,6 @@ const Auth = {
             const uid = cred.user.uid;
             console.log('✅ Usuario creado con UID:', uid);
 
-            // ✅ GUARDAR EN FIREBASE FIRESTORE
             try {
                 const db = firebase.firestore();
                 await db.collection('usuarios').doc(uid).set({
@@ -398,13 +457,12 @@ const Auth = {
                 console.error('⚠️ Error al guardar en Firestore:', firestoreError);
             }
 
-            // ✅ GUARDAR LOCALMENTE PARA OFFLINE
             const savedUsers = DB.get('registeredUsers', []);
             savedUsers.push({
                 uid: uid,
                 nombre: name,
                 email: email,
-                password: password, // ⚠️ Solo para login offline
+                password: password,
                 fechaRegistro: Date.now()
             });
             DB.set('registeredUsers', savedUsers);
@@ -419,7 +477,6 @@ const Auth = {
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerPassword').value = '';
             
-            // ✅ Corrección iOS: Limpiar UI y forzar resize tras registro exitoso
             setTimeout(() => {
                 this.cleanupUI();
             }, 1500);
@@ -427,7 +484,6 @@ const Auth = {
         } catch (error) {
             console.error('❌ Error de registro:', error.code, error.message);
             
-            // ✅ Si es error de red, registrar solo localmente
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
                 console.log('📡 Error de red, registrando localmente...');
                 this.handleOfflineRegister(name, email, password);
@@ -435,20 +491,18 @@ const Auth = {
             }
             
             this.showError('registerError', this.getAuthError(error.code, error.message));
-            btn.innerHTML = '<span>Crear Cuenta</span>';
+            btn.innerHTML = 'Crear Cuenta';
             btn.disabled = false;
         }
     },
 
-    // ✅ REGISTRO OFFLINE: Solo guarda localmente
     handleOfflineRegister(name, email, password) {
         const savedUsers = DB.get('registeredUsers', []);
         
-        // Verificar si ya existe
         if (savedUsers.find(u => u.email === email)) {
-            this.showError('registerError', 'Este correo ya está registrado en este dispositivo');
+            this.showError('registerError', 'Este correo ya está registrado');
             const btn = document.getElementById('btnRegister');
-            btn.innerHTML = '<span>Crear Cuenta</span>';
+            btn.innerHTML = 'Crear Cuenta';
             btn.disabled = false;
             return;
         }
@@ -466,17 +520,16 @@ const Auth = {
         DB.set('userName', name);
 
         console.log('✅ Usuario registrado offline:', name);
-        this.showSuccess('registerSuccess', '¡Cuenta creada offline! Se sincronizará cuando haya internet.');
+        this.showSuccess('registerSuccess', '¡Cuenta creada offline!');
 
         document.getElementById('registerName').value = '';
         document.getElementById('registerEmail').value = '';
         document.getElementById('registerPassword').value = '';
 
         const btn = document.getElementById('btnRegister');
-        btn.innerHTML = '<span>Crear Cuenta</span>';
+        btn.innerHTML = 'Crear Cuenta';
         btn.disabled = false;
         
-        // ✅ Corrección iOS
         setTimeout(() => {
             this.cleanupUI();
         }, 1500);
@@ -509,9 +562,7 @@ const Auth = {
             'auth/weak-password': 'Contraseña muy débil (mín. 6 caracteres)',
             'auth/invalid-email': 'Correo inválido',
             'auth/too-many-requests': 'Demasiados intentos. Espera un momento',
-            'auth/network-request-failed': 'Sin conexión a internet. Intentando modo offline...',
-            'auth/api-key-not-valid': 'API Key de Firebase inválida',
-            'auth/app-not-authorized': 'App no autorizada en Firebase'
+            'auth/network-request-failed': 'Sin conexión a internet'
         };
         
         if (errors[code]) return errors[code];
@@ -521,29 +572,21 @@ const Auth = {
     },
 
     getUserName(user) {
-        console.log('👤 Obteniendo nombre del usuario...');
-        
         const localName = DB.get('userName');
-        console.log('📦 Nombre en localStorage:', localName);
         
         if (localName && localName.trim() !== '') {
-            console.log('✅ Usando nombre de localStorage:', localName);
             return localName.trim();
         }
         
         if (user && user.displayName && user.displayName.trim() !== '') {
-            console.log('✅ Usando displayName de Firebase:', user.displayName);
             DB.set('userName', user.displayName);
             return user.displayName.trim();
         }
         
         if (user && user.email) {
-            const emailName = user.email.split('@')[0];
-            console.log('⚠️ Usando nombre del correo:', emailName);
-            return emailName;
+            return user.email.split('@')[0];
         }
         
-        console.log('⚠️ No se encontró nombre, usando "Usuario"');
         return 'Usuario';
     },
 
@@ -553,7 +596,6 @@ const Auth = {
         DB.remove('offlineUser');
         this.isOffline = false;
         
-        // ✅ Corrección iOS: Asegurar que el menú se cierre al salir
         this.cleanupUI();
         
         if (firebase && firebase.auth) {
@@ -562,6 +604,5 @@ const Auth = {
     }
 };
 
-// Hacer Auth disponible globalmente
 window.Auth = Auth;
 window.ADMIN_EMAIL = ADMIN_EMAIL;
