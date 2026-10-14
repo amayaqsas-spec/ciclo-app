@@ -16,11 +16,10 @@ const Auth = {
                 console.log('✅ Persistencia de sesión configurada: LOCAL');
             }
         } catch (error) {
-            console.warn('️ No se pudo configurar persistencia:', error);
+            console.warn('⚠️ No se pudo configurar persistencia:', error);
         }
     },
 
-    // ✅ Función auxiliar para cerrar menús
     cleanupUI() {
         const sideMenu = document.getElementById('sideMenu');
         const menuOverlay = document.getElementById('menuOverlay');
@@ -32,19 +31,34 @@ const Auth = {
         }, 100);
     },
 
-    // ✅ NUEVO: Asegurar que el contenedor ocupe toda la pantalla
-    ensureAuthContainerFullHeight() {
+    // ✅ CLAVE: Aplicar estilos al contenedor padre para que ocupe toda la pantalla
+    prepareAuthContainer() {
+        const container = document.getElementById('authContainer');
+        if (!container) return;
+        
+        // ✅ Aplicar estilos inline para garantizar que ocupe toda la pantalla
+        container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:9999;display:block;overflow:hidden;';
+        
+        // ✅ Ocultar mainApp durante el login
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) {
+            mainApp.style.display = 'none';
+        }
+    },
+
+    // ✅ Restaurar contenedor al salir del login
+    restoreAuthContainer() {
         const container = document.getElementById('authContainer');
         if (container) {
-            container.style.position = 'fixed';
-            container.style.top = '0';
-            container.style.left = '0';
-            container.style.right = '0';
-            container.style.bottom = '0';
-            container.style.width = '100%';
-            container.style.height = '100%';
-            container.style.zIndex = '9999';
-            container.style.display = 'block';
+            container.style.cssText = '';
+            container.classList.remove('show');
+            container.innerHTML = '';
+        }
+        
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) {
+            mainApp.style.display = '';
+            mainApp.classList.add('show');
         }
     },
 
@@ -52,14 +66,7 @@ const Auth = {
         const container = document.getElementById('authContainer');
         if (!container) return;
         
-        // ✅ Asegurar que el contenedor ocupe toda la pantalla
-        this.ensureAuthContainerFullHeight();
-        
-        // ✅ Ocultar mainApp
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = 'none';
-        }
+        this.prepareAuthContainer();
 
         container.innerHTML = `
             <div class="auth-container">
@@ -196,22 +203,6 @@ const Auth = {
                 border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;
             }
             @keyframes spin { to { transform: rotate(360deg); } }
-            
-            /* ✅ Correcciones específicas para iOS */
-            .ios-device .auth-container {
-                min-height: 100vh;
-                min-height: calc(var(--vh, 1vh) * 100);
-            }
-            .ios-device .input-modern,
-            .ios-device .btn-auth-primary,
-            .ios-device .btn-auth-secondary {
-                -webkit-tap-highlight-color: transparent;
-                touch-action: manipulation;
-            }
-            .ios-device .input-modern {
-                -webkit-appearance: none;
-            }
-            
             @media (max-width: 480px) {
                 .auth-card { padding: 28px 24px; max-width: 360px; }
                 .auth-title { font-size: 32px; }
@@ -233,12 +224,7 @@ const Auth = {
         const container = document.getElementById('authContainer');
         if (!container) return;
 
-        this.ensureAuthContainerFullHeight();
-
-        const mainApp = document.getElementById('mainApp');
-        if (mainApp) {
-            mainApp.style.display = 'none';
-        }
+        this.prepareAuthContainer();
 
         container.innerHTML = `
             <div class="auth-container">
@@ -311,7 +297,7 @@ const Auth = {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
-        console.log('🔐 Intentando login con:', email);
+        console.log(' Intentando login con:', email);
 
         if (!email || !password) {
             this.showError('loginError', 'Completa todos los campos');
@@ -337,7 +323,7 @@ const Auth = {
             console.error('❌ Error de login:', error.code, error.message);
             
             if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
-                console.log(' Error de red, intentando login offline...');
+                console.log('📡 Error de red, intentando login offline...');
                 this.handleOfflineLogin(email, password);
                 return;
             }
@@ -366,7 +352,7 @@ const Auth = {
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
             
-            this.cleanupUI();
+            this.restoreAuthContainer();
             this.triggerOfflineAuth();
         } else {
             this.showError('loginError', 'Credenciales incorrectas o usuario no registrado en este dispositivo');
@@ -536,7 +522,7 @@ const Auth = {
     },
 
     getUserName(user) {
-        console.log('👤 Obteniendo nombre del usuario...');
+        console.log(' Obteniendo nombre del usuario...');
         
         const localName = DB.get('userName');
         console.log('📦 Nombre en localStorage:', localName);

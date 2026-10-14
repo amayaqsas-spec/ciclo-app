@@ -337,7 +337,7 @@ const Views = {
 
 const App = {
     init() {
-        console.log(' App.init() llamado');
+        console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
             console.error('❌ Firebase no está inicializado. Revisa index.html');
@@ -489,7 +489,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -497,7 +497,7 @@ const App = {
     },
 
     handleBackButton() {
-        console.log('📜 Historial actual:', navigationHistory);
+        console.log(' Historial actual:', navigationHistory);
         console.log('📍 Vista actual:', Views.current);
 
         if (navigationHistory.length > 1) {

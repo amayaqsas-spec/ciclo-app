@@ -18,11 +18,9 @@
     
     <title>CICLO</title>
     
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
     <link rel="apple-touch-icon" href="./assets/icon-192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="./assets/icon-192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="./assets/icon-512.png">
 
     <link rel="stylesheet" href="styles.css">
 
@@ -47,46 +45,15 @@
         window.firebase = firebase;
     </script>
 
-    <!-- ✅ DETECTOR DE ACTUALIZACIÓN (Sin bucle infinito) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                navigator.serviceWorker.register('./sw.js')
                     .then(reg => {
-                        console.log('✅ SW registrado:', reg.scope);
-                        
-                        reg.addEventListener('updatefound', () => {
-                            const newWorker = reg.installing;
-                            console.log('📥 Nueva versión descargándose...');
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    const lastReload = localStorage.getItem('lastSWReload');
-                                    const now = Date.now();
-                                    
-                                    if (!lastReload || (now - parseInt(lastReload)) > 30000) {
-                                        console.log('✅ Nueva versión lista, recargando...');
-                                        localStorage.setItem('lastSWReload', now.toString());
-                                        
-                                        if (window.App && window.App.showToast) {
-                                            window.App.showToast('🔄 Actualizando app...');
-                                        }
-                                        
-                                        setTimeout(() => {
-                                            window.location.reload();
-                                        }, 1000);
-                                    } else {
-                                        console.log('⏭️ Recarga reciente, omitiendo para evitar bucle');
-                                    }
-                                }
-                            });
-                        });
-
-                        setInterval(() => {
-                            reg.update();
-                        }, 5 * 60 * 1000);
+                        console.log('✅ SW registrado');
+                        setInterval(() => reg.update(), 10 * 60 * 1000);
                     })
-                    .catch(err => console.error('❌ Error al registrar SW:', err));
+                    .catch(err => console.log('SW error:', err));
             });
         }
     </script>
@@ -187,32 +154,9 @@
 
     <div class="toast" id="toast"></div>
 
-    <script src="ciclo_tracking_module.js"></script>
     <script src="db.js"></script>
     <script src="auth.js"></script>
     <script type="module" src="app.js"></script>
-
-    <!-- ✅ SCRIPT: Detección de iOS y corrección de viewport (NO afecta Android/PC) -->
-    <script>
-    (function() {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        
-        if (isIOS) {
-            console.log('📱 iOS detectado, aplicando correcciones específicas...');
-            document.body.classList.add('ios-device');
-            
-            function setViewportHeight() {
-                let vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
-            }
-
-            setViewportHeight();
-            window.addEventListener('resize', setViewportHeight);
-            window.addEventListener('orientationchange', () => setTimeout(setViewportHeight, 100));
-            document.addEventListener('focusout', () => setTimeout(setViewportHeight, 100));
-        }
-    })();
-    </script>
 
     <script>
     (function() {
