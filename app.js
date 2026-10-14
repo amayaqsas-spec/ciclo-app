@@ -184,7 +184,7 @@ const Views = {
         if (currentModule && typeof currentModule.onLeave === 'function') {
             const puedeSalir = await currentModule.onLeave();
             if (!puedeSalir) {
-                console.log(' Salida cancelada por atraso activo');
+                console.log('🚫 Salida cancelada por atraso activo');
                 return;
             }
         }
@@ -376,8 +376,8 @@ const App = {
                     Views.applyTheme('lavender', false);
                 }
 
-                const perfilConfigurado = DB.get('perfilConfigurado', false);
-                const vistaInicial = perfilConfigurado ? 'home' : 'onboarding';
+                // ✅ CORRECCIÓN: Siempre ir al home (ya no existe onboarding)
+                const vistaInicial = 'home';
 
                 Views.renderMenu();
                 Views.load(vistaInicial, false);
@@ -497,7 +497,7 @@ const App = {
     },
 
     handleBackButton() {
-        console.log(' Historial actual:', navigationHistory);
+        console.log('📜 Historial actual:', navigationHistory);
         console.log('📍 Vista actual:', Views.current);
 
         if (navigationHistory.length > 1) {
