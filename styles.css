@@ -8838,3 +8838,48 @@ select:focus {
     background: var(--primary, #5C5470);
     color: white;
 }
+/* ============================================
+   ✅ CORRECCIÓN: Habilitar scroll en toda la app
+   ============================================ */
+
+/* Permitir scroll en el body */
+body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* El mainApp debe permitir scroll si es necesario */
+#mainApp {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: 100vh !important;
+    position: relative !important;
+}
+
+/* El contenedor de vistas DEBE tener scroll */
+#viewContainer {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 60px) !important; /* Ajusta según el tamaño de tu header */
+    padding-bottom: 20px !important;
+}
+
+/* Las vistas individuales también */
+.view.active {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 100% !important;
+}
+
+/* En móviles, asegurar que funcione el scroll táctil */
+@media (max-width: 768px) {
+    #viewContainer {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    body {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
