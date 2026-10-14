@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Cálculo Automático de Semana
+// MI-ROL.JS - Calendario con Cálculo Automático de Semana (Optimizado para iOS)
 // ============================================
 
 const MiRol = {
@@ -120,14 +120,14 @@ const MiRol = {
         }) : [];
 
         const hayRolRegistrado = miRol !== null;
-        const textoBoton = hayRolRegistrado ? '️ Editar' : '✏️ Nuevo';
+        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '✏️ Nuevo';
 
         return `
             <div class="view active" style="padding: 20px;">
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
-                        <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 10;">
                             ${textoBoton}
                         </button>
                     </div>
@@ -147,7 +147,7 @@ const MiRol = {
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;"> Semana Actual</div>
+                                <div style="font-size: 11px; opacity: 0.9; margin-bottom: 4px;">📆 Semana Actual</div>
                                 <div style="font-size: 18px; font-weight: 800;">Semana ${semanaActualNum}</div>
                             </div>
                         </div>
@@ -226,7 +226,11 @@ const MiRol = {
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
-            btnEditarPerfil.addEventListener('click', () => this.abrirModalEditar());
+            // ✅ Corrección iOS: Usar 'click' normal, pero el CSS ya tiene touch-action: manipulation
+            btnEditarPerfil.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevenir comportamientos extraños de doble-tap en iOS
+                this.abrirModalEditar();
+            });
         }
     },
 
@@ -243,7 +247,7 @@ const MiRol = {
         const terminales = DB.load('terminales');
 
         console.log('📅 Modal - líneas disponibles:', lineas.length);
-        console.log(' Modal - terminales disponibles:', terminales.length);
+        console.log('📅 Modal - terminales disponibles:', terminales.length);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -258,33 +262,33 @@ const MiRol = {
         const tituloModal = esEdicion ? '✏️ Editar Perfil' : '✏️ Nuevo Perfil';
 
         const modalOverlay = App.showModal(`
-            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative;">
                 <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">${tituloModal}</h3>
                 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Línea *</label>
-                    <select id="editLinea" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                    <select id="editLinea" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); -webkit-appearance: none;">
                         ${lineaOptions}
                     </select>
                 </div>
 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Terminal *</label>
-                    <select id="editTerminal" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                    <select id="editTerminal" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); -webkit-appearance: none;">
                         ${terminalOptions}
                     </select>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Número de Rol *</label>
-                    <input type="text" id="editNumeroRol" value="${userNumeroRol || ''}" placeholder="Ej. 1234" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); box-sizing: border-box;">
+                    <input type="text" id="editNumeroRol" value="${userNumeroRol || ''}" placeholder="Ej. 1234" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); box-sizing: border-box; -webkit-appearance: none;">
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button id="btnCancelarEdit" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    <button id="btnCancelarEdit" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
                         Cancelar
                     </button>
-                    <button id="btnGuardarEdit" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    <button id="btnGuardarEdit" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
                         💾 Guardar
                     </button>
                 </div>
@@ -306,6 +310,12 @@ const MiRol = {
         document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
         
         document.getElementById('btnGuardarEdit').addEventListener('click', () => {
+            // ✅ Corrección iOS CRÍTICA: Quitar el foco (blur) de todos los inputs antes de guardar.
+            // Esto evita que el teclado virtual de iOS interfiera con el cierre del modal y la navegación.
+            document.getElementById('editLinea').blur();
+            document.getElementById('editTerminal').blur();
+            document.getElementById('editNumeroRol').blur();
+
             const nuevaLineaId = selectLinea.value;
             const nuevaTerminalId = selectTerminal.value;
             const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
@@ -323,6 +333,7 @@ const MiRol = {
             App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();
 
+            // ✅ Corrección iOS: Un pequeño delay asegura que el DOM se limpie antes de navegar
             setTimeout(() => {
                 console.log('🚀 Navegando a Home automáticamente...');
                 if (window.Views && window.Views.load) {
@@ -330,7 +341,7 @@ const MiRol = {
                 } else {
                     window.location.href = '#home';
                 }
-            }, 500);
+            }, 300);
         });
     }
 };

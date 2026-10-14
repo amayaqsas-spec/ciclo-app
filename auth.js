@@ -1,5 +1,5 @@
 // ============================================
-// AUTH.JS - Autenticación con soporte Offline
+// AUTH.JS - Autenticación con soporte Offline y Correcciones iOS
 // ============================================
 
 const ADMIN_EMAIL = 'amayaqsas@gmail.com';
@@ -17,12 +17,31 @@ const Auth = {
                 console.log('✅ Persistencia de sesión configurada: LOCAL');
             }
         } catch (error) {
-            console.warn('️ No se pudo configurar persistencia:', error);
+            console.warn('⚠️ No se pudo configurar persistencia:', error);
         }
+    },
+
+    // ✅ Función auxiliar para limpiar UI y cerrar menús (Corrección iOS)
+    cleanupUI() {
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        if (sideMenu) sideMenu.classList.remove('active');
+        if (menuOverlay) menuOverlay.classList.remove('active');
+        
+        // Forzar recálculo del viewport en iOS Safari
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
     },
 
     renderLogin() {
         const container = document.getElementById('authContainer');
+        if (!container) return;
+        
+        // ✅ Asegurar que el contenedor principal esté oculto al mostrar login
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp) mainApp.classList.remove('show');
+
         container.innerHTML = `
             <div class="auth-container">
                 <div class="auth-card">
@@ -66,20 +85,23 @@ const Auth = {
         const style = document.createElement('style');
         style.textContent = `
             .auth-container {
-                min-height: 100vh;
+                position: fixed; /* ✅ Corrección iOS: Evita ventanas superpuestas */
+                inset: 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
-                position: relative;
-                overflow: hidden;
                 background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+                z-index: 9999;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
             .auth-background {
                 position: absolute;
                 top: 0; left: 0; right: 0; bottom: 0;
                 overflow: hidden;
                 z-index: 0;
+                pointer-events: none;
             }
             .auth-bg-circle {
                 position: absolute;
@@ -120,23 +142,27 @@ const Auth = {
             .input-modern {
                 width: 100%; padding: 12px 14px; border: 2px solid var(--bg-soft); border-radius: 10px;
                 font-size: 15px; background: var(--bg); color: var(--text); transition: all 0.3s ease; box-sizing: border-box;
+                -webkit-appearance: none; /* ✅ Corrección iOS para inputs */
             }
             .input-modern:focus { outline: none; border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px rgba(155, 127, 212, 0.1); }
             .input-modern::placeholder { color: var(--text-light); }
             .btn-auth-primary {
-                width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-                color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-                transition: all 0.3s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+                width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+                color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; 
+                cursor: pointer; transition: all 0.2s ease; margin-top: 8px; box-shadow: 0 4px 12px rgba(155, 127, 212, 0.3);
+                -webkit-tap-highlight-color: transparent; /* ✅ Corrección iOS: elimina flash azul al tocar */
+                touch-action: manipulation; /* ✅ Corrección iOS: elimina delay de 300ms */
             }
-            .btn-auth-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(155, 127, 212, 0.4); }
-            .btn-auth-primary:active { transform: translateY(0); }
+            .btn-auth-primary:active { transform: scale(0.98); }
             .btn-auth-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
             .btn-auth-secondary {
-                width: 100%; padding: 12px; background: var(--bg-soft); color: var(--text);
+                width: 100%; padding: 14px; background: var(--bg-soft); color: var(--text);
                 border: 2px solid var(--bg-soft); border-radius: 10px; font-size: 15px; font-weight: 700;
-                cursor: pointer; transition: all 0.3s ease;
+                cursor: pointer; transition: all 0.2s ease;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
             }
-            .btn-auth-secondary:hover { background: var(--bg); border-color: var(--primary); color: var(--primary); }
+            .btn-auth-secondary:active { transform: scale(0.98); background: var(--bg); border-color: var(--primary); color: var(--primary); }
             .msg-error {
                 background: #fee; color: #c33; padding: 10px; border-radius: 8px; font-size: 13px;
                 margin-bottom: 14px; display: none; border-left: 4px solid #c33;
@@ -157,7 +183,7 @@ const Auth = {
                 .auth-title { font-size: 32px; }
                 .form-title { font-size: 17px; }
                 .input-modern { padding: 11px 13px; }
-                .btn-auth-primary, .btn-auth-secondary { padding: 11px; font-size: 15px; }
+                .btn-auth-primary, .btn-auth-secondary { padding: 12px; font-size: 15px; }
             }
         `;
         document.head.appendChild(style);
@@ -171,6 +197,8 @@ const Auth = {
 
     renderRegister() {
         const container = document.getElementById('authContainer');
+        if (!container) return;
+
         container.innerHTML = `
             <div class="auth-container">
                 <div class="auth-card">
@@ -264,6 +292,9 @@ const Auth = {
             await auth.signInWithEmailAndPassword(email, password);
             console.log('✅ Login exitoso');
             
+            // ✅ Corrección iOS: Limpiar UI y forzar resize
+            this.cleanupUI();
+            
         } catch (error) {
             console.error('❌ Error de login:', error.code, error.message);
             
@@ -300,6 +331,9 @@ const Auth = {
             // Guardar en localStorage
             DB.set('userName', user.nombre);
             DB.set('offlineUser', user);
+            
+            // ✅ Corrección iOS: Limpiar UI y forzar resize
+            this.cleanupUI();
             
             // Disparar evento de auth
             this.triggerOfflineAuth();
@@ -385,6 +419,11 @@ const Auth = {
             document.getElementById('registerEmail').value = '';
             document.getElementById('registerPassword').value = '';
             
+            // ✅ Corrección iOS: Limpiar UI y forzar resize tras registro exitoso
+            setTimeout(() => {
+                this.cleanupUI();
+            }, 1500);
+            
         } catch (error) {
             console.error('❌ Error de registro:', error.code, error.message);
             
@@ -436,6 +475,11 @@ const Auth = {
         const btn = document.getElementById('btnRegister');
         btn.innerHTML = '<span>Crear Cuenta</span>';
         btn.disabled = false;
+        
+        // ✅ Corrección iOS
+        setTimeout(() => {
+            this.cleanupUI();
+        }, 1500);
     },
 
     showError(elementId, msg) {
@@ -499,7 +543,7 @@ const Auth = {
             return emailName;
         }
         
-        console.log('️ No se encontró nombre, usando "Usuario"');
+        console.log('⚠️ No se encontró nombre, usando "Usuario"');
         return 'Usuario';
     },
 
@@ -508,6 +552,9 @@ const Auth = {
         DB.remove('userName');
         DB.remove('offlineUser');
         this.isOffline = false;
+        
+        // ✅ Corrección iOS: Asegurar que el menú se cierre al salir
+        this.cleanupUI();
         
         if (firebase && firebase.auth) {
             await firebase.auth().signOut();
