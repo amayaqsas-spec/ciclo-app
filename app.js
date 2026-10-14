@@ -1,5 +1,5 @@
 // ============================================
-// APP.JS - Orquestador Principal con soporte Offline
+// APP.JS - Orquestador Principal con soporte Offline y Correcciones iOS
 // ============================================
 
 const firebase = window.firebase || (typeof firebase !== 'undefined' ? firebase : null);
@@ -60,9 +60,6 @@ const viewModules = {
 
 const loadedModules = {};
 
-// ============================================
-// HISTORIAL DE NAVEGACIÓN
-// ============================================
 const navigationHistory = ['home'];
 let backPressTimer = null;
 let isExiting = false;
@@ -352,13 +349,12 @@ const App = {
         console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
-            console.error(' Firebase no está inicializado. Revisa index.html');
+            console.error('❌ Firebase no está inicializado. Revisa index.html');
             return;
         }
 
         const auth = firebase.auth();
 
-        // ✅ Configurar persistencia de sesión LOCAL
         Auth.initPersistence();
 
         auth.onAuthStateChanged(user => {
@@ -371,10 +367,31 @@ const App = {
                 const authContainer = document.getElementById('authContainer');
                 const mainApp = document.getElementById('mainApp');
 
-                if (authContainer) authContainer.classList.remove('show');
+                // ✅ Ocultar auth container completamente
+                if (authContainer) {
+                    authContainer.style.display = 'none';
+                    authContainer.classList.remove('show');
+                    authContainer.innerHTML = '';
+                }
 
+                // ✅ Mostrar mainApp con display flex
                 setTimeout(() => {
-                    if (mainApp) mainApp.classList.add('show');
+                    if (mainApp) {
+                        mainApp.style.display = 'flex';
+                        mainApp.classList.add('show');
+                        
+                        // ✅ Forzar recálculo del layout para iOS
+                        window.dispatchEvent(new Event('resize'));
+                        document.body.style.height = window.innerHeight + 'px';
+                        
+                        const viewContainer = document.getElementById('viewContainer');
+                        if (viewContainer) {
+                            const headerHeight = document.querySelector('.app-header')?.offsetHeight || 60;
+                            viewContainer.style.height = (window.innerHeight - headerHeight) + 'px';
+                            viewContainer.style.overflowY = 'auto';
+                            viewContainer.style.webkitOverflowScrolling = 'touch';
+                        }
+                    }
                 }, 300);
 
                 const name = Auth.getUserName(user);
@@ -419,10 +436,14 @@ const App = {
                 const mainApp = document.getElementById('mainApp');
                 const authContainer = document.getElementById('authContainer');
 
-                if (mainApp) mainApp.classList.remove('show');
+                if (mainApp) {
+                    mainApp.style.display = 'none';
+                    mainApp.classList.remove('show');
+                }
 
                 setTimeout(() => {
                     if (authContainer) {
+                        authContainer.style.display = 'block';
                         authContainer.classList.add('show');
                         Auth.renderLogin();
                     }
@@ -502,7 +523,7 @@ const App = {
 
     initBackNavigation() {
         window.addEventListener('popstate', (event) => {
-            console.log(' Botón back presionado');
+            console.log('🔙 Botón back presionado');
             this.handleBackButton();
         });
 
@@ -511,7 +532,7 @@ const App = {
 
     handleBackButton() {
         console.log('📜 Historial actual:', navigationHistory);
-        console.log('📍 Vista actual:', Views.current);
+        console.log(' Vista actual:', Views.current);
 
         if (navigationHistory.length > 1) {
             navigationHistory.pop();
