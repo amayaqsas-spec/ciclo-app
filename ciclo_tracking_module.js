@@ -1,12 +1,12 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Vuelta Individual
+// CICLO_TRACKING_MODULE.JS - Botones con onclick inline
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
-    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000, // 1 hora 25 minutos
-    STORAGE_KEY: 'ciclo_tracking_state_v6',
+    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
+    STORAGE_KEY: 'ciclo_tracking_state_v7',
 
     state: {
         turnoId: null,
@@ -231,7 +231,53 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(`↺ Vuelta ${vueltaNum} desmarcada - puedes marcarla de nuevo`);
+        App.showToast(`↺ Vuelta ${vueltaNum} desmarcada`);
+    },
+
+    marcarLlegadaVuelta(vueltaKey, vueltaNum, horaLlegadaTeorica) {
+        const ahora = new Date();
+        const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+        
+        const [hTeorica, mTeorica] = horaLlegadaTeorica.split(':').map(Number);
+        const llegadaTeorica = new Date(ahora);
+        llegadaTeorica.setHours(hTeorica, mTeorica, 0, 0);
+
+        const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
+
+        this.state.accumulatedDelayMin += minutosAtraso;
+
+        this.state.llegadasRegistradas[vueltaKey] = {
+            horaReal: horaReal,
+            atraso: minutosAtraso,
+            timestamp: ahora.getTime()
+        };
+
+        this.state.vueltasCompletadas[vueltaKey] = {
+            hora: horaReal,
+            atraso: minutosAtraso,
+            timestamp: ahora.getTime()
+        };
+
+        if (vueltaNum === this.state.currentVuelta) {
+            this.state.currentVuelta = vueltaNum + 1;
+            
+            const tren = this.servicioData.trenes[this.state.currentTrenIndex];
+            const vueltas = tren.vueltas || 1;
+            
+            if (this.state.currentVuelta > vueltas) {
+                this.state.currentTrenIndex++;
+                this.state.currentVuelta = 1;
+            }
+        }
+
+        this.saveState();
+        this.renderTrackingPanel();
+
+        if (minutosAtraso > 0) {
+            App.showToast(`⚠️ Vuelta ${vueltaNum}: +${minutosAtraso} min de atraso`);
+        } else {
+            App.showToast(`✅ Vuelta ${vueltaNum}: A tiempo`);
+        }
     },
 
     renderTrackingPanel() {
@@ -337,7 +383,7 @@ const CicloTracking = {
                             </div>
                             
                             ${!estaCompletada && esTrenActivo ? `
-                                <button class="ct-btn-llegada-vuelta" data-vuelta-key="${vueltaKey}" data-vuelta-num="${vuelta.numero}" data-hora-llegada="${vuelta.horaLlegada}" style="
+                                <button onclick="CicloTracking.marcarLlegadaVuelta('${vueltaKey}', ${vuelta.numero}, '${vuelta.horaLlegada}')" style="
                                     width: 100%;
                                     padding: 10px;
                                     background: #FF9800;
@@ -371,7 +417,7 @@ const CicloTracking = {
                                             </div>
                                         </div>
                                         ${esTrenActivo ? `
-                                            <button class="ct-btn-reset-vuelta" data-vuelta-key="${vueltaKey}" title="Desmarcar esta vuelta" style="
+                                            <button onclick="CicloTracking.resetVuelta('${vueltaKey}')" title="Desmarcar esta vuelta" style="
                                                 background: rgba(255,255,255,0.3);
                                                 border: none;
                                                 border-radius: 6px;
@@ -451,77 +497,7 @@ const CicloTracking = {
         `;
 
         panel.innerHTML = html;
-        this.attachEventListeners();
         container.parentNode.insertBefore(panel, container.nextSibling);
-    },
-
-    attachEventListeners() {
-        document.querySelectorAll('.ct-btn-llegada-vuelta').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const vueltaKey = btn.dataset.vueltaKey;
-                const vueltaNum = parseInt(btn.dataset.vueltaNum);
-                const horaLlegadaTeorica = btn.dataset.horaLlegada;
-                this.marcarLlegadaVuelta(vueltaKey, vueltaNum, horaLlegadaTeorica);
-            });
-        });
-
-        document.querySelectorAll('.ct-btn-reset-vuelta').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const vueltaKey = btn.dataset.vueltaKey;
-                const vueltaNum = vueltaKey.split('_')[1];
-                
-                if (confirm(`¿Desmarcar Vuelta ${vueltaNum}?\n\nPodrás marcarla de nuevo.`)) {
-                    this.resetVuelta(vueltaKey);
-                }
-            });
-        });
-    },
-
-    marcarLlegadaVuelta(vueltaKey, vueltaNum, horaLlegadaTeorica) {
-        const ahora = new Date();
-        const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-        
-        const [hTeorica, mTeorica] = horaLlegadaTeorica.split(':').map(Number);
-        const llegadaTeorica = new Date(ahora);
-        llegadaTeorica.setHours(hTeorica, mTeorica, 0, 0);
-
-        const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
-
-        this.state.accumulatedDelayMin += minutosAtraso;
-
-        this.state.llegadasRegistradas[vueltaKey] = {
-            horaReal: horaReal,
-            atraso: minutosAtraso,
-            timestamp: ahora.getTime()
-        };
-
-        this.state.vueltasCompletadas[vueltaKey] = {
-            hora: horaReal,
-            atraso: minutosAtraso,
-            timestamp: ahora.getTime()
-        };
-
-        if (vueltaNum === this.state.currentVuelta) {
-            this.state.currentVuelta = vueltaNum + 1;
-            
-            const tren = this.servicioData.trenes[this.state.currentTrenIndex];
-            const vueltas = tren.vueltas || 1;
-            
-            if (this.state.currentVuelta > vueltas) {
-                this.state.currentTrenIndex++;
-                this.state.currentVuelta = 1;
-            }
-        }
-
-        this.saveState();
-        this.renderTrackingPanel();
-
-        if (minutosAtraso > 0) {
-            App.showToast(`⚠️ Vuelta ${vueltaNum}: +${minutosAtraso} min de atraso`);
-        } else {
-            App.showToast(`✅ Vuelta ${vueltaNum}: A tiempo`);
-        }
     },
 
     startRealTimeTracking() {
