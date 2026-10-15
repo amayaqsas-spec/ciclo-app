@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Solo Suma, Nunca Resta
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Vuelta Individual
 // ============================================
 
 const CicloTracking = {
@@ -23,7 +23,7 @@ const CicloTracking = {
     servicioData: null,
 
     async init() {
-        console.log('️ [CicloTracking] Inicializando...');
+        console.log('🛰️ [CicloTracking] Inicializando...');
         
         const container = await this.waitForElement('#skeServicioDiaContainer');
         if (!container) return;
@@ -40,7 +40,7 @@ const CicloTracking = {
 
         this.renderTrackingPanel();
         this.startRealTimeTracking();
-        console.log('✅ [CicloTracking] Activo - Solo suma atraso, nunca resta');
+        console.log('✅ [CicloTracking] Activo');
     },
 
     waitForElement(selector) {
@@ -218,17 +218,13 @@ const CicloTracking = {
         this.renderTrackingPanel();
     },
 
-    // ✅ RESET DE VUELTA: Solo elimina el registro, NO resta atraso
     resetVuelta(vueltaKey) {
         const [trenIdxStr, vueltaNumStr] = vueltaKey.split('_');
         const vueltaNum = parseInt(vueltaNumStr);
 
-        // ✅ Solo elimina el registro de llegada de esta vuelta
         delete this.state.llegadasRegistradas[vueltaKey];
         delete this.state.vueltasCompletadas[vueltaKey];
 
-        // ✅ NO resta del acumulado - el atraso se mantiene
-        // ✅ Regresa la vuelta actual a esta para poder marcarla de nuevo
         this.state.currentTrenIndex = parseInt(trenIdxStr);
         this.state.currentVuelta = vueltaNum;
 
@@ -261,9 +257,6 @@ const CicloTracking = {
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                 🚂 Seguimiento de Vueltas
-                <span style="font-size: 12px; background: var(--bg-soft); color: var(--text-soft); padding: 4px 10px; border-radius: 12px; font-weight: 600;">
-                    Tren ${this.state.currentTrenIndex + 1} de ${trenes.length}
-                </span>
             </h3>
         `;
 
@@ -285,7 +278,7 @@ const CicloTracking = {
                 ">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <h4 style="margin: 0; font-size: 16px; color: var(--night-blue, var(--primary)); font-weight: 700;">
-                            ${esTrenCompletado ? '✓ ' : esTrenActivo ? '📍 ' : ''}${labelTren} #${numTren}
+                            ${esTrenCompletado ? '✓ ' : ''}${labelTren} #${numTren}
                         </h4>
                         ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;">GARAGE</span>' : ''}
                     </div>
@@ -315,7 +308,6 @@ const CicloTracking = {
                 vueltasDesglosadas.forEach((vuelta) => {
                     const vueltaKey = `${trenIdx}_${vuelta.numero}`;
                     const estaCompletada = this.state.vueltasCompletadas[vueltaKey];
-                    const esVueltaActual = vuelta.numero === this.state.currentVuelta && esTrenActivo;
                     const direccion = vuelta.esOrigen ? 'Origen → Destino' : 'Destino → Origen';
                     const llegadaInfo = this.state.llegadasRegistradas[vueltaKey];
 
@@ -323,28 +315,28 @@ const CicloTracking = {
                         <div class="ct-vuelta-card" data-vuelta-key="${vueltaKey}" style="
                             margin-bottom: 10px;
                             padding: 12px;
-                            background: ${estaCompletada ? 'var(--primary)' : esVueltaActual ? 'var(--accent)' : 'var(--surface)'};
+                            background: ${estaCompletada ? 'var(--primary)' : 'var(--surface)'};
                             border-radius: 10px;
-                            border: 2px solid ${esVueltaActual ? 'var(--accent)' : 'transparent'};
+                            border: 2px solid ${estaCompletada ? 'var(--primary)' : 'var(--bg-soft)'};
                         ">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada || esVueltaActual ? 'white' : 'var(--text)'};">
-                                        ${estaCompletada ? '✓ ' : esVueltaActual ? '📍 ' : '⏳ '}Vuelta ${vuelta.numero}
+                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : 'var(--text)'};">
+                                        ${estaCompletada ? '✓ ' : '⏳ '}Vuelta ${vuelta.numero}
                                     </div>
-                                    <div style="font-size: 11px; color: ${estaCompletada || esVueltaActual ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">
+                                    <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">
                                         ${direccion}
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 10px; color: ${estaCompletada || esVueltaActual ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">Llegada aprox.</div>
-                                    <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada || esVueltaActual ? 'white' : 'var(--night-blue, var(--text))'};">
+                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">Llegada aprox.</div>
+                                    <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada ? 'white' : 'var(--night-blue, var(--text))'};">
                                         ${vuelta.horaLlegada}
                                     </div>
                                 </div>
                             </div>
                             
-                            ${esVueltaActual && !estaCompletada ? `
+                            ${!estaCompletada && esTrenActivo ? `
                                 <button class="ct-btn-llegada-vuelta" data-vuelta-key="${vueltaKey}" data-vuelta-num="${vuelta.numero}" data-hora-llegada="${vuelta.horaLlegada}" style="
                                     width: 100%;
                                     padding: 10px;
@@ -361,6 +353,7 @@ const CicloTracking = {
                                     gap: 6px;
                                     box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
                                     margin-top: 8px;
+                                    transition: all 0.2s;
                                 ">
                                     📍 Marcar Llegada a Terminal
                                 </button>
@@ -411,7 +404,6 @@ const CicloTracking = {
             html += `</div>`;
         });
 
-        // Panel de atraso acumulado
         const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
         const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.accumulatedDelayMin).toFixed(1);
 
@@ -452,7 +444,7 @@ const CicloTracking = {
                         font-weight: 600;
                         text-align: center;
                     ">
-                        ️ Estado de regulación: Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
+                        ⚙️ Estado de regulación: Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
                     </div>
                 ` : ''}
             </div>
@@ -496,7 +488,6 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        // ✅ SUMAR al acumulado (nunca restar)
         this.state.accumulatedDelayMin += minutosAtraso;
 
         this.state.llegadasRegistradas[vueltaKey] = {
@@ -511,7 +502,6 @@ const CicloTracking = {
             timestamp: ahora.getTime()
         };
 
-        // Avanzar a la siguiente vuelta
         if (vueltaNum === this.state.currentVuelta) {
             this.state.currentVuelta = vueltaNum + 1;
             
