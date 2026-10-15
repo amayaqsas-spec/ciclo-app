@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Cálculo Automático de Semana
+// HOME.JS - Dashboard con Cálculo Automático de Semana y Cuenta Regresiva
 // ============================================
 
 const Home = {
@@ -153,29 +153,8 @@ const Home = {
         const mostrarBotonesModo = userNumeroRol && rolesSemanal.length > 0 && posicionHoy !== 'N/A' && !esReservaHoy;
         const modoForzado = DB.get('modoDiaForzado', null);
 
-        let botonesModoHTML = '';
-        if (diaSemana >= 1 && diaSemana <= 5) {
-            const laboralActivo = modoForzado === null || modoForzado === 'laboral';
-            const domingoActivo = modoForzado === 'domingo';
-            botonesModoHTML = `
-                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
-            `;
-        } else if (diaSemana === 6) {
-            const sabadoActivo = modoForzado === null;
-            const domingoActivo = modoForzado === 'domingo';
-            botonesModoHTML = `
-                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Sábado</button>
-                <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
-            `;
-        } else {
-            const domingoActivo = modoForzado === null;
-            const laboralActivo = modoForzado === 'laboral';
-            botonesModoHTML = `
-                <button id="btnModoNormal" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
-                <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-            `;
-        }
+        const laboralActivo = modoForzado === null || modoForzado === 'laboral';
+        const domingoActivo = modoForzado === 'domingo';
 
         return `
             <div class="view active ske-home">
@@ -203,7 +182,10 @@ const Home = {
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
-                        <div style="display: flex; gap: 8px;">${botonesModoHTML}</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                        </div>
                     </div>
                 ` : ''}
 
@@ -303,15 +285,16 @@ const Home = {
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
 
-        // ✅ ELIMINADO: Ya no muestra modal de bienvenida
-        // El usuario entra directo al Home
-
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
         const welcomeIcon = document.getElementById('welcomeIcon');
 
         if (btnCambiarFoto && inputFotoPerfil) {
-            btnCambiarFoto.addEventListener('click', (e) => { e.preventDefault(); inputFotoPerfil.click(); });
+            btnCambiarFoto.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                inputFotoPerfil.click(); 
+            });
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -319,9 +302,15 @@ const Home = {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
                         DB.set('imagenPerfil', ev.target.result);
-                        const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
-                        if (imgExistente) imgExistente.src = ev.target.result;
-                        else welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="ske-avatar-img">`;
+                        const imgExistente = document.querySelector('.profile-avatar-img');
+                        if (imgExistente) {
+                            imgExistente.src = ev.target.result;
+                        } else {
+                            const ring = document.querySelector('.profile-avatar-ring');
+                            if (ring) {
+                                ring.innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="profile-avatar-img">`;
+                            }
+                        }
                         App.showToast('Foto de perfil actualizada');
                     };
                     reader.readAsDataURL(file);
@@ -331,13 +320,11 @@ const Home = {
 
         const btnModoLaboral = document.getElementById('btnModoLaboral');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
-        const btnModoNormal = document.getElementById('btnModoNormal');
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
-        if (btnModoNormal) btnModoNormal.addEventListener('click', () => { DB.remove('modoDiaForzado'); DB.remove('fechaModoForzado'); App.showToast('📅 Modo: Automático'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
@@ -375,9 +362,11 @@ const Home = {
         return Promise.resolve(true);
     },
 
+    // ✅ FUNCIÓN MODIFICADA: Con cuenta regresiva de 10 minutos antes del descanso
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
+        
         const actualizarReloj = () => {
             const ahora = new Date();
             const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
@@ -394,8 +383,31 @@ const Home = {
             const relojEtiqueta = document.getElementById('hsdRelojEtiqueta');
             if (!relojTiempo || !relojEtiqueta) return;
 
+            // ✅ CUENTA REGRESIVA DE 10 MINUTOS ANTES DEL DESCANSO
             if (horaActualMinutos < minutosInicio) {
-                relojTiempo.textContent = '00:00:00'; relojEtiqueta.textContent = '⏳ Esperando inicio de descanso'; relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                const diffMinutos = minutosInicio - horaActualMinutos;
+                const diffSegundos = 60 - segundosActuales;
+                
+                if (diffMinutos <= 10) {
+                    // ✅ Mostrar cuenta regresiva de 10 minutos
+                    const minutosRestantes = diffMinutos - 1;
+                    const segundosRestantes = diffSegundos;
+                    
+                    relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = ' Tu descanso inicia en...';
+                    relojTiempo.style.color = '#FF9800';
+                    
+                    // Efecto visual cuando falten menos de 1 minuto
+                    if (diffMinutos <= 1) {
+                        relojTiempo.style.color = '#c62828';
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                    }
+                } else {
+                    // Más de 10 minutos, mostrar tiempo normal
+                    relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = ' Esperando inicio de descanso';
+                    relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
@@ -404,9 +416,12 @@ const Home = {
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; relojTiempo.style.color = '#FF9800';
+                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; 
+                relojTiempo.style.color = '#FF9800';
             } else {
-                relojTiempo.textContent = '01:25:00'; relojEtiqueta.textContent = 'Tiempo máximo de atraso alcanzado'; relojTiempo.style.color = '#c62828';
+                relojTiempo.textContent = '01:25:00'; 
+                relojEtiqueta.textContent = 'Tiempo máximo de atraso alcanzado'; 
+                relojTiempo.style.color = '#c62828';
             }
         };
         actualizarReloj();
