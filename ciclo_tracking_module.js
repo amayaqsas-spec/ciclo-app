@@ -1,11 +1,11 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Cálculo Preciso
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Tiempo Extra
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
-    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
+    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000, // 1 hora 25 minutos
     STORAGE_KEY: 'ciclo_tracking_state_v9',
 
     state: {
@@ -69,6 +69,7 @@ const CicloTracking = {
         });
     },
 
+    // ✅ FUNCIÓN MODIFICADA: Detecta tiempo extra activo
     extractServiceData() {
         const userLineaId = DB.get('userLineaId');
         const userNumeroRol = DB.get('userNumeroRol');
@@ -76,6 +77,26 @@ const CicloTracking = {
         const servicios = DB.load('servicios');
         const semanas = DB.load('semanas');
 
+        // ✅ VERIFICAR SI HAY TIEMPO EXTRA ACTIVO
+        const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
+        const servicioExtraGuardado = DB.get('servicioTiempoExtra', null);
+
+        if (tiempoExtraActivo && servicioExtraGuardado) {
+            // ✅ Usar el servicio de tiempo extra
+            const servicio = servicios.find(s => 
+                String(s.nombre).trim() === String(servicioExtraGuardado.servicioId).trim() &&
+                s.lineaId === userLineaId
+            );
+
+            if (servicio && servicio.trenes && servicio.trenes.length > 0) {
+                this.servicioData = servicio;
+                this.state.turnoId = `tiempo_extra_${servicio.nombre}_${this.getFechaLocal(new Date())}`;
+                console.log('🛰️ [CicloTracking] Usando servicio de tiempo extra:', servicio.nombre);
+                return;
+            }
+        }
+
+        // ✅ Lógica normal (sin tiempo extra)
         if (!userNumeroRol || !rolesSemanal.length) return;
 
         const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -246,7 +267,7 @@ const CicloTracking = {
         const now = Date.now();
         if (this.state.expirationTime && now > this.state.expirationTime) {
             if (!this.state.turnoFinalizado) {
-                console.log(' Turno finalizado. Ocultando seguimiento, mostrando resumen.');
+                console.log('⏰ Turno finalizado. Ocultando seguimiento, mostrando resumen.');
                 this.state.turnoFinalizado = true;
                 this.saveState();
                 this.renderTrackingPanel();
@@ -283,7 +304,7 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
+        App.showToast(` Carrera ${carreraNum} desmarcada`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
@@ -327,7 +348,7 @@ const CicloTracking = {
         this.renderTrackingPanel();
 
         if (minutosAtraso > 0) {
-            App.showToast(`⚠️ Carrera ${carreraNum}: +${this.formatMinutos(minutosAtraso)} de atraso`);
+            App.showToast(`️ Carrera ${carreraNum}: +${this.formatMinutos(minutosAtraso)} de atraso`);
         } else {
             App.showToast(`✅ Carrera ${carreraNum}: A tiempo`);
         }
@@ -355,6 +376,7 @@ const CicloTracking = {
         const now = Date.now();
         const turnoExpirado = this.state.expirationTime && now > this.state.expirationTime;
 
+        // ✅ Si el turno está finalizado, mostrar SOLO el resumen de Ciclo de Recuperación
         if (turnoExpirado) {
             const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
             
@@ -424,9 +446,12 @@ const CicloTracking = {
             return;
         }
 
+        // ✅ Render normal del seguimiento
+        const esTiempoExtra = DB.get('tiempoExtraActivo', false);
+        
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                🚂 Seguimiento de Carreras
+                ${esTiempoExtra ? '️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
             </h3>
         `;
 
@@ -575,6 +600,7 @@ const CicloTracking = {
             html += `</div>`;
         });
 
+        // ✅ Panel de Ciclo de Recuperación con formato HH:MM
         const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
         const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.accumulatedDelayMin);
 
@@ -615,7 +641,7 @@ const CicloTracking = {
                         font-weight: 600;
                         text-align: center;
                     ">
-                        ️ Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
+                        ⚙️ Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
                     </div>
                 ` : ''}
             </div>

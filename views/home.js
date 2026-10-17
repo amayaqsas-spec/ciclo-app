@@ -1,11 +1,13 @@
 // ============================================
-// HOME.JS - Dashboard con Cuenta Regresiva HH:MM
+// HOME.JS - Dashboard con Tiempo Extra
 // ============================================
 
 const Home = {
     relojInterval: null,
     minutosAtraso: 0,
     infoServicio: null,
+    tiempoExtraActivo: false, // ✅ Nuevo: estado de tiempo extra
+    servicioTiempoExtra: null, // ✅ Nuevo: servicio de tiempo extra
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -75,12 +77,58 @@ const Home = {
         return null;
     },
 
-    // ✅ NUEVA FUNCIÓN: Formatear minutos a HH:MM
-    formatMinutos(minutos) {
-        const totalMin = Math.floor(minutos);
-        const horas = Math.floor(totalMin / 60);
-        const mins = totalMin % 60;
-        return `${horas}:${String(mins).padStart(2, '0')}`;
+    // ✅ NUEVA FUNCIÓN: Cargar servicio de tiempo extra
+    async cargarTiempoExtra() {
+        const tipoDia = this.getTipoDiaActual();
+        const userLineaId = DB.get('userLineaId');
+        
+        const numeroServicio = prompt(`¿Qué servicio de tipo "${tipoDia}" vas a trabajar?\n\nIngresa el número de servicio:`);
+        
+        if (!numeroServicio || numeroServicio.trim() === '') {
+            App.showToast('⚠️ Debes ingresar un número de servicio');
+            return;
+        }
+
+        const infoServicio = this.buscarServicioPorTipo(tipoDia, numeroServicio.trim(), userLineaId);
+        
+        if (!infoServicio) {
+            App.showToast(` No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
+            return;
+        }
+
+        // ✅ Guardar estado de tiempo extra
+        this.tiempoExtraActivo = true;
+        this.servicioTiempoExtra = infoServicio;
+        DB.set('tiempoExtraActivo', true);
+        DB.set('servicioTiempoExtra', {
+            servicioId: infoServicio.servicio.nombre,
+            tipoDia: tipoDia
+        });
+
+        App.showToast(`✅ Tiempo Extra activado: Servicio ${numeroServicio}`);
+        
+        // ✅ Recargar el home
+        if (typeof Views !== 'undefined' && Views.load) {
+            Views.load('home', false);
+        } else {
+            window.location.reload();
+        }
+    },
+
+    // ✅ NUEVA FUNCIÓN: Cancelar tiempo extra
+    cancelarTiempoExtra() {
+        this.tiempoExtraActivo = false;
+        this.servicioTiempoExtra = null;
+        DB.remove('tiempoExtraActivo');
+        DB.remove('servicioTiempoExtra');
+        
+        App.showToast('❌ Tiempo Extra cancelado');
+        
+        if (typeof Views !== 'undefined' && Views.load) {
+            Views.load('home', false);
+        } else {
+            window.location.reload();
+        }
     },
 
     render() {
@@ -126,6 +174,19 @@ const Home = {
 
         this.infoServicio = null;
 
+        // ✅ VERIFICAR SI HAY TIEMPO EXTRA ACTIVO
+        const tiempoExtraGuardado = DB.get('tiempoExtraActivo', false);
+        const servicioExtraGuardado = DB.get('servicioTiempoExtra', null);
+        
+        if (tiempoExtraGuardado && servicioExtraGuardado) {
+            this.tiempoExtraActivo = true;
+            this.servicioTiempoExtra = this.buscarServicioPorTipo(
+                servicioExtraGuardado.tipoDia,
+                servicioExtraGuardado.servicioId,
+                userLineaId
+            );
+        }
+
         if (userNumeroRol && rolesSemanal.length > 0) {
             const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
 
@@ -164,6 +225,10 @@ const Home = {
         const laboralActivo = modoForzado === null || modoForzado === 'laboral';
         const domingoActivo = modoForzado === 'domingo';
 
+        // ✅ Determinar qué servicio mostrar (normal o tiempo extra)
+        const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
+        const errorAMostrar = this.tiempoExtraActivo ? null : errorMensaje;
+
         return `
             <div class="view active ske-home">
                 <div class="ske-greeting-card">
@@ -181,6 +246,7 @@ const Home = {
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
                                 <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -191,19 +257,33 @@ const Home = {
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
 
+                <!-- ✅ BOTÓN TIEMPO EXTRA (siempre visible) -->
+                <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">⏱️ Tiempo Extra</div>
+                    ${this.tiempoExtraActivo ? `
+                        <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            ❌ Cancelar Tiempo Extra
+                        </button>
+                    ` : `
+                        <button id="btnTiempoExtra" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
+                            ⏱️ Activar Tiempo Extra
+                        </button>
+                    `}
+                </div>
+
                 <div id="skeServicioDiaContainer">
-                    ${errorMensaje ? `
+                    ${errorAMostrar ? `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                             <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
-                            <p style="color: var(--text-soft); font-size: 14px;">${errorMensaje}</p>
+                            <p style="color: var(--text-soft); font-size: 14px;">${errorAMostrar}</p>
                         </div>
-                    ` : this.infoServicio ? this.renderServicioDia(this.infoServicio, tipoDiaActual, posicionHoy) : `
+                    ` : servicioAMostrar ? this.renderServicioDia(servicioAMostrar, tipoDiaActual, posicionHoy) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                             <h3>Sin servicio asignado</h3>
                             <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
@@ -234,7 +314,7 @@ const Home = {
             <div style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--bg-soft);">
                     <div>
-                        <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">Servicio del Día</div>
+                        <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">${this.tiempoExtraActivo ? 'Servicio de Tiempo Extra' : 'Servicio del Día'}</div>
                         <div style="font-size: 28px; font-weight: 800; color: var(--night-blue, var(--primary));">Servicio ${servicio.nombre}</div>
                     </div>
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
@@ -278,7 +358,7 @@ const Home = {
                         <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                         <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                     </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
+                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">️ Agregar Atraso al Tiempo de Alimentos</button>
                 </div>
             </div>
         `;
@@ -310,15 +390,9 @@ const Home = {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
                         DB.set('imagenPerfil', ev.target.result);
-                        const imgExistente = document.querySelector('.profile-avatar-img');
-                        if (imgExistente) {
-                            imgExistente.src = ev.target.result;
-                        } else {
-                            const ring = document.querySelector('.profile-avatar-ring');
-                            if (ring) {
-                                ring.innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="profile-avatar-img">`;
-                            }
-                        }
+                        const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
+                        if (imgExistente) imgExistente.src = ev.target.result;
+                        else welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="ske-avatar-img">`;
                         App.showToast('Foto de perfil actualizada');
                     };
                     reader.readAsDataURL(file);
@@ -334,19 +408,33 @@ const Home = {
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
 
+        // ✅ BOTONES DE TIEMPO EXTRA
+        const btnTiempoExtra = document.getElementById('btnTiempoExtra');
+        const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
+
+        if (btnTiempoExtra) {
+            btnTiempoExtra.addEventListener('click', () => this.cargarTiempoExtra());
+        }
+
+        if (btnCancelarTiempoExtra) {
+            btnCancelarTiempoExtra.addEventListener('click', () => this.cancelarTiempoExtra());
+        }
+
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
             btnAtraso.addEventListener('click', () => {
-                if (this.infoServicio && this.infoServicio.servicio) {
-                    this.agregarAtraso(this.infoServicio.servicio);
+                const servicioActual = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
+                if (servicioActual) {
+                    this.agregarAtraso(servicioActual);
                 } else {
-                    App.showToast('⚠️ No hay servicio disponible para agregar atraso');
+                    App.showToast('️ No hay servicio disponible para agregar atraso');
                 }
             });
         }
 
-        if (this.infoServicio && this.infoServicio.servicio) {
-            this.iniciarReloj(this.infoServicio.servicio);
+        const servicioParaReloj = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
+        if (servicioParaReloj) {
+            this.iniciarReloj(servicioParaReloj);
         }
 
         const btnVerAvisos = document.getElementById('btnVerAvisos');
@@ -370,7 +458,6 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Cuenta regresiva en formato HH:MM
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -391,45 +478,35 @@ const Home = {
             const relojEtiqueta = document.getElementById('hsdRelojEtiqueta');
             if (!relojTiempo || !relojEtiqueta) return;
 
-            // ✅ CUENTA REGRESIVA EN FORMATO HH:MM
             if (horaActualMinutos < minutosInicio) {
                 const diffMinutos = minutosInicio - horaActualMinutos;
                 const diffSegundos = 60 - segundosActuales;
                 
-                // ✅ Mostrar en formato HH:MM:SS
-                const horasRestantes = Math.floor(diffMinutos / 60);
-                const minutosRestantes = diffMinutos % 60;
-                
                 if (diffMinutos <= 10) {
-                    // Cuenta regresiva de 10 minutos - formato HH:MM:SS
-                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    const minutosRestantes = diffMinutos - 1;
+                    const segundosRestantes = diffSegundos;
+                    
+                    relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
                     relojTiempo.style.color = '#FF9800';
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
                     }
                 } else {
-                    // Más de 10 minutos - formato HH:MM:SS
-                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
                     relojTiempo.style.color = 'var(--night-blue, var(--primary))';
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
-                // ✅ Formato HH:MM:SS durante el descanso
-                const horasRestantes = Math.floor(diff / 60);
-                const minutosRestantes = diff % 60;
-                relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${this.formatMinutos(minutosAtraso)})` : '🍽️ Tiempo restante de descanso';
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
-                // ✅ Formato HH:MM:SS para atraso
-                const horasAtraso = Math.floor(diff / 60);
-                const minutosAtrasoDisplay = diff % 60;
-                relojTiempo.textContent = `${String(horasAtraso).padStart(2, '0')}:${String(minutosAtrasoDisplay).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
                 relojEtiqueta.textContent = '️ Tiempo de atraso en línea'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
@@ -448,7 +525,7 @@ const Home = {
         const minutosNum = parseInt(minutos);
         if (isNaN(minutosNum) || minutosNum <= 0) { App.showToast('Ingresa un número válido'); return; }
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-        App.showToast(`️ +${this.formatMinutos(minutosNum)} agregados al descanso`);
+        App.showToast(`⏱️ +${minutosNum} min agregados al descanso`);
         this.iniciarReloj(servicio);
     }
 };
