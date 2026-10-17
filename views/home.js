@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Cuenta Regresiva HH:MM
+// HOME.JS - Dashboard con Hero Glassmorphism
 // ============================================
 
 const Home = {
@@ -73,14 +73,6 @@ const Home = {
             return { servicio, linea: lineas.find(l => l.id === servicio.lineaId), terminal: terminales.find(t => t.id === servicio.terminalId), semana: tipoDiaConfig };
         }
         return null;
-    },
-
-    // ✅ NUEVA FUNCIÓN: Formatear minutos a HH:MM
-    formatMinutos(minutos) {
-        const totalMin = Math.floor(minutos);
-        const horas = Math.floor(totalMin / 60);
-        const mins = totalMin % 60;
-        return `${horas}:${String(mins).padStart(2, '0')}`;
     },
 
     render() {
@@ -164,61 +156,115 @@ const Home = {
         const laboralActivo = modoForzado === null || modoForzado === 'laboral';
         const domingoActivo = modoForzado === 'domingo';
 
+        // ✅ URL de imagen de fondo (si existe)
+        const bgImageStyle = imagenPerfil 
+            ? `background-image: url('${imagenPerfil}'); background-size: cover; background-position: center; filter: blur(20px) brightness(0.7); transform: scale(1.1);` 
+            : `background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);`;
+
         return `
             <div class="view active ske-home">
-                <div class="ske-greeting-card">
-                    <div class="ske-greeting-content">
-                        <div class="ske-avatar-frame" id="welcomeIcon">
-                            <div class="ske-avatar-inner">
-                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+                <!-- ✅ TARJETA HERO CON GLASSMORPHISM -->
+                <div class="hero-card-glass">
+                    <!-- Fondo difuminado -->
+                    <div class="hero-bg-blur" style="${bgImageStyle}"></div>
+                    <!-- Overlay para legibilidad -->
+                    <div class="hero-overlay"></div>
+                    
+                    <div class="hero-content">
+                        <!-- Botón de notificaciones -->
+                        ${avisosNoLeidos > 0 ? `
+                            <button class="hero-bell-btn" id="btnVerAvisos">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                </svg>
+                                <span class="hero-bell-badge">${avisosNoLeidos}</span>
+                            </button>
+                        ` : ''}
+
+                        <!-- Avatar grande -->
+                        <div class="hero-avatar-container">
+                            <div class="hero-avatar-ring">
+                                ${imagenPerfil 
+                                    ? `<img src="${imagenPerfil}" alt="Perfil" class="hero-avatar-img">` 
+                                    : `<svg viewBox="0 0 24 24" class="hero-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+                                }
                             </div>
-                            <button class="ske-avatar-btn" id="btnCambiarFoto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+                            <button class="hero-camera-btn" id="btnCambiarFoto">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                            </button>
                             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
                         </div>
-                        <div class="ske-greeting-text">
-                            <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
-                            <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
-                            <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
-                                ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
+
+                        <!-- Datos del usuario -->
+                        <div class="hero-user-info">
+                            <h1 class="hero-greeting">¡Hola, ${name}!</h1>
+                            <p class="hero-date">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
+                            <div class="hero-week-badge">
+                                <span class="week-icon">📅</span>
+                                <span class="week-text">Semana ${semanaActualNum}</span>
                             </div>
                         </div>
-                        ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
                     </div>
                 </div>
 
                 ${mostrarBotonesModo ? `
-                    <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
-                        <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                    <div class="modern-card">
+                        <div class="card-content">
+                            <div class="card-section-title">
+                                <span class="title-icon">🔄</span>
+                                <span>MODO DE VISUALIZACIÓN</span>
+                            </div>
+                            <div class="mode-buttons-row">
+                                <button id="btnModoLaboral" class="mode-btn ${laboralActivo ? 'mode-btn-active' : 'mode-btn-inactive'}">
+                                    <span class="mode-btn-icon">📅</span>
+                                    <span>Laboral</span>
+                                </button>
+                                <button id="btnModoDomingo" class="mode-btn ${domingoActivo ? 'mode-btn-active' : 'mode-btn-inactive'}">
+                                    <span class="mode-btn-icon">🌙</span>
+                                    <span>Domingo/Festivo</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ` : ''}
 
                 <div id="skeServicioDiaContainer">
                     ${errorMensaje ? `
-                        <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                            <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
-                            <p style="color: var(--text-soft); font-size: 14px;">${errorMensaje}</p>
+                        <div class="modern-card">
+                            <div class="card-content info-card">
+                                <h3 class="info-card-title">Información no disponible</h3>
+                                <p class="info-card-text">${errorMensaje}</p>
+                            </div>
                         </div>
                     ` : this.infoServicio ? this.renderServicioDia(this.infoServicio, tipoDiaActual, posicionHoy) : `
-                        <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                            <h3>Sin servicio asignado</h3>
-                            <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
+                        <div class="modern-card">
+                            <div class="card-content info-card">
+                                <h3 class="info-card-title">Sin servicio asignado</h3>
+                                <p class="info-card-text">No hay servicio registrado para tu posición hoy.</p>
+                            </div>
                         </div>
                     `}
                 </div>
 
                 ${tiempoExtraPendiente.length > 0 ? `
-                    <div style="margin-top: 20px; background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="background: #FF9800; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                            <h2 style="margin: 0; font-size: 16px; color: var(--text);">Tiempo Extra por Cobrar</h2>
-                            <span style="background: #FF9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tiempoExtraPendiente.length}</span>
+                    <div class="modern-card">
+                        <div class="card-content">
+                            <div class="tiempo-extra-header">
+                                <div class="tiempo-extra-icon">⏱️</div>
+                                <h2 class="tiempo-extra-title">Tiempo Extra por Cobrar</h2>
+                                <span class="tiempo-extra-count">${tiempoExtraPendiente.length}</span>
+                            </div>
+                            ${tiempoExtraPendiente.map(item => `
+                                <div class="tiempo-extra-item">
+                                    <div class="tiempo-extra-item-title">${item.tipo}</div>
+                                    <div class="tiempo-extra-item-note">${item.nota || 'Sin nota'} • ${item.fecha}</div>
+                                </div>
+                            `).join('')}
                         </div>
-                        ${tiempoExtraPendiente.map(item => `<div style="background: var(--bg-soft); padding: 10px; border-radius: 8px; margin-bottom: 8px;"><div style="font-weight: 700; color: var(--text);">${item.tipo}</div><div style="font-size: 12px; color: var(--text-soft);">${item.nota || 'Sin nota'} • ${item.fecha}</div></div>`).join('')}
                     </div>
                 ` : ''}
             </div>
@@ -231,54 +277,81 @@ const Home = {
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
 
         return `
-            <div style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--bg-soft);">
-                    <div>
-                        <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">Servicio del Día</div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--night-blue, var(--primary));">Servicio ${servicio.nombre}</div>
+            <div class="modern-card servicio-card">
+                <div class="card-content">
+                    <div class="servicio-header">
+                        <div class="servicio-title-group">
+                            <div class="servicio-subtitle">Servicio del Día</div>
+                            <div class="servicio-title">Servicio ${servicio.nombre}</div>
+                        </div>
+                        <div class="servicio-tipo-badge">${tipoDia}</div>
                     </div>
-                    <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
-                </div>
-                ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;">🚂 Trenes (${trenes.length})</div>
-                    ${trenes.map((tren, idx) => {
-                        const numTren = tren.numero || (idx + 1);
-                        const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
-                        return `
-                            <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-weight: 700; color: var(--night-blue, var(--primary)); font-size: 14px;">${labelTren} #${numTren}</span>
-                                    ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;">GARAGE</span>' : ''}
+                    
+                    <div class="servicio-info-grid">
+                        <div class="servicio-info-item">
+                            <div class="info-item-label">🚌 Línea</div>
+                            <div class="info-item-value">${linea ? linea.nombre : 'N/A'}</div>
+                        </div>
+                        <div class="servicio-info-item">
+                            <div class="info-item-label">🚇 Terminal</div>
+                            <div class="info-item-value">${terminal ? terminal.nombre : 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    ${haceGarage ? `<div class="garage-badge">✅ Hace Garage</div>` : ''}
+
+                    <div class="trenes-section">
+                        <div class="trenes-title">🚂 Trenes (${trenes.length})</div>
+                        ${trenes.map((tren, idx) => {
+                            const numTren = tren.numero || (idx + 1);
+                            const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
+                            return `
+                                <div class="tren-card">
+                                    <div class="tren-header">
+                                        <span class="tren-label">${labelTren} #${numTren}</span>
+                                        ${tren.garage ? '<span class="garage-tag">GARAGE</span>' : ''}
+                                    </div>
+                                    <div class="tren-times-grid ${tren.vueltas ? 'three-cols' : 'two-cols'}">
+                                        <div class="tren-time-box">
+                                            <div class="time-label">Salida</div>
+                                            <div class="time-value">${tren.salida || '--:--'}</div>
+                                        </div>
+                                        <div class="tren-time-box">
+                                            <div class="time-label">Llegada</div>
+                                            <div class="time-value">${tren.llegada || '--:--'}</div>
+                                        </div>
+                                        ${tren.vueltas ? `<div class="tren-time-box">
+                                            <div class="time-label">Vueltas</div>
+                                            <div class="time-value">${tren.vueltas}</div>
+                                        </div>` : ''}
+                                    </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: ${tren.vueltas ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 8px;">
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Salida</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.salida || '--:--'}</div></div>
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Llegada</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.llegada || '--:--'}</div></div>
-                                    ${tren.vueltas ? `<div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Vueltas</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.vueltas}</div></div>` : ''}
-                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <div class="descanso-section">
+                        <div class="descanso-header">
+                            <div class="descanso-icon">⏰</div>
+                            <span class="descanso-title">Tiempo de Descanso</span>
+                        </div>
+                        <div class="descanso-times">
+                            <div class="descanso-time-box">
+                                <div class="time-label">Inicio</div>
+                                <div class="time-value">${servicio.descansoInicio || '--:--'}</div>
                             </div>
-                        `;
-                    }).join('')}
-                </div>
-                <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft);">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                        <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                        <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
+                            <div class="descanso-arrow">→</div>
+                            <div class="descanso-time-box">
+                                <div class="time-label">Final</div>
+                                <div class="time-value">${servicio.descansoFinal || '--:--'}</div>
+                            </div>
+                        </div>
+                        <div id="hsdRelojContainer" class="reloj-container">
+                            <div id="hsdRelojTiempo" class="reloj-tiempo">00:00:00</div>
+                            <div id="hsdRelojEtiqueta" class="reloj-etiqueta">Esperando inicio de descanso...</div>
+                        </div>
+                        <button id="btnAgregarAtrasoHome" class="btn-atraso">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
                     </div>
-                    <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
-                        <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${servicio.descansoInicio || '--:--'}</div></div>
-                        <div style="font-size: 24px; color: var(--text-soft);">→</div>
-                        <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${servicio.descansoFinal || '--:--'}</div></div>
-                    </div>
-                    <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                        <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
-                        <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
-                    </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
                 </div>
             </div>
         `;
@@ -295,7 +368,6 @@ const Home = {
 
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
-        const welcomeIcon = document.getElementById('welcomeIcon');
 
         if (btnCambiarFoto && inputFotoPerfil) {
             btnCambiarFoto.addEventListener('click', (e) => { 
@@ -310,14 +382,20 @@ const Home = {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
                         DB.set('imagenPerfil', ev.target.result);
-                        const imgExistente = document.querySelector('.profile-avatar-img');
+                        const imgExistente = document.querySelector('.hero-avatar-img');
                         if (imgExistente) {
                             imgExistente.src = ev.target.result;
                         } else {
-                            const ring = document.querySelector('.profile-avatar-ring');
+                            const ring = document.querySelector('.hero-avatar-ring');
                             if (ring) {
-                                ring.innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="profile-avatar-img">`;
+                                ring.innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="hero-avatar-img">`;
                             }
+                        }
+                        // ✅ Actualizar el fondo de la tarjeta también
+                        const bgDiv = document.querySelector('.hero-bg-blur');
+                        if (bgDiv) {
+                            bgDiv.style.backgroundImage = `url('${ev.target.result}')`;
+                            bgDiv.style.background = 'none';
                         }
                         App.showToast('Foto de perfil actualizada');
                     };
@@ -332,7 +410,7 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
@@ -370,7 +448,6 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Cuenta regresiva en formato HH:MM
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -391,46 +468,36 @@ const Home = {
             const relojEtiqueta = document.getElementById('hsdRelojEtiqueta');
             if (!relojTiempo || !relojEtiqueta) return;
 
-            // ✅ CUENTA REGRESIVA EN FORMATO HH:MM
             if (horaActualMinutos < minutosInicio) {
                 const diffMinutos = minutosInicio - horaActualMinutos;
                 const diffSegundos = 60 - segundosActuales;
                 
-                // ✅ Mostrar en formato HH:MM:SS
-                const horasRestantes = Math.floor(diffMinutos / 60);
-                const minutosRestantes = diffMinutos % 60;
-                
                 if (diffMinutos <= 10) {
-                    // Cuenta regresiva de 10 minutos - formato HH:MM:SS
-                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
+                    const minutosRestantes = diffMinutos - 1;
+                    const segundosRestantes = diffSegundos;
+                    
+                    relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = ' Tu descanso inicia en...';
                     relojTiempo.style.color = '#FF9800';
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
                     }
                 } else {
-                    // Más de 10 minutos - formato HH:MM:SS
-                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
                     relojTiempo.style.color = 'var(--night-blue, var(--primary))';
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
-                // ✅ Formato HH:MM:SS durante el descanso
-                const horasRestantes = Math.floor(diff / 60);
-                const minutosRestantes = diff % 60;
-                relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${this.formatMinutos(minutosAtraso)})` : '🍽️ Tiempo restante de descanso';
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
-                // ✅ Formato HH:MM:SS para atraso
-                const horasAtraso = Math.floor(diff / 60);
-                const minutosAtrasoDisplay = diff % 60;
-                relojTiempo.textContent = `${String(horasAtraso).padStart(2, '0')}:${String(minutosAtrasoDisplay).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '️ Tiempo de atraso en línea'; 
+                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
                 relojTiempo.textContent = '01:25:00'; 
@@ -448,7 +515,7 @@ const Home = {
         const minutosNum = parseInt(minutos);
         if (isNaN(minutosNum) || minutosNum <= 0) { App.showToast('Ingresa un número válido'); return; }
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-        App.showToast(`️ +${this.formatMinutos(minutosNum)} agregados al descanso`);
+        App.showToast(`⏱️ +${minutosNum} min agregados al descanso`);
         this.iniciarReloj(servicio);
     }
 };
