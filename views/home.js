@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Cálculo Automático de Semana y Cuenta Regresiva
+// HOME.JS - Dashboard con Cuenta Regresiva HH:MM
 // ============================================
 
 const Home = {
@@ -73,6 +73,14 @@ const Home = {
             return { servicio, linea: lineas.find(l => l.id === servicio.lineaId), terminal: terminales.find(t => t.id === servicio.terminalId), semana: tipoDiaConfig };
         }
         return null;
+    },
+
+    // ✅ NUEVA FUNCIÓN: Formatear minutos a HH:MM
+    formatMinutos(minutos) {
+        const totalMin = Math.floor(minutos);
+        const horas = Math.floor(totalMin / 60);
+        const mins = totalMin % 60;
+        return `${horas}:${String(mins).padStart(2, '0')}`;
     },
 
     render() {
@@ -181,7 +189,7 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
                             <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
@@ -324,7 +332,7 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
@@ -362,7 +370,7 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Con cuenta regresiva de 10 minutos antes del descanso
+    // ✅ FUNCIÓN MODIFICADA: Cuenta regresiva en formato HH:MM
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -383,40 +391,46 @@ const Home = {
             const relojEtiqueta = document.getElementById('hsdRelojEtiqueta');
             if (!relojTiempo || !relojEtiqueta) return;
 
-            // ✅ CUENTA REGRESIVA DE 10 MINUTOS ANTES DEL DESCANSO
+            // ✅ CUENTA REGRESIVA EN FORMATO HH:MM
             if (horaActualMinutos < minutosInicio) {
                 const diffMinutos = minutosInicio - horaActualMinutos;
                 const diffSegundos = 60 - segundosActuales;
                 
+                // ✅ Mostrar en formato HH:MM:SS
+                const horasRestantes = Math.floor(diffMinutos / 60);
+                const minutosRestantes = diffMinutos % 60;
+                
                 if (diffMinutos <= 10) {
-                    // ✅ Mostrar cuenta regresiva de 10 minutos
-                    const minutosRestantes = diffMinutos - 1;
-                    const segundosRestantes = diffSegundos;
-                    
-                    relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = ' Tu descanso inicia en...';
+                    // Cuenta regresiva de 10 minutos - formato HH:MM:SS
+                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
                     relojTiempo.style.color = '#FF9800';
                     
-                    // Efecto visual cuando falten menos de 1 minuto
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
                         relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
                     }
                 } else {
-                    // Más de 10 minutos, mostrar tiempo normal
-                    relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = ' Esperando inicio de descanso';
+                    // Más de 10 minutos - formato HH:MM:SS
+                    relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
                     relojTiempo.style.color = 'var(--night-blue, var(--primary))';
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
-                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
+                // ✅ Formato HH:MM:SS durante el descanso
+                const horasRestantes = Math.floor(diff / 60);
+                const minutosRestantes = diff % 60;
+                relojTiempo.textContent = `${String(horasRestantes).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${this.formatMinutos(minutosAtraso)})` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
-                relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; 
+                // ✅ Formato HH:MM:SS para atraso
+                const horasAtraso = Math.floor(diff / 60);
+                const minutosAtrasoDisplay = diff % 60;
+                relojTiempo.textContent = `${String(horasAtraso).padStart(2, '0')}:${String(minutosAtrasoDisplay).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
+                relojEtiqueta.textContent = '️ Tiempo de atraso en línea'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
                 relojTiempo.textContent = '01:25:00'; 
@@ -434,7 +448,7 @@ const Home = {
         const minutosNum = parseInt(minutos);
         if (isNaN(minutosNum) || minutosNum <= 0) { App.showToast('Ingresa un número válido'); return; }
         this.minutosAtraso = (this.minutosAtraso || 0) + minutosNum;
-        App.showToast(`⏱️ +${minutosNum} min agregados al descanso`);
+        App.showToast(`️ +${this.formatMinutos(minutosNum)} agregados al descanso`);
         this.iniciarReloj(servicio);
     }
 };
