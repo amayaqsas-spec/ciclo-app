@@ -1,11 +1,11 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Formato HH:MM
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Cálculo Preciso
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
-    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000, // 1 hora 25 minutos
+    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
     STORAGE_KEY: 'ciclo_tracking_state_v9',
 
     state: {
@@ -17,13 +17,12 @@ const CicloTracking = {
         llegadasRegistradas: {},
         expirationTime: null,
         isTracking: false,
-        turnoFinalizado: false // ✅ Nuevo: marca cuando el turno terminó
+        turnoFinalizado: false
     },
 
     intervalId: null,
     servicioData: null,
 
-    // ✅ NUEVA FUNCIÓN: Formatear minutos a formato HH:MM
     formatMinutos(minutos) {
         const totalMin = Math.floor(minutos);
         const horas = Math.floor(totalMin / 60);
@@ -139,6 +138,7 @@ const CicloTracking = {
         return `${year}-${month}-${day}`;
     },
 
+    // ✅ FUNCIÓN CORREGIDA: Cálculo preciso que respeta la hora de llegada
     calcularCarreras(tren) {
         const [hSalida, mSalida] = (tren.salida || '00:00').split(':').map(Number);
         const [hLlegada, mLlegada] = (tren.llegada || '00:00').split(':').map(Number);
@@ -148,10 +148,21 @@ const CicloTracking = {
         let llegadaMinutos = hLlegada * 60 + mLlegada;
         if (llegadaMinutos < salidaMinutos) llegadaMinutos += 24 * 60;
 
+        // Tiempo total disponible
         const duracionTotalMinutos = llegadaMinutos - salidaMinutos;
+        
+        // Cada vuelta = 2 carreras (ida + vuelta)
         const totalCarreras = vueltas * 2;
-        const duracionPorCarrera = duracionTotalMinutos / totalCarreras;
+        
+        // Tiempo de espera en terminal (3 minutos entre cada carrera)
         const tiempoEspera = 3;
+        const totalEspera = tiempoEspera * (totalCarreras - 1);
+        
+        // Tiempo real de viaje (sin esperas)
+        const tiempoViajeReal = duracionTotalMinutos - totalEspera;
+        
+        // Tiempo por carrera (dividido equitativamente)
+        const duracionPorCarrera = tiempoViajeReal / totalCarreras;
 
         const carreras = [];
         let tiempoActual = salidaMinutos;
@@ -180,7 +191,10 @@ const CicloTracking = {
                 esIda: esIda
             });
 
-            tiempoActual = horaLlegadaCarrera + tiempoEspera;
+            // Avanzar tiempo: llegada + espera en terminal (excepto en la última carrera)
+            if (i < totalCarreras) {
+                tiempoActual = horaLlegadaCarrera + tiempoEspera;
+            }
         }
 
         return carreras;
@@ -211,7 +225,7 @@ const CicloTracking = {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
         } catch (e) {
-            console.error(' Error al guardar:', e);
+            console.error('❌ Error al guardar:', e);
         }
     },
 
@@ -232,12 +246,28 @@ const CicloTracking = {
         const now = Date.now();
         if (this.state.expirationTime && now > this.state.expirationTime) {
             if (!this.state.turnoFinalizado) {
-                console.log('⏰ Turno finalizado. Ocultando seguimiento, mostrando resumen.');
+                console.log(' Turno finalizado. Ocultando seguimiento, mostrando resumen.');
                 this.state.turnoFinalizado = true;
                 this.saveState();
                 this.renderTrackingPanel();
             }
         }
+    },
+
+    resetState() {
+        this.state = {
+            turnoId: this.state.turnoId || `turno_${Date.now()}`,
+            accumulatedDelayMin: 0,
+            currentTrenIndex: 0,
+            currentCarrera: 1,
+            carrerasCompletadas: {},
+            llegadasRegistradas: {},
+            expirationTime: null,
+            isTracking: false,
+            turnoFinalizado: false
+        };
+        localStorage.removeItem(this.STORAGE_KEY);
+        this.renderTrackingPanel();
     },
 
     resetCarrera(carreraKey) {
@@ -325,7 +355,6 @@ const CicloTracking = {
         const now = Date.now();
         const turnoExpirado = this.state.expirationTime && now > this.state.expirationTime;
 
-        // ✅ Si el turno está finalizado, mostrar SOLO el resumen de Ciclo de Recuperación
         if (turnoExpirado) {
             const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
             
@@ -395,7 +424,6 @@ const CicloTracking = {
             return;
         }
 
-        // ✅ Render normal del seguimiento
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                 🚂 Seguimiento de Carreras
@@ -446,7 +474,7 @@ const CicloTracking = {
                 const carreras = this.calcularCarreras(tren);
                 
                 html += `<div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;"> Desglose de Carreras:</div>`;
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Carreras:</div>`;
 
                 carreras.forEach((carrera) => {
                     const carreraKey = `${trenIdx}_${carrera.numero}`;
@@ -547,7 +575,6 @@ const CicloTracking = {
             html += `</div>`;
         });
 
-        // ✅ Panel de Ciclo de Recuperación con formato HH:MM
         const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
         const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.accumulatedDelayMin);
 
@@ -588,7 +615,7 @@ const CicloTracking = {
                         font-weight: 600;
                         text-align: center;
                     ">
-                        ⚙️ Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
+                        ️ Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
                     </div>
                 ` : ''}
             </div>
