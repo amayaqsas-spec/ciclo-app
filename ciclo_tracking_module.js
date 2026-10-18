@@ -1,16 +1,16 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Tiempo Extra
+// CICLO_TRACKING_MODULE.JS - Atraso por Carrera (No Acumulado)
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
-    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000, // 1 hora 25 minutos
-    STORAGE_KEY: 'ciclo_tracking_state_v9',
+    POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
+    STORAGE_KEY: 'ciclo_tracking_state_v10',
 
     state: {
         turnoId: null,
-        accumulatedDelayMin: 0,
+        lastDelayMin: 0, // ✅ Cambiado: solo guarda el último atraso
         currentTrenIndex: 0,
         currentCarrera: 1,
         carrerasCompletadas: {},
@@ -22,6 +22,7 @@ const CicloTracking = {
 
     intervalId: null,
     servicioData: null,
+    blinkInterval: null, // ✅ Para el parpadeo
 
     formatMinutos(minutos) {
         const totalMin = Math.floor(minutos);
@@ -69,7 +70,6 @@ const CicloTracking = {
         });
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Detecta tiempo extra activo
     extractServiceData() {
         const userLineaId = DB.get('userLineaId');
         const userNumeroRol = DB.get('userNumeroRol');
@@ -77,12 +77,10 @@ const CicloTracking = {
         const servicios = DB.load('servicios');
         const semanas = DB.load('semanas');
 
-        // ✅ VERIFICAR SI HAY TIEMPO EXTRA ACTIVO
         const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
         const servicioExtraGuardado = DB.get('servicioTiempoExtra', null);
 
         if (tiempoExtraActivo && servicioExtraGuardado) {
-            // ✅ Usar el servicio de tiempo extra
             const servicio = servicios.find(s => 
                 String(s.nombre).trim() === String(servicioExtraGuardado.servicioId).trim() &&
                 s.lineaId === userLineaId
@@ -96,7 +94,6 @@ const CicloTracking = {
             }
         }
 
-        // ✅ Lógica normal (sin tiempo extra)
         if (!userNumeroRol || !rolesSemanal.length) return;
 
         const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
@@ -159,7 +156,6 @@ const CicloTracking = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ FUNCIÓN CORREGIDA: Cálculo preciso que respeta la hora de llegada
     calcularCarreras(tren) {
         const [hSalida, mSalida] = (tren.salida || '00:00').split(':').map(Number);
         const [hLlegada, mLlegada] = (tren.llegada || '00:00').split(':').map(Number);
@@ -169,20 +165,11 @@ const CicloTracking = {
         let llegadaMinutos = hLlegada * 60 + mLlegada;
         if (llegadaMinutos < salidaMinutos) llegadaMinutos += 24 * 60;
 
-        // Tiempo total disponible
         const duracionTotalMinutos = llegadaMinutos - salidaMinutos;
-        
-        // Cada vuelta = 2 carreras (ida + vuelta)
         const totalCarreras = vueltas * 2;
-        
-        // Tiempo de espera en terminal (3 minutos entre cada carrera)
         const tiempoEspera = 3;
         const totalEspera = tiempoEspera * (totalCarreras - 1);
-        
-        // Tiempo real de viaje (sin esperas)
         const tiempoViajeReal = duracionTotalMinutos - totalEspera;
-        
-        // Tiempo por carrera (dividido equitativamente)
         const duracionPorCarrera = tiempoViajeReal / totalCarreras;
 
         const carreras = [];
@@ -212,7 +199,6 @@ const CicloTracking = {
                 esIda: esIda
             });
 
-            // Avanzar tiempo: llegada + espera en terminal (excepto en la última carrera)
             if (i < totalCarreras) {
                 tiempoActual = horaLlegadaCarrera + tiempoEspera;
             }
@@ -227,7 +213,7 @@ const CicloTracking = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (parsed.turnoId === this.state.turnoId) {
-                    this.state.accumulatedDelayMin = parsed.accumulatedDelayMin || 0;
+                    this.state.lastDelayMin = parsed.lastDelayMin || 0; // ✅ Cambiado
                     this.state.currentTrenIndex = parsed.currentTrenIndex || 0;
                     this.state.currentCarrera = parsed.currentCarrera || 1;
                     this.state.carrerasCompletadas = parsed.carrerasCompletadas || {};
@@ -267,7 +253,7 @@ const CicloTracking = {
         const now = Date.now();
         if (this.state.expirationTime && now > this.state.expirationTime) {
             if (!this.state.turnoFinalizado) {
-                console.log('⏰ Turno finalizado. Ocultando seguimiento, mostrando resumen.');
+                console.log('⏰ Turno finalizado.');
                 this.state.turnoFinalizado = true;
                 this.saveState();
                 this.renderTrackingPanel();
@@ -278,7 +264,7 @@ const CicloTracking = {
     resetState() {
         this.state = {
             turnoId: this.state.turnoId || `turno_${Date.now()}`,
-            accumulatedDelayMin: 0,
+            lastDelayMin: 0,
             currentTrenIndex: 0,
             currentCarrera: 1,
             carrerasCompletadas: {},
@@ -304,9 +290,10 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(` Carrera ${carreraNum} desmarcada`);
+        App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
     },
 
+    // ✅ MODIFICADO: Solo sustituye el atraso, no lo suma
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -317,7 +304,8 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        this.state.accumulatedDelayMin += minutosAtraso;
+        // ✅ SUSTITUIR el atraso anterior (no sumar)
+        this.state.lastDelayMin = minutosAtraso;
 
         this.state.llegadasRegistradas[carreraKey] = {
             horaReal: horaReal,
@@ -347,10 +335,63 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
+        // ✅ Iniciar parpadeo si el atraso >= 60 minutos
+        if (minutosAtraso >= 60) {
+            this.startBlinking();
+        } else {
+            this.stopBlinking();
+        }
+
         if (minutosAtraso > 0) {
-            App.showToast(`️ Carrera ${carreraNum}: +${this.formatMinutos(minutosAtraso)} de atraso`);
+            App.showToast(`⚠️ Carrera ${carreraNum}: +${this.formatMinutos(minutosAtraso)} de atraso`);
         } else {
             App.showToast(`✅ Carrera ${carreraNum}: A tiempo`);
+        }
+    },
+
+    // ✅ NUEVO: Función de parpadeo cuando atraso >= 60 min
+    startBlinking() {
+        if (this.blinkInterval) return; // Ya está parpadeando
+        
+        let visible = true;
+        this.blinkInterval = setInterval(() => {
+            const atrasoElement = document.getElementById('ct-atraso-total');
+            const margenElement = document.getElementById('ct-margen-restante');
+            
+            if (atrasoElement && margenElement) {
+                if (visible) {
+                    atrasoElement.style.color = '#c62828';
+                    atrasoElement.style.textShadow = '0 0 10px rgba(198, 40, 40, 0.5)';
+                    margenElement.style.color = '#c62828';
+                    margenElement.style.textShadow = '0 0 10px rgba(198, 40, 40, 0.5)';
+                } else {
+                    atrasoElement.style.color = 'var(--text)';
+                    atrasoElement.style.textShadow = 'none';
+                    margenElement.style.color = 'var(--primary)';
+                    margenElement.style.textShadow = 'none';
+                }
+                visible = !visible;
+            }
+        }, 500); // Parpadeo cada 500ms
+    },
+
+    stopBlinking() {
+        if (this.blinkInterval) {
+            clearInterval(this.blinkInterval);
+            this.blinkInterval = null;
+            
+            // Restaurar colores
+            const atrasoElement = document.getElementById('ct-atraso-total');
+            const margenElement = document.getElementById('ct-margen-restante');
+            
+            if (atrasoElement) {
+                atrasoElement.style.color = 'var(--text)';
+                atrasoElement.style.textShadow = 'none';
+            }
+            if (margenElement) {
+                margenElement.style.color = 'var(--primary)';
+                margenElement.style.textShadow = 'none';
+            }
         }
     },
 
@@ -376,9 +417,8 @@ const CicloTracking = {
         const now = Date.now();
         const turnoExpirado = this.state.expirationTime && now > this.state.expirationTime;
 
-        // ✅ Si el turno está finalizado, mostrar SOLO el resumen de Ciclo de Recuperación
         if (turnoExpirado) {
-            const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
+            const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
             
             let resumenHtml = `
                 <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
@@ -392,22 +432,22 @@ const CicloTracking = {
                     border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};
                 ">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Ciclo de Recuperación - Resultado Final</h4>
+                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Último Atraso Registrado</h4>
                         <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : '#4CAF50'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
                             ${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'DENTRO DEL MÁXIMO'}
                         </span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                            <div style="font-size: 11px; color: var(--text-soft);">Atraso Total del Servicio</div>
+                            <div style="font-size: 11px; color: var(--text-soft);">Último Atraso</div>
                             <div style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
-                                ${this.formatMinutos(this.state.accumulatedDelayMin)}
+                                ${this.formatMinutos(this.state.lastDelayMin)}
                             </div>
                         </div>
                         <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 11px; color: var(--text-soft);">Margen Restante</div>
                             <div style="font-size: 22px; font-weight: 800; color: var(--primary);">
-                                ${this.formatMinutos(Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.accumulatedDelayMin))}
+                                ${this.formatMinutos(Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin))}
                             </div>
                         </div>
                     </div>
@@ -446,7 +486,6 @@ const CicloTracking = {
             return;
         }
 
-        // ✅ Render normal del seguimiento
         const esTiempoExtra = DB.get('tiempoExtraActivo', false);
         
         let html = `
@@ -600,9 +639,10 @@ const CicloTracking = {
             html += `</div>`;
         });
 
-        // ✅ Panel de Ciclo de Recuperación con formato HH:MM
-        const esUmbralAlcanzado = this.state.accumulatedDelayMin >= this.RECOVERY_THRESHOLD_MIN;
-        const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.accumulatedDelayMin);
+        // ✅ Panel de Atraso con parpadeo
+        const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
+        const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin);
+        const necesitaParpadeo = this.state.lastDelayMin >= 60;
 
         html += `
             <div style="
@@ -613,21 +653,21 @@ const CicloTracking = {
                 border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};
             ">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Ciclo de Recuperación</h4>
+                    <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Atraso del Servicio</h4>
                     <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
                         ${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'EN SEGUIMIENTO'}
                     </span>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                     <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 11px; color: var(--text-soft);">Atraso Acumulado</div>
-                        <div style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
-                            ${this.formatMinutos(this.state.accumulatedDelayMin)}
+                        <div style="font-size: 11px; color: var(--text-soft);">Último Atraso</div>
+                        <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
+                            ${this.formatMinutos(this.state.lastDelayMin)}
                         </div>
                     </div>
                     <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
                         <div style="font-size: 11px; color: var(--text-soft);">Margen Restante</div>
-                        <div style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
+                        <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
                     </div>
                 </div>
                 ${esUmbralAlcanzado ? `
@@ -644,11 +684,33 @@ const CicloTracking = {
                         ⚙️ Se ha alcanzado el tiempo equivalente a un ciclo completo de regulación operacional.
                     </div>
                 ` : ''}
+                ${necesitaParpadeo && !esUmbralAlcanzado ? `
+                    <div style="
+                        background: rgba(198, 40, 40, 0.1);
+                        border: 1px solid #c62828;
+                        color: #c62828;
+                        padding: 12px;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        text-align: center;
+                        animation: blink 1s infinite;
+                    ">
+                        ⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta
+                    </div>
+                ` : ''}
             </div>
         `;
 
         panel.innerHTML = html;
         container.parentNode.insertBefore(panel, container.nextSibling);
+
+        // ✅ Iniciar parpadeo si es necesario
+        if (necesitaParpadeo) {
+            this.startBlinking();
+        } else {
+            this.stopBlinking();
+        }
     },
 
     startRealTimeTracking() {
@@ -663,6 +725,7 @@ const CicloTracking = {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
+        this.stopBlinking();
         const panel = document.getElementById('ct-tracking-panel');
         if (panel) panel.remove();
     }
