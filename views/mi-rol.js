@@ -10,50 +10,54 @@ const MiRol = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ CALCULAR SEMANA ACTUAL - CORRECCIÓN ZONA HORARIA
+    // ✅ CALCULAR SEMANA ACTUAL - VERSIÓN DEFINITIVA
     calcularSemanaActual() {
         const configGlobal = DB.load('configuracionGlobal');
         const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
+        
+        console.log('🔍 [DEBUG] Configuración global:', configGlobal);
+        console.log('🔍 [DEBUG] Config inicio encontrado:', configInicio);
         
         if (!configInicio || !configInicio.fechaInicio) {
             console.log('⚠️ No hay fecha de inicio configurada');
             return 1;
         }
 
-        // ✅ CORRECCIÓN: Parsear fecha en zona horaria LOCAL
-        const fechaInicioStr = configInicio.fechaInicio; // ej: '2026-10-11'
+        // ✅ Parsear fecha en zona horaria LOCAL
+        const fechaInicioStr = configInicio.fechaInicio;
+        console.log('🔍 [DEBUG] Fecha inicio string:', fechaInicioStr);
+        
         const [year, month, day] = fechaInicioStr.split('-').map(Number);
-        const fechaInicio = new Date(year, month - 1, day); // Zona horaria local
+        console.log(' [DEBUG] Año:', year, 'Mes:', month, 'Día:', day);
+        
+        const fechaInicio = new Date(year, month - 1, day);
         fechaInicio.setHours(0, 0, 0, 0);
         
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-
-        // Calcular diferencia en días
-        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        console.log(' Cálculo de semana:');
-        console.log('  Fecha inicio (string):', fechaInicioStr);
-        console.log('  Fecha inicio (Date):', fechaInicio.toISOString());
-        console.log('  Hoy:', hoy.toISOString());
-        console.log('  Días transcurridos:', diferenciaDias);
+        console.log('🔍 [DEBUG] Fecha inicio (Date):', fechaInicio.toISOString());
+        console.log('🔍 [DEBUG] Hoy (Date):', hoy.toISOString());
 
-        // Si es el mismo día o fecha futura
+        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
+        console.log('🔍 [DEBUG] Diferencia en días:', diferenciaDias);
+
         if (diferenciaDias <= 0) {
-            return configInicio.semanaInicial || 1;
+            const semanaInicial = configInicio.semanaInicial || 1;
+            console.log('🔍 [DEBUG] Mismo día o futuro. Retornando semana inicial:', semanaInicial);
+            return semanaInicial;
         }
 
-        // Calcular semanas transcurridas (división entera)
         const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        
-        console.log('  Semanas transcurridas:', semanasTranscurridas);
+        console.log('🔍 [DEBUG] Semanas transcurridas:', semanasTranscurridas);
 
-        // Calcular semana actual (ciclo de 5 semanas)
         const semanaInicial = configInicio.semanaInicial || 1;
         const semanaActual = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
-
-        console.log('  Semana inicial:', semanaInicial);
-        console.log('  Semana actual calculada:', semanaActual);
+        
+        console.log('🔍 [DEBUG] Semana inicial:', semanaInicial);
+        console.log('🔍 [DEBUG] Semana actual calculada:', semanaActual);
+        console.log('🔍 [DEBUG] Fórmula: ((semanasTranscurridas + semanaInicial - 1) % 5) + 1');
+        console.log('🔍 [DEBUG] Fórmula: ((%d + %d - 1) %% 5) + 1 = %d', semanasTranscurridas, semanaInicial, semanaActual);
 
         return semanaActual;
     },
@@ -73,19 +77,15 @@ const MiRol = {
         let miRol = null;
         
         const semanaActualNum = this.calcularSemanaActual();
+        console.log(' [DEBUG] Semana final que se mostrará:', semanaActualNum);
         
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
         const diaActualNombre = diasSemana[hoy.getDay()];
 
-        console.log(' Mi Rol - userNumeroRol:', userNumeroRol);
-        console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
-        console.log('📅 Mi Rol - Semana actual calculada:', semanaActualNum);
-
         if (userNumeroRol && rolesSemanal.length > 0) {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
-            console.log('📅 Mi Rol - miRol encontrado:', miRol ? 'SÍ' : 'NO');
         }
 
         const TOTAL_SEMANAS = 5;
@@ -128,14 +128,14 @@ const MiRol = {
         }) : [];
 
         const hayRolRegistrado = miRol !== null;
-        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '✏️ Nuevo';
+        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '️ Nuevo';
 
         return `
             <div class="view active" style="padding: 20px;">
                 <div style="background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: var(--clay-shadow-sm); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h2 style="margin: 0; font-size: 22px; color: var(--primary);">📅 Mi Rol</h2>
-                        <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 10;">
+                        <button id="btnEditarPerfil" style="background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             ${textoBoton}
                         </button>
                     </div>
@@ -143,7 +143,7 @@ const MiRol = {
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -227,8 +227,7 @@ const MiRol = {
         await DB_FIREBASE.load('terminales');
         
         console.log('📅 Mi Rol - rolesSemanal cargado:', DB.load('rolesSemanal').length);
-        console.log('📅 Mi Rol - líneas cargadas:', DB.load('lineas').length);
-        console.log('📅 Mi Rol - terminales cargadas:', DB.load('terminales').length);
+        console.log(' Mi Rol - configuracionGlobal:', DB.load('configuracionGlobal'));
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
@@ -240,7 +239,6 @@ const MiRol = {
     },
 
     async abrirModalEditar() {
-        console.log('📅 Cargando líneas y terminales desde Firebase...');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
 
@@ -264,26 +262,26 @@ const MiRol = {
         const tituloModal = esEdicion ? '✏️ Editar Perfil' : '✏️ Nuevo Perfil';
 
         const modalOverlay = App.showModal(`
-            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
                 <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">${tituloModal}</h3>
                 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Línea *</label>
-                    <select id="editLinea" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); -webkit-appearance: none;">
+                    <select id="editLinea" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
                         ${lineaOptions}
                     </select>
                 </div>
 
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Terminal *</label>
-                    <select id="editTerminal" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); -webkit-appearance: none;">
+                    <select id="editTerminal" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
                         ${terminalOptions}
                     </select>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">Número de Rol *</label>
-                    <input type="text" id="editNumeroRol" value="${userNumeroRol || ''}" placeholder="Ej. 1234" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); box-sizing: border-box; -webkit-appearance: none;">
+                    <input type="text" id="editNumeroRol" value="${userNumeroRol || ''}" placeholder="Ej. 1234" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text); box-sizing: border-box;">
                 </div>
 
                 <div style="display: flex; gap: 10px;">
