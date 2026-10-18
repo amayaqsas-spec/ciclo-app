@@ -3,6 +3,10 @@
 // ============================================
 
 const MiRol = {
+    // ✅ FECHA FIJA DE INICIO DEL CICLO (Domingo de la Semana 1)
+    FECHA_INICIO_CICLO: new Date(2026, 9, 11), // 11 de octubre 2026 (mes 9 = octubre)
+    TOTAL_SEMANAS_CICLO: 5,
+
     getFechaLocal(fecha) {
         const year = fecha.getFullYear();
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -10,54 +14,35 @@ const MiRol = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ CALCULAR SEMANA ACTUAL - VERSIÓN DEFINITIVA
+    // ✅ CÁLCULO SIMPLE Y DIRECTO
     calcularSemanaActual() {
-        const configGlobal = DB.load('configuracionGlobal');
-        const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
-        
-        console.log('🔍 [DEBUG] Configuración global:', configGlobal);
-        console.log('🔍 [DEBUG] Config inicio encontrado:', configInicio);
-        
-        if (!configInicio || !configInicio.fechaInicio) {
-            console.log('⚠️ No hay fecha de inicio configurada');
-            return 1;
-        }
-
-        // ✅ Parsear fecha en zona horaria LOCAL
-        const fechaInicioStr = configInicio.fechaInicio;
-        console.log('🔍 [DEBUG] Fecha inicio string:', fechaInicioStr);
-        
-        const [year, month, day] = fechaInicioStr.split('-').map(Number);
-        console.log(' [DEBUG] Año:', year, 'Mes:', month, 'Día:', day);
-        
-        const fechaInicio = new Date(year, month - 1, day);
-        fechaInicio.setHours(0, 0, 0, 0);
-        
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
         
-        console.log('🔍 [DEBUG] Fecha inicio (Date):', fechaInicio.toISOString());
-        console.log('🔍 [DEBUG] Hoy (Date):', hoy.toISOString());
+        const fechaInicio = new Date(this.FECHA_INICIO_CICLO);
+        fechaInicio.setHours(0, 0, 0, 0);
 
+        // Calcular diferencia en días
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-        console.log('🔍 [DEBUG] Diferencia en días:', diferenciaDias);
+        
+        console.log('📅 Cálculo de semana:');
+        console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
+        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
+        console.log('  Días transcurridos:', diferenciaDias);
 
-        if (diferenciaDias <= 0) {
-            const semanaInicial = configInicio.semanaInicial || 1;
-            console.log('🔍 [DEBUG] Mismo día o futuro. Retornando semana inicial:', semanaInicial);
-            return semanaInicial;
+        // Si es antes de la fecha de inicio, mostrar semana 1
+        if (diferenciaDias < 0) {
+            console.log('  Antes del inicio, retornando semana 1');
+            return 1;
         }
 
+        // Calcular semanas transcurridas
         const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        console.log('🔍 [DEBUG] Semanas transcurridas:', semanasTranscurridas);
+        console.log('  Semanas transcurridas:', semanasTranscurridas);
 
-        const semanaInicial = configInicio.semanaInicial || 1;
-        const semanaActual = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
-        
-        console.log('🔍 [DEBUG] Semana inicial:', semanaInicial);
-        console.log('🔍 [DEBUG] Semana actual calculada:', semanaActual);
-        console.log('🔍 [DEBUG] Fórmula: ((semanasTranscurridas + semanaInicial - 1) % 5) + 1');
-        console.log('🔍 [DEBUG] Fórmula: ((%d + %d - 1) %% 5) + 1 = %d', semanasTranscurridas, semanaInicial, semanaActual);
+        // Calcular semana actual (ciclo de 5 semanas, empieza en 1)
+        const semanaActual = (semanasTranscurridas % this.TOTAL_SEMANAS_CICLO) + 1;
+        console.log('  Semana actual:', semanaActual);
 
         return semanaActual;
     },
@@ -77,7 +62,6 @@ const MiRol = {
         let miRol = null;
         
         const semanaActualNum = this.calcularSemanaActual();
-        console.log(' [DEBUG] Semana final que se mostrará:', semanaActualNum);
         
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const hoy = new Date();
@@ -88,7 +72,6 @@ const MiRol = {
             miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
         }
 
-        const TOTAL_SEMANAS = 5;
         const diaDeSemanaHoy = hoy.getDay();
         const domingoSemanaActual = new Date(hoy);
         domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
@@ -97,7 +80,7 @@ const MiRol = {
             let diferencia = semana.numero - semanaActualNum;
             
             if (diferencia < 0) {
-                diferencia += TOTAL_SEMANAS;
+                diferencia += this.TOTAL_SEMANAS_CICLO;
             }
             
             const domingoSemana = new Date(domingoSemanaActual);
@@ -128,7 +111,7 @@ const MiRol = {
         }) : [];
 
         const hayRolRegistrado = miRol !== null;
-        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '️ Nuevo';
+        const textoBoton = hayRolRegistrado ? '✏️ Editar' : '✏️ Nuevo';
 
         return `
             <div class="view active" style="padding: 20px;">
@@ -143,15 +126,15 @@ const MiRol = {
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Terminal</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚇 Terminal</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🔢 Número de Rol</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Número de Rol</div>
                                 <div style="font-size: 18px; font-weight: 800; color: var(--primary);">#${userNumeroRol || 'N/A'}</div>
                             </div>
                             <div style="background: var(--primary); color: white; padding: 12px; border-radius: 8px;">
@@ -227,7 +210,6 @@ const MiRol = {
         await DB_FIREBASE.load('terminales');
         
         console.log('📅 Mi Rol - rolesSemanal cargado:', DB.load('rolesSemanal').length);
-        console.log(' Mi Rol - configuracionGlobal:', DB.load('configuracionGlobal'));
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
@@ -319,7 +301,7 @@ const MiRol = {
             const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
 
             if (!nuevaLineaId || !nuevaTerminalId || !nuevoNumeroRol) {
-                App.showToast('⚠️ Completa todos los campos');
+                App.showToast('️ Completa todos los campos');
                 return;
             }
 
