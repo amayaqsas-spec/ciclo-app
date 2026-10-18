@@ -9,8 +9,7 @@ const Home = {
     tiempoExtraActivo: false,
     servicioTiempoExtra: null,
 
-    // ✅ FECHA FIJA DE INICIO DEL CICLO (igual que mi-rol.js)
-    FECHA_INICIO_CICLO: new Date(2026, 9, 11), // 11 de octubre 2026
+    FECHA_INICIO_CICLO: new Date(2026, 9, 11),
     TOTAL_SEMANAS_CICLO: 5,
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
@@ -48,7 +47,6 @@ const Home = {
         return 'Laboral';
     },
 
-    // ✅ NUEVA FUNCIÓN: Calcular semana actual con fecha fija
     calcularSemanaActual() {
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
@@ -58,7 +56,7 @@ const Home = {
 
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        console.log('📅 [Home] Cálculo de semana:');
+        console.log(' [Home] Cálculo de semana:');
         console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
         console.log('  Hoy:', hoy.toISOString().split('T')[0]);
         console.log('  Días transcurridos:', diferenciaDias);
@@ -150,7 +148,7 @@ const Home = {
         DB.remove('tiempoExtraActivo');
         DB.remove('servicioTiempoExtra');
         
-        App.showToast(' Tiempo Extra cancelado');
+        App.showToast('❌ Tiempo Extra cancelado');
         
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
@@ -176,7 +174,6 @@ const Home = {
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
 
-        // ✅ USAR CÁLCULO CON FECHA FIJA
         const semanaActualNum = this.calcularSemanaActual();
         
         let posicionHoy = 'N/A';
@@ -189,7 +186,6 @@ const Home = {
 
         this.infoServicio = null;
 
-        // ✅ VERIFICAR SI HAY TIEMPO EXTRA ACTIVO
         const tiempoExtraGuardado = DB.get('tiempoExtraActivo', false);
         const servicioExtraGuardado = DB.get('servicioTiempoExtra', null);
         
@@ -257,7 +253,7 @@ const Home = {
                             <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
                             <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;"> Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
                                 ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
                             </div>
@@ -270,8 +266,8 @@ const Home = {
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
@@ -332,12 +328,12 @@ const Home = {
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;">🚂 Trenes (${trenes.length})</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;"> Trenes (${trenes.length})</div>
                     ${trenes.map((tren, idx) => {
                         const numTren = tren.numero || (idx + 1);
                         const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
@@ -378,12 +374,15 @@ const Home = {
 
     async init() {
         this.minutosAtraso = 0;
+        
+        console.log('📥 [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
         await DB_FIREBASE.load('semanas');
+        console.log('✅ [Home] Datos de Firebase cargados');
 
         const btnCambiarFoto = document.getElementById('btnCambiarFoto');
         const inputFotoPerfil = document.getElementById('inputFotoPerfil');
@@ -451,9 +450,21 @@ const Home = {
         const btnVerAvisos = document.getElementById('btnVerAvisos');
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
 
+        // ✅ INICIALIZAR CICLOTRACKING CON DELAY
         if (typeof CicloTracking !== 'undefined') {
-            console.log('🛰️ [Home] Iniciando CicloTracking...');
-            setTimeout(() => CicloTracking.init(), 800);
+            console.log('🛰️ [Home] Preparando CicloTracking...');
+            
+            setTimeout(() => {
+                const container = document.getElementById('skeServicioDiaContainer');
+                if (container) {
+                    console.log('✅ [Home] Contenedor encontrado, iniciando CicloTracking...');
+                    CicloTracking.init();
+                } else {
+                    console.error('❌ [Home] Contenedor #skeServicioDiaContainer no encontrado');
+                }
+            }, 1000);
+        } else {
+            console.error('❌ [Home] CicloTracking no está definido');
         }
     },
 
