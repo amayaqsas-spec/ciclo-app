@@ -1,5 +1,5 @@
 // ============================================
-// MI-ROL.JS - Calendario con Cálculo Automático de Semana (Optimizado para iOS)
+// MI-ROL.JS - Calendario con Cálculo Automático de Semana
 // ============================================
 
 const MiRol = {
@@ -10,36 +10,46 @@ const MiRol = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ CALCULAR SEMANA ACTUAL AUTOMÁTICAMENTE
+    // ✅ CALCULAR SEMANA ACTUAL AUTOMÁTICAMENTE - CORREGIDO
     calcularSemanaActual() {
         const configGlobal = DB.load('configuracionGlobal');
         const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
         
         if (!configInicio || !configInicio.fechaInicio) {
             console.log('⚠️ No hay fecha de inicio configurada');
-            return 1; // Default
+            return 1;
         }
 
-        const fechaInicio = new Date(configInicio.fechaInicio);
+        const fechaInicio = new Date(configInicio.fechaInicio + 'T00:00:00');
         const hoy = new Date();
+        
+        // Normalizar ambas fechas a medianoche
         hoy.setHours(0, 0, 0, 0);
         fechaInicio.setHours(0, 0, 0, 0);
 
         // Calcular diferencia en días
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        // Calcular semanas transcurridas
+        console.log('📅 Cálculo de semana:');
+        console.log('  Fecha inicio:', configInicio.fechaInicio);
+        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
+        console.log('  Días transcurridos:', diferenciaDias);
+
+        // ✅ Si es el mismo día (diferencia = 0), es la semana 1
+        if (diferenciaDias === 0) {
+            return configInicio.semanaInicial || 1;
+        }
+
+        // Calcular semanas transcurridas (división entera)
         const semanasTranscurridas = Math.floor(diferenciaDias / 7);
         
+        console.log('  Semanas transcurridas:', semanasTranscurridas);
+
         // Calcular semana actual (ciclo de 5 semanas)
         const semanaInicial = configInicio.semanaInicial || 1;
         const semanaActual = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
 
-        console.log('📅 Cálculo automático de semana:');
-        console.log('  Fecha inicio:', configInicio.fechaInicio);
         console.log('  Semana inicial:', semanaInicial);
-        console.log('  Días transcurridos:', diferenciaDias);
-        console.log('  Semanas transcurridas:', semanasTranscurridas);
         console.log('  Semana actual calculada:', semanaActual);
 
         return semanaActual;
@@ -135,7 +145,7 @@ const MiRol = {
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -226,9 +236,8 @@ const MiRol = {
 
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
-            // ✅ Corrección iOS: Usar 'click' normal, pero el CSS ya tiene touch-action: manipulation
             btnEditarPerfil.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevenir comportamientos extraños de doble-tap en iOS
+                e.preventDefault();
                 this.abrirModalEditar();
             });
         }
@@ -247,7 +256,7 @@ const MiRol = {
         const terminales = DB.load('terminales');
 
         console.log('📅 Modal - líneas disponibles:', lineas.length);
-        console.log('📅 Modal - terminales disponibles:', terminales.length);
+        console.log(' Modal - terminales disponibles:', terminales.length);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -310,8 +319,7 @@ const MiRol = {
         document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
         
         document.getElementById('btnGuardarEdit').addEventListener('click', () => {
-            // ✅ Corrección iOS CRÍTICA: Quitar el foco (blur) de todos los inputs antes de guardar.
-            // Esto evita que el teclado virtual de iOS interfiera con el cierre del modal y la navegación.
+            // ✅ Corrección iOS: Quitar foco de todos los inputs antes de guardar
             document.getElementById('editLinea').blur();
             document.getElementById('editTerminal').blur();
             document.getElementById('editNumeroRol').blur();
@@ -333,9 +341,9 @@ const MiRol = {
             App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();
 
-            // ✅ Corrección iOS: Un pequeño delay asegura que el DOM se limpie antes de navegar
+            // ✅ Corrección iOS: Delay para asegurar limpieza del DOM
             setTimeout(() => {
-                console.log('🚀 Navegando a Home automáticamente...');
+                console.log(' Navegando a Home automáticamente...');
                 if (window.Views && window.Views.load) {
                     window.Views.load('home', false);
                 } else {
