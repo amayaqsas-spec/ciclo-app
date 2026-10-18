@@ -1,13 +1,17 @@
 // ============================================
-// HOME.JS - Dashboard con Tiempo Extra
+// HOME.JS - Dashboard con Fecha Fija de Inicio
 // ============================================
 
 const Home = {
     relojInterval: null,
     minutosAtraso: 0,
     infoServicio: null,
-    tiempoExtraActivo: false, // ✅ Nuevo: estado de tiempo extra
-    servicioTiempoExtra: null, // ✅ Nuevo: servicio de tiempo extra
+    tiempoExtraActivo: false,
+    servicioTiempoExtra: null,
+
+    // ✅ FECHA FIJA DE INICIO DEL CICLO (igual que mi-rol.js)
+    FECHA_INICIO_CICLO: new Date(2026, 9, 11), // 11 de octubre 2026
+    TOTAL_SEMANAS_CICLO: 5,
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -44,6 +48,34 @@ const Home = {
         return 'Laboral';
     },
 
+    // ✅ NUEVA FUNCIÓN: Calcular semana actual con fecha fija
+    calcularSemanaActual() {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        const fechaInicio = new Date(this.FECHA_INICIO_CICLO);
+        fechaInicio.setHours(0, 0, 0, 0);
+
+        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
+        
+        console.log('📅 [Home] Cálculo de semana:');
+        console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
+        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
+        console.log('  Días transcurridos:', diferenciaDias);
+
+        if (diferenciaDias < 0) {
+            return 1;
+        }
+
+        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
+        console.log('  Semanas transcurridas:', semanasTranscurridas);
+
+        const semanaActual = (semanasTranscurridas % this.TOTAL_SEMANAS_CICLO) + 1;
+        console.log('  Semana actual:', semanaActual);
+
+        return semanaActual;
+    },
+
     buscarServicioPorTipo(tipoDia, numeroServicio, userLineaId) {
         if (!numeroServicio || numeroServicio === 'N/A') return null;
 
@@ -77,7 +109,6 @@ const Home = {
         return null;
     },
 
-    // ✅ NUEVA FUNCIÓN: Cargar servicio de tiempo extra
     async cargarTiempoExtra() {
         const tipoDia = this.getTipoDiaActual();
         const userLineaId = DB.get('userLineaId');
@@ -92,11 +123,10 @@ const Home = {
         const infoServicio = this.buscarServicioPorTipo(tipoDia, numeroServicio.trim(), userLineaId);
         
         if (!infoServicio) {
-            App.showToast(` No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
+            App.showToast(`❌ No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
             return;
         }
 
-        // ✅ Guardar estado de tiempo extra
         this.tiempoExtraActivo = true;
         this.servicioTiempoExtra = infoServicio;
         DB.set('tiempoExtraActivo', true);
@@ -107,7 +137,6 @@ const Home = {
 
         App.showToast(`✅ Tiempo Extra activado: Servicio ${numeroServicio}`);
         
-        // ✅ Recargar el home
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
         } else {
@@ -115,14 +144,13 @@ const Home = {
         }
     },
 
-    // ✅ NUEVA FUNCIÓN: Cancelar tiempo extra
     cancelarTiempoExtra() {
         this.tiempoExtraActivo = false;
         this.servicioTiempoExtra = null;
         DB.remove('tiempoExtraActivo');
         DB.remove('servicioTiempoExtra');
         
-        App.showToast('❌ Tiempo Extra cancelado');
+        App.showToast(' Tiempo Extra cancelado');
         
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
@@ -148,7 +176,9 @@ const Home = {
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
 
-        let semanaActualNum = 1;
+        // ✅ USAR CÁLCULO CON FECHA FIJA
+        const semanaActualNum = this.calcularSemanaActual();
+        
         let posicionHoy = 'N/A';
         let tipoDiaActual = this.getTipoDiaActual();
         let errorMensaje = null;
@@ -156,21 +186,6 @@ const Home = {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const diaNombreReal = diasSemana[new Date().getDay()];
         const hoy = new Date();
-
-        const configGlobal = DB.load('configuracionGlobal');
-        const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
-
-        if (configInicio && configInicio.fechaInicio) {
-            const fechaInicio = new Date(configInicio.fechaInicio + 'T00:00:00');
-            const hoyFecha = new Date();
-            hoyFecha.setHours(0, 0, 0, 0);
-            fechaInicio.setHours(0, 0, 0, 0);
-
-            const diferenciaDias = Math.floor((hoyFecha - fechaInicio) / (1000 * 60 * 60 * 24));
-            const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-            const semanaInicial = configInicio.semanaInicial || 1;
-            semanaActualNum = ((semanasTranscurridas + semanaInicial - 1) % 5) + 1;
-        }
 
         this.infoServicio = null;
 
@@ -218,14 +233,12 @@ const Home = {
         }
 
         const tiempoExtraPendiente = DB.load('tiempoExtra').filter(t => !t.cobrado);
-        const diaSemana = new Date().getDay();
         const mostrarBotonesModo = userNumeroRol && rolesSemanal.length > 0 && posicionHoy !== 'N/A' && !esReservaHoy;
         const modoForzado = DB.get('modoDiaForzado', null);
 
         const laboralActivo = modoForzado === null || modoForzado === 'laboral';
         const domingoActivo = modoForzado === 'domingo';
 
-        // ✅ Determinar qué servicio mostrar (normal o tiempo extra)
         const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
         const errorAMostrar = this.tiempoExtraActivo ? null : errorMensaje;
 
@@ -255,7 +268,7 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
                             <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
@@ -263,9 +276,8 @@ const Home = {
                     </div>
                 ` : ''}
 
-                <!-- ✅ BOTÓN TIEMPO EXTRA (siempre visible) -->
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">⏱️ Tiempo Extra</div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">️ Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             ❌ Cancelar Tiempo Extra
@@ -358,7 +370,7 @@ const Home = {
                         <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                         <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                     </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">️ Agregar Atraso al Tiempo de Alimentos</button>
+                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
                 </div>
             </div>
         `;
@@ -406,9 +418,8 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
-        // ✅ BOTONES DE TIEMPO EXTRA
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
         const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
 
@@ -427,7 +438,7 @@ const Home = {
                 if (servicioActual) {
                     this.agregarAtraso(servicioActual);
                 } else {
-                    App.showToast('️ No hay servicio disponible para agregar atraso');
+                    App.showToast('⚠️ No hay servicio disponible para agregar atraso');
                 }
             });
         }
@@ -492,7 +503,7 @@ const Home = {
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
@@ -507,7 +518,7 @@ const Home = {
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '️ Tiempo de atraso en línea'; 
+                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
                 relojTiempo.textContent = '01:25:00'; 
