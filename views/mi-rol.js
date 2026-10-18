@@ -10,7 +10,7 @@ const MiRol = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ CALCULAR SEMANA ACTUAL AUTOMÁTICAMENTE - CORREGIDO
+    // ✅ CALCULAR SEMANA ACTUAL - CORRECCIÓN ZONA HORARIA
     calcularSemanaActual() {
         const configGlobal = DB.load('configuracionGlobal');
         const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
@@ -20,23 +20,26 @@ const MiRol = {
             return 1;
         }
 
-        const fechaInicio = new Date(configInicio.fechaInicio + 'T00:00:00');
-        const hoy = new Date();
-        
-        // Normalizar ambas fechas a medianoche
-        hoy.setHours(0, 0, 0, 0);
+        // ✅ CORRECCIÓN: Parsear fecha en zona horaria LOCAL
+        const fechaInicioStr = configInicio.fechaInicio; // ej: '2026-10-11'
+        const [year, month, day] = fechaInicioStr.split('-').map(Number);
+        const fechaInicio = new Date(year, month - 1, day); // Zona horaria local
         fechaInicio.setHours(0, 0, 0, 0);
+        
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
         // Calcular diferencia en días
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        console.log('📅 Cálculo de semana:');
-        console.log('  Fecha inicio:', configInicio.fechaInicio);
-        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
+        console.log(' Cálculo de semana:');
+        console.log('  Fecha inicio (string):', fechaInicioStr);
+        console.log('  Fecha inicio (Date):', fechaInicio.toISOString());
+        console.log('  Hoy:', hoy.toISOString());
         console.log('  Días transcurridos:', diferenciaDias);
 
-        // ✅ Si es el mismo día (diferencia = 0), es la semana 1
-        if (diferenciaDias === 0) {
+        // Si es el mismo día o fecha futura
+        if (diferenciaDias <= 0) {
             return configInicio.semanaInicial || 1;
         }
 
@@ -69,7 +72,6 @@ const MiRol = {
 
         let miRol = null;
         
-        // ✅ USAR CÁLCULO AUTOMÁTICO
         const semanaActualNum = this.calcularSemanaActual();
         
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -77,7 +79,7 @@ const MiRol = {
         hoy.setHours(0, 0, 0, 0);
         const diaActualNombre = diasSemana[hoy.getDay()];
 
-        console.log('📅 Mi Rol - userNumeroRol:', userNumeroRol, 'tipo:', typeof userNumeroRol);
+        console.log(' Mi Rol - userNumeroRol:', userNumeroRol);
         console.log('📅 Mi Rol - rolesSemanal:', rolesSemanal.length, 'registros');
         console.log('📅 Mi Rol - Semana actual calculada:', semanaActualNum);
 
@@ -86,22 +88,18 @@ const MiRol = {
             console.log('📅 Mi Rol - miRol encontrado:', miRol ? 'SÍ' : 'NO');
         }
 
-        // ✅ Calcular fechas usando ciclo de 5 semanas
         const TOTAL_SEMANAS = 5;
         const diaDeSemanaHoy = hoy.getDay();
         const domingoSemanaActual = new Date(hoy);
         domingoSemanaActual.setDate(hoy.getDate() - diaDeSemanaHoy);
 
         const semanasConFechas = miRol ? miRol.semanas.map(semana => {
-            // ✅ Calcular diferencia considerando el ciclo de 5 semanas
             let diferencia = semana.numero - semanaActualNum;
             
-            // Si la diferencia es negativa, "da la vuelta" al ciclo
             if (diferencia < 0) {
                 diferencia += TOTAL_SEMANAS;
             }
             
-            // Calcular el domingo de esta semana
             const domingoSemana = new Date(domingoSemanaActual);
             domingoSemana.setDate(domingoSemanaActual.getDate() + (diferencia * 7));
 
@@ -145,11 +143,11 @@ const MiRol = {
                     ${miRol ? `
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Línea</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚌 Línea</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miLinea ? miLinea.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;">🚇 Terminal</div>
+                                <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 4px;"> Terminal</div>
                                 <div style="font-size: 14px; font-weight: 700; color: var(--text);">${miTerminal ? miTerminal.nombre : 'N/A'}</div>
                             </div>
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px;">
@@ -232,8 +230,6 @@ const MiRol = {
         console.log('📅 Mi Rol - líneas cargadas:', DB.load('lineas').length);
         console.log('📅 Mi Rol - terminales cargadas:', DB.load('terminales').length);
 
-        console.log('📅 Mi Rol cargado');
-
         const btnEditarPerfil = document.getElementById('btnEditarPerfil');
         if (btnEditarPerfil) {
             btnEditarPerfil.addEventListener('click', (e) => {
@@ -244,7 +240,7 @@ const MiRol = {
     },
 
     async abrirModalEditar() {
-        console.log('📅 Cargando líneas y terminales desde Firebase para el modal...');
+        console.log('📅 Cargando líneas y terminales desde Firebase...');
         await DB_FIREBASE.load('lineas');
         await DB_FIREBASE.load('terminales');
 
@@ -254,9 +250,6 @@ const MiRol = {
 
         const lineas = DB.load('lineas');
         const terminales = DB.load('terminales');
-
-        console.log('📅 Modal - líneas disponibles:', lineas.length);
-        console.log(' Modal - terminales disponibles:', terminales.length);
 
         const lineaOptions = lineas.length > 0
             ? '<option value="">Selecciona línea</option>' + lineas.map(l => `<option value="${l.id}" ${l.id === userLineaId ? 'selected' : ''}>${l.nombre}</option>`).join('')
@@ -271,7 +264,7 @@ const MiRol = {
         const tituloModal = esEdicion ? '✏️ Editar Perfil' : '✏️ Nuevo Perfil';
 
         const modalOverlay = App.showModal(`
-            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative;">
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <h3 style="margin: 0 0 16px 0; font-size: 20px; color: var(--primary);">${tituloModal}</h3>
                 
                 <div style="margin-bottom: 16px;">
@@ -294,10 +287,10 @@ const MiRol = {
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button id="btnCancelarEdit" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
+                    <button id="btnCancelarEdit" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
                         Cancelar
                     </button>
-                    <button id="btnGuardarEdit" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
+                    <button id="btnGuardarEdit" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
                         💾 Guardar
                     </button>
                 </div>
@@ -319,7 +312,6 @@ const MiRol = {
         document.getElementById('btnCancelarEdit').addEventListener('click', () => modalOverlay.remove());
         
         document.getElementById('btnGuardarEdit').addEventListener('click', () => {
-            // ✅ Corrección iOS: Quitar foco de todos los inputs antes de guardar
             document.getElementById('editLinea').blur();
             document.getElementById('editTerminal').blur();
             document.getElementById('editNumeroRol').blur();
@@ -341,9 +333,7 @@ const MiRol = {
             App.showToast('✅ Perfil actualizado correctamente');
             modalOverlay.remove();
 
-            // ✅ Corrección iOS: Delay para asegurar limpieza del DOM
             setTimeout(() => {
-                console.log(' Navegando a Home automáticamente...');
                 if (window.Views && window.Views.load) {
                     window.Views.load('home', false);
                 } else {
