@@ -2,7 +2,7 @@
 // SW.JS - Service Worker con Forzado de Actualización Automática
 // ============================================
 
-const CACHE_VERSION = 'v5.30'; // ⚠️ CAMBIA ESTE NÚMERO (ej: v5.1) cada vez que hagas un cambio importante
+const CACHE_VERSION = 'v5.31'; // ⚠️ CAMBIA ESTE NÚMERO (ej: v5.1) cada vez que hagas un cambio importante
 const CACHE_NAME = 'ciclo-app-' + CACHE_VERSION;
 
 const urlsToCache = [
