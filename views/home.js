@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Fecha Fija de Inicio
+// HOME.JS - Dashboard con Descanso entre Trenes
 // ============================================
 
 const Home = {
@@ -66,12 +66,16 @@ const Home = {
         }
 
         const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        console.log('  Semanas transcurridas:', semanasTranscurridas);
-
         const semanaActual = (semanasTranscurridas % this.TOTAL_SEMANAS_CICLO) + 1;
-        console.log('  Semana actual:', semanaActual);
 
         return semanaActual;
+    },
+
+    // ✅ NUEVA FUNCIÓN: Convertir hora "HH:MM" a minutos desde medianoche
+    horaAMinutos(horaStr) {
+        if (!horaStr || horaStr === '--:--') return -1;
+        const [h, m] = horaStr.split(':').map(Number);
+        return h * 60 + m;
     },
 
     buscarServicioPorTipo(tipoDia, numeroServicio, userLineaId) {
@@ -253,9 +257,9 @@ const Home = {
                             <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
                             <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;"> Semana ${semanaActualNum}</span>
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">️ Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -267,13 +271,13 @@ const Home = {
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
                             <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
+                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
 
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">️ Tiempo Extra</div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">⏱️ Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             ❌ Cancelar Tiempo Extra
@@ -313,10 +317,63 @@ const Home = {
         `;
     },
 
+    // ✅ FUNCIÓN MODIFICADA: Renderiza servicio con descanso intercalado entre trenes
     renderServicioDia(info, tipoDia, posicion) {
         const { servicio, linea, terminal } = info;
         const trenes = (servicio && servicio.trenes) || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
+        
+        const descansoInicio = servicio.descansoInicio || '--:--';
+        const descansoFinal = servicio.descansoFinal || '--:--';
+        const descansoInicioMin = this.horaAMinutos(descansoInicio);
+        const descansoFinalMin = this.horaAMinutos(descansoFinal);
+
+        // ✅ Construir lista cronológica: trenes + descanso en su posición correcta
+        const bloques = [];
+        
+        trenes.forEach((tren, idx) => {
+            const numTren = tren.numero || (idx + 1);
+            const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
+            const llegadaMin = this.horaAMinutos(tren.llegada);
+            const salidaMin = this.horaAMinutos(tren.salida);
+            
+            bloques.push({
+                tipo: 'tren',
+                idx: idx,
+                horaOrden: salidaMin,
+                tren: tren,
+                labelTren: labelTren,
+                numTren: numTren
+            });
+            
+            // ✅ Si el descanso está entre la llegada de este tren y la salida del siguiente, insertarlo
+            if (descansoInicioMin >= 0 && descansoFinalMin >= 0) {
+                const siguienteTren = trenes[idx + 1];
+                const siguienteSalida = siguienteTren ? this.horaAMinutos(siguienteTren.salida) : 9999;
+                
+                // El descanso va después de este tren si:
+                // - La hora de inicio del descanso >= hora de llegada de este tren
+                // - Y la hora de inicio del descanso < hora de salida del siguiente tren
+                if (descansoInicioMin >= llegadaMin && descansoInicioMin < siguienteSalida) {
+                    bloques.push({
+                        tipo: 'descanso',
+                        horaOrden: descansoInicioMin
+                    });
+                }
+            }
+        });
+        
+        // ✅ Si el descanso no se insertó entre trenes (ej. después del último), agregarlo al final
+        const yaInsertado = bloques.some(b => b.tipo === 'descanso');
+        if (!yaInsertado && descansoInicioMin >= 0 && descansoFinalMin >= 0) {
+            const ultimaLlegada = this.horaAMinutos(trenes[trenes.length - 1].llegada);
+            if (descansoInicioMin >= ultimaLlegada) {
+                bloques.push({
+                    tipo: 'descanso',
+                    horaOrden: descansoInicioMin
+                });
+            }
+        }
 
         return `
             <div style="background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); margin-bottom: 16px;">
@@ -328,19 +385,19 @@ const Home = {
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);"> Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--night-blue, var(--text)); margin-bottom: 10px; text-transform: uppercase;"> Trenes (${trenes.length})</div>
-                    ${trenes.map((tren, idx) => {
-                        const numTren = tren.numero || (idx + 1);
-                        const labelTren = idx === 0 ? 'Primer Tren' : idx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
+                
+                <!-- ✅ BLOQUES INTERCALADOS: Trenes y Descanso en orden cronológico -->
+                ${bloques.map(bloque => {
+                    if (bloque.tipo === 'tren') {
+                        const tren = bloque.tren;
                         return `
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-weight: 700; color: var(--night-blue, var(--primary)); font-size: 14px;">${labelTren} #${numTren}</span>
+                                    <span style="font-weight: 700; color: var(--night-blue, var(--primary)); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
                                     ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;">GARAGE</span>' : ''}
                                 </div>
                                 <div style="display: grid; grid-template-columns: ${tren.vueltas ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 8px;">
@@ -350,24 +407,29 @@ const Home = {
                                 </div>
                             </div>
                         `;
-                    }).join('')}
-                </div>
-                <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft);">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                        <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                        <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
-                        <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${servicio.descansoInicio || '--:--'}</div></div>
-                        <div style="font-size: 24px; color: var(--text-soft);">→</div>
-                        <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${servicio.descansoFinal || '--:--'}</div></div>
-                    </div>
-                    <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                        <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
-                        <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
-                    </div>
-                    <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
-                </div>
+                    } else if (bloque.tipo === 'descanso') {
+                        // ✅ Bloque de descanso intercalado
+                        return `
+                            <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft); margin: 12px 0;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                    <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                                    <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoInicio}</div></div>
+                                    <div style="font-size: 24px; color: var(--text-soft);">→</div>
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoFinal}</div></div>
+                                </div>
+                                <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
+                                    <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
+                                    <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
+                                </div>
+                                <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
+                            </div>
+                        `;
+                    }
+                    return '';
+                }).join('')}
             </div>
         `;
     },
@@ -417,7 +479,7 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
         const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
@@ -450,7 +512,6 @@ const Home = {
         const btnVerAvisos = document.getElementById('btnVerAvisos');
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
 
-        // ✅ INICIALIZAR CICLOTRACKING CON DELAY
         if (typeof CicloTracking !== 'undefined') {
             console.log('🛰️ [Home] Preparando CicloTracking...');
             
@@ -480,6 +541,7 @@ const Home = {
         return Promise.resolve(true);
     },
 
+    // ✅ FUNCIÓN MODIFICADA: Texto del contador corregido
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -514,7 +576,7 @@ const Home = {
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
@@ -524,12 +586,13 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = '⏱️ Tiempo de atraso en línea'; 
+                // ✅ TEXTO CORREGIDO
+                relojEtiqueta.textContent = 'Si no ha llegado tu siguiente tren, este es el atraso hasta el momento'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
                 relojTiempo.textContent = '01:25:00'; 
