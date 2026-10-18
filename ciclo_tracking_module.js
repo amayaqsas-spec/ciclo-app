@@ -692,7 +692,7 @@ const CicloTracking = {
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                     <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 11px; color: var(--text-soft);">Último Atraso</div>
+                        <div style="font-size: 11px; color: var(--text-soft);">Atraso en Linea</div>
                         <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
                             ${this.formatMinutos(this.state.lastDelayMin)}
                         </div>
