@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Atraso por Carrera (No Acumulado)
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras
 // ============================================
 
 const CicloTracking = {
@@ -10,7 +10,7 @@ const CicloTracking = {
 
     state: {
         turnoId: null,
-        lastDelayMin: 0, // ✅ Cambiado: solo guarda el último atraso
+        lastDelayMin: 0,
         currentTrenIndex: 0,
         currentCarrera: 1,
         carrerasCompletadas: {},
@@ -21,8 +21,8 @@ const CicloTracking = {
     },
 
     intervalId: null,
+    blinkInterval: null,
     servicioData: null,
-    blinkInterval: null, // ✅ Para el parpadeo
 
     formatMinutos(minutos) {
         const totalMin = Math.floor(minutos);
@@ -38,12 +38,31 @@ const CicloTracking = {
     async init() {
         console.log('🛰️ [CicloTracking] Inicializando...');
         
-        const container = await this.waitForElement('#skeServicioDiaContainer');
-        if (!container) return;
+        // ✅ Verificar contenedor
+        const container = document.getElementById('skeServicioDiaContainer');
+        if (!container) {
+            console.error('❌ [CicloTracking] Contenedor #skeServicioDiaContainer NO encontrado');
+            return;
+        }
+        console.log('✅ [CicloTracking] Contenedor encontrado');
 
+        // ✅ Extraer datos del servicio
         this.extractServiceData();
-        if (!this.servicioData) return;
+        
+        if (!this.servicioData) {
+            console.error('❌ [CicloTracking] No se encontró servicio');
+            console.log('🔍 userLineaId:', DB.get('userLineaId'));
+            console.log('🔍 userNumeroRol:', DB.get('userNumeroRol'));
+            console.log('🔍 servicios:', DB.load('servicios').length);
+            console.log('🔍 rolesSemanal:', DB.load('rolesSemanal').length);
+            console.log('🔍 semanas:', DB.load('semanas').length);
+            return;
+        }
+        
+        console.log('✅ [CicloTracking] Servicio encontrado:', this.servicioData.nombre);
+        console.log('🔍 [CicloTracking] Trenes:', this.servicioData.trenes.length);
 
+        // ✅ Cargar estado
         this.loadState();
         this.checkExpiration();
 
@@ -51,23 +70,13 @@ const CicloTracking = {
             this.calculateExpiration();
         }
 
+        // ✅ Renderizar panel
         this.renderTrackingPanel();
+        console.log('✅ [CicloTracking] Panel renderizado');
+
+        // ✅ Iniciar tracking
         this.startRealTimeTracking();
         console.log('✅ [CicloTracking] Activo');
-    },
-
-    waitForElement(selector) {
-        return new Promise(resolve => {
-            if (document.querySelector(selector)) return resolve(document.querySelector(selector));
-            const observer = new MutationObserver(() => {
-                if (document.querySelector(selector)) {
-                    observer.disconnect();
-                    resolve(document.querySelector(selector));
-                }
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            setTimeout(() => { observer.disconnect(); resolve(null); }, 3000);
-        });
     },
 
     extractServiceData() {
@@ -77,10 +86,18 @@ const CicloTracking = {
         const servicios = DB.load('servicios');
         const semanas = DB.load('semanas');
 
+        console.log('🔍 [Extract] Buscando servicio...');
+        console.log('  userLineaId:', userLineaId);
+        console.log('  userNumeroRol:', userNumeroRol);
+        console.log('  rolesSemanal:', rolesSemanal.length);
+        console.log('  servicios:', servicios.length);
+
+        // ✅ Verificar tiempo extra
         const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
         const servicioExtraGuardado = DB.get('servicioTiempoExtra', null);
 
         if (tiempoExtraActivo && servicioExtraGuardado) {
+            console.log('🕐 [Extract] Modo tiempo extra activo');
             const servicio = servicios.find(s => 
                 String(s.nombre).trim() === String(servicioExtraGuardado.servicioId).trim() &&
                 s.lineaId === userLineaId
@@ -89,53 +106,81 @@ const CicloTracking = {
             if (servicio && servicio.trenes && servicio.trenes.length > 0) {
                 this.servicioData = servicio;
                 this.state.turnoId = `tiempo_extra_${servicio.nombre}_${this.getFechaLocal(new Date())}`;
-                console.log('🛰️ [CicloTracking] Usando servicio de tiempo extra:', servicio.nombre);
+                console.log('✅ [Extract] Servicio tiempo extra:', servicio.nombre);
                 return;
             }
         }
 
-        if (!userNumeroRol || !rolesSemanal.length) return;
-
-        const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
-        if (!miRol) return;
-
-        const configGlobal = DB.load('configuracionGlobal');
-        const configInicio = configGlobal.find(c => c.tipo === 'inicioCiclo');
-        
-        let semanaActualNum = 1;
-        if (configInicio && configInicio.fechaInicio) {
-            const fechaInicio = new Date(configInicio.fechaInicio + 'T00:00:00');
-            const hoyFecha = new Date();
-            hoyFecha.setHours(0, 0, 0, 0);
-            fechaInicio.setHours(0, 0, 0, 0);
-            const diferenciaDias = Math.floor((hoyFecha - fechaInicio) / (1000 * 60 * 60 * 24));
-            const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-            semanaActualNum = ((semanasTranscurridas + (configInicio.semanaInicial || 1) - 1) % 5) + 1;
+        // ✅ Lógica normal
+        if (!userNumeroRol || !rolesSemanal.length) {
+            console.log('⚠️ [Extract] No hay rol o rolesSemanal vacío');
+            return;
         }
 
+        const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
+        
+        if (!miRol) {
+            console.log('⚠️ [Extract] No se encontró el rol del usuario');
+            return;
+        }
+
+        console.log('✅ [Extract] Rol encontrado:', miRol.numeroRol);
+
+        // Calcular semana actual
+        const FECHA_INICIO = new Date(2026, 9, 11);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        FECHA_INICIO.setHours(0, 0, 0, 0);
+        
+        const diferenciaDias = Math.floor((hoy - FECHA_INICIO) / (1000 * 60 * 60 * 24));
+        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
+        const semanaActualNum = (semanasTranscurridas % 5) + 1;
+        
+        console.log('📅 [Extract] Semana actual calculada:', semanaActualNum);
+
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const diaNombre = diasSemana[new Date().getDay()];
+        const diaNombre = diasSemana[hoy.getDay()];
+        
+        console.log('📅 [Extract] Día de hoy:', diaNombre);
+
         const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
-        if (!semanaData || !semanaData.dias || !semanaData.dias[diaNombre]) return;
+        
+        if (!semanaData || !semanaData.dias || !semanaData.dias[diaNombre]) {
+            console.log('⚠️ [Extract] No hay datos para hoy en esta semana');
+            return;
+        }
 
         const posicionHoy = semanaData.dias[diaNombre].posicion;
-        if (!posicionHoy) return;
+        
+        if (!posicionHoy) {
+            console.log('⚠️ [Extract] No hay posición para hoy');
+            return;
+        }
+
+        console.log('📍 [Extract] Posición hoy:', posicionHoy);
 
         const normalizar = (texto) => {
             if (!texto) return '';
             return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, '').trim();
         };
 
-        const hoy = new Date();
         const diaSemana = hoy.getDay();
         let tipoEsperado = 'Laboral';
         if (diaSemana === 0) tipoEsperado = 'Domingo/Festivos';
         else if (diaSemana === 6) tipoEsperado = 'Sábado';
 
+        console.log('📅 [Extract] Tipo de día esperado:', tipoEsperado);
+
         const tipoDiaConfig = semanas.find(s => 
             normalizar(s.tipo) === normalizar(tipoEsperado) && s.lineaId === userLineaId
         );
-        if (!tipoDiaConfig) return;
+        
+        if (!tipoDiaConfig) {
+            console.log('⚠️ [Extract] No se encontró configuración de tipo de día');
+            return;
+        }
+
+        console.log('✅ [Extract] Tipo de día encontrado:', tipoDiaConfig.tipo);
 
         const servicio = servicios.find(s => 
             String(s.nombre).trim() === String(posicionHoy).trim() &&
@@ -143,9 +188,16 @@ const CicloTracking = {
             s.semanaId === tipoDiaConfig.id
         );
 
-        if (servicio && servicio.trenes && servicio.trenes.length > 0) {
+        if (!servicio) {
+            console.log('️ [Extract] No se encontró servicio para posición:', posicionHoy);
+            return;
+        }
+
+        if (servicio.trenes && servicio.trenes.length > 0) {
             this.servicioData = servicio;
             this.state.turnoId = `turno_${servicio.nombre}_${this.getFechaLocal(new Date())}`;
+            console.log('✅ [Extract] Servicio encontrado:', servicio.nombre);
+            console.log(' [Extract] Número de trenes:', servicio.trenes.length);
         }
     },
 
@@ -204,6 +256,7 @@ const CicloTracking = {
             }
         }
 
+        console.log(' [Carreras] Calculadas', carreras.length, 'carreras');
         return carreras;
     },
 
@@ -213,7 +266,7 @@ const CicloTracking = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (parsed.turnoId === this.state.turnoId) {
-                    this.state.lastDelayMin = parsed.lastDelayMin || 0; // ✅ Cambiado
+                    this.state.lastDelayMin = parsed.lastDelayMin || 0;
                     this.state.currentTrenIndex = parsed.currentTrenIndex || 0;
                     this.state.currentCarrera = parsed.currentCarrera || 1;
                     this.state.carrerasCompletadas = parsed.carrerasCompletadas || {};
@@ -221,18 +274,24 @@ const CicloTracking = {
                     this.state.expirationTime = parsed.expirationTime || null;
                     this.state.turnoFinalizado = parsed.turnoFinalizado || false;
                     this.state.isTracking = true;
+                    console.log(' [State] Estado cargado');
+                } else {
+                    console.log(' [State] Turno diferente, creando nuevo estado');
                 }
+            } else {
+                console.log('💾 [State] No hay estado guardado');
             }
         } catch (e) {
-            console.error('❌ Error al cargar estado:', e);
+            console.error('❌ [State] Error al cargar:', e);
         }
     },
 
     saveState() {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
+            console.log(' [State] Estado guardado');
         } catch (e) {
-            console.error('❌ Error al guardar:', e);
+            console.error('❌ [State] Error al guardar:', e);
         }
     },
 
@@ -246,6 +305,7 @@ const CicloTracking = {
         if (llegadaFinal < ahora) llegadaFinal.setDate(llegadaFinal.getDate() + 1);
         
         this.state.expirationTime = llegadaFinal.getTime() + this.POST_SHIFT_TOLERANCE_MS;
+        console.log('⏰ [Expiration] Turno expira:', new Date(this.state.expirationTime).toLocaleString());
         this.saveState();
     },
 
@@ -253,7 +313,7 @@ const CicloTracking = {
         const now = Date.now();
         if (this.state.expirationTime && now > this.state.expirationTime) {
             if (!this.state.turnoFinalizado) {
-                console.log('⏰ Turno finalizado.');
+                console.log('⏰ [Expiration] Turno finalizado');
                 this.state.turnoFinalizado = true;
                 this.saveState();
                 this.renderTrackingPanel();
@@ -274,6 +334,7 @@ const CicloTracking = {
             turnoFinalizado: false
         };
         localStorage.removeItem(this.STORAGE_KEY);
+        console.log('🔄 [Reset] Estado reiniciado');
         this.renderTrackingPanel();
     },
 
@@ -293,8 +354,9 @@ const CicloTracking = {
         App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
     },
 
-    // ✅ MODIFICADO: Solo sustituye el atraso, no lo suma
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
+        console.log(' [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
+        
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
         
@@ -304,7 +366,8 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        // ✅ SUSTITUIR el atraso anterior (no sumar)
+        console.log('⏱️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
+
         this.state.lastDelayMin = minutosAtraso;
 
         this.state.llegadasRegistradas[carreraKey] = {
@@ -335,7 +398,6 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        // ✅ Iniciar parpadeo si el atraso >= 60 minutos
         if (minutosAtraso >= 60) {
             this.startBlinking();
         } else {
@@ -349,9 +411,10 @@ const CicloTracking = {
         }
     },
 
-    // ✅ NUEVO: Función de parpadeo cuando atraso >= 60 min
     startBlinking() {
-        if (this.blinkInterval) return; // Ya está parpadeando
+        if (this.blinkInterval) return;
+        
+        console.log('🔴 [Blink] Iniciando parpadeo');
         
         let visible = true;
         this.blinkInterval = setInterval(() => {
@@ -372,15 +435,15 @@ const CicloTracking = {
                 }
                 visible = !visible;
             }
-        }, 500); // Parpadeo cada 500ms
+        }, 500);
     },
 
     stopBlinking() {
         if (this.blinkInterval) {
             clearInterval(this.blinkInterval);
             this.blinkInterval = null;
+            console.log('⬜ [Blink] Deteniendo parpadeo');
             
-            // Restaurar colores
             const atrasoElement = document.getElementById('ct-atraso-total');
             const margenElement = document.getElementById('ct-margen-restante');
             
@@ -397,7 +460,10 @@ const CicloTracking = {
 
     renderTrackingPanel() {
         const container = document.getElementById('skeServicioDiaContainer');
-        if (!container || !this.servicioData) return;
+        if (!container || !this.servicioData) {
+            console.error('❌ [Render] Contenedor o servicio no disponible');
+            return;
+        }
 
         const panelAnterior = document.getElementById('ct-tracking-panel');
         if (panelAnterior) panelAnterior.remove();
@@ -490,7 +556,7 @@ const CicloTracking = {
         
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                ${esTiempoExtra ? '️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
+                ${esTiempoExtra ? '⏱️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
             </h3>
         `;
 
@@ -590,6 +656,8 @@ const CicloTracking = {
                                     gap: 6px;
                                     box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
                                     margin-top: 8px;
+                                    -webkit-tap-highlight-color: transparent;
+                                    touch-action: manipulation;
                                 ">
                                     📍 Marcar Llegada a Terminal
                                 </button>
@@ -620,6 +688,8 @@ const CicloTracking = {
                                                 font-size: 16px;
                                                 margin-left: 8px;
                                                 color: white;
+                                                -webkit-tap-highlight-color: transparent;
+                                                touch-action: manipulation;
                                             " onmouseover="this.style.background='rgba(255,255,255,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">
                                                 ↺
                                             </button>
@@ -639,7 +709,6 @@ const CicloTracking = {
             html += `</div>`;
         });
 
-        // ✅ Panel de Atraso con parpadeo
         const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
         const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin);
         const necesitaParpadeo = this.state.lastDelayMin >= 60;
@@ -653,7 +722,7 @@ const CicloTracking = {
                 border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};
             ">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Atraso del Servicio</h4>
+                    <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Atraso del Servicio</h4>
                     <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
                         ${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'EN SEGUIMIENTO'}
                     </span>
@@ -694,9 +763,8 @@ const CicloTracking = {
                         font-size: 13px;
                         font-weight: 600;
                         text-align: center;
-                        animation: blink 1s infinite;
                     ">
-                        ⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta
+                        ️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta
                     </div>
                 ` : ''}
             </div>
@@ -704,8 +772,8 @@ const CicloTracking = {
 
         panel.innerHTML = html;
         container.parentNode.insertBefore(panel, container.nextSibling);
+        console.log('✅ [Render] Panel insertado en DOM');
 
-        // ✅ Iniciar parpadeo si es necesario
         if (necesitaParpadeo) {
             this.startBlinking();
         } else {
@@ -718,6 +786,7 @@ const CicloTracking = {
         this.intervalId = setInterval(() => {
             this.checkExpiration();
         }, 30000);
+        console.log('⏱️ [Tracking] Monitoreo iniciado (30s)');
     },
 
     destroy() {
@@ -728,6 +797,7 @@ const CicloTracking = {
         this.stopBlinking();
         const panel = document.getElementById('ct-tracking-panel');
         if (panel) panel.remove();
+        console.log(' [Destroy] CicloTracking detenido');
     }
 };
 
