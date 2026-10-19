@@ -267,9 +267,9 @@ const Home = {
                             <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
                             <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;"> Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">🕐 Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -278,23 +278,23 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
 
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">⏱️ Tiempo Extra</div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🕐 Servicio de Reserva o Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             ❌ Cancelar Tiempo Extra
                         </button>
                     ` : `
                         <button id="btnTiempoExtra" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                            ⏱️ Activar Tiempo Extra
+                            🕐 Servicio de Reserva o Tiempo Extra
                         </button>
                     `}
                 </div>
@@ -383,7 +383,6 @@ const Home = {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--bg-soft);">
                     <div>
                         <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">${this.tiempoExtraActivo ? 'Servicio de Tiempo Extra' : 'Servicio del Día'}</div>
-                        <!-- ✅ CORREGIDO: var(--primary) en lugar de var(--night-blue, ...) -->
                         <div style="font-size: 28px; font-weight: 800; color: var(--primary);">Servicio ${servicio.nombre}</div>
                     </div>
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
@@ -391,7 +390,6 @@ const Home = {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
                         <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
-                        <!-- ✅ CORREGIDO: var(--text) en lugar de var(--night-blue, ...) -->
                         <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
                     </div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
@@ -407,7 +405,6 @@ const Home = {
                         return `
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <!-- ✅ CORREGIDO -->
                                     <span style="font-weight: 700; color: var(--primary); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
                                     ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;">GARAGE</span>' : ''}
                                 </div>
@@ -440,7 +437,6 @@ const Home = {
                                     <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoFinal}</div></div>
                                 </div>
                                 <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                                    <!-- ✅ CORREGIDO -->
                                     <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                                     <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                                 </div>
@@ -498,7 +494,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -533,7 +529,7 @@ const Home = {
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
 
         if (typeof CicloTracking !== 'undefined') {
-            console.log('🛰️ [Home] Preparando CicloTracking...');
+            console.log('️ [Home] Preparando CicloTracking...');
             
             setTimeout(() => {
                 const container = document.getElementById('skeServicioDiaContainer');
