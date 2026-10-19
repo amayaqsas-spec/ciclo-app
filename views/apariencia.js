@@ -58,7 +58,8 @@ const Apariencia = {
             vars: {
                 '--bg': '#2A2438', '--bg-soft': '#352F44', '--surface': '#3D3650',
                 '--primary': '#5C5470', '--primary-soft': '#7A7290', '--accent': '#DBD8E3',
-                '--text': '#FFFFFF', '--text-soft': '#C8C4D4', '--text-light': '#9A96A8',
+                // ✅ CORRECCIÓN: Texto en tonos azules para que destaque sobre el fondo oscuro
+                '--text': '#A8C8FF', '--text-soft': '#8AA8D4', '--text-light': '#6A88B4',
                 '--clay-shadow': '8px 8px 16px #1A1528, -8px -8px 16px #3A3448',
                 '--clay-shadow-sm': '4px 4px 8px #1A1528, -4px -4px 8px #3A3448',
                 '--clay-inset': 'inset 4px 4px 8px #1A1528, inset -4px -4px 8px #3A3448'
