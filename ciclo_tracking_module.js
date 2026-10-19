@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Secuencia Obligatoria
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Dirección Dinámica
 // ============================================
 
 const CicloTracking = {
@@ -74,12 +74,22 @@ const CicloTracking = {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     },
 
-    calcularHoraEstacion(horaSalida, estacionIndex) {
+    // ✅ NUEVA FUNCIÓN: Obtener dirección según tipo de carrera
+    getDireccionCarrera(tipoCarrera) {
+        // Si es Ida: usa la dirección base del usuario
+        // Si es Vuelta: usa la dirección opuesta
+        if (tipoCarrera === 'Vuelta') {
+            return this.state.direccion === 'norte_sur' ? 'sur_norte' : 'norte_sur';
+        }
+        return this.state.direccion;
+    },
+
+    calcularHoraEstacion(horaSalida, estacionIndex, direccion) {
         const minSalida = this.horaAMinutos(horaSalida);
         let horaActual = minSalida + this.ESPERA_INICIO;
         
         for (let i = 0; i < estacionIndex; i++) {
-            const nombreEstacion = this.ESTACIONES[this.state.direccion][i];
+            const nombreEstacion = this.ESTACIONES[direccion][i];
             const esEspecial = this.ESTACIONES_ESPECIALES.includes(nombreEstacion);
             horaActual += esEspecial ? this.TIEMPO_ESPECIAL : this.TIEMPO_BASE;
         }
@@ -101,13 +111,17 @@ const CicloTracking = {
             }
         }
         
-        console.log('🧭 [Dirección] Viaje:', this.state.direccion);
+        console.log('🧭 [Dirección] Viaje base:', this.state.direccion);
     },
 
-    reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera) {
-        console.log(' [Reportar] Carrera:', carreraNum, 'Hora salida:', horaSalidaCarrera);
+    // ✅ MODIFICADO: Ahora recibe el tipo de carrera para determinar dirección
+    reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera, tipoCarrera) {
+        // ✅ Determinar dirección según si es Ida o Vuelta
+        const direccion = this.getDireccionCarrera(tipoCarrera);
         
-        const estaciones = this.ESTACIONES[this.state.direccion];
+        console.log('📍 [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
+        
+        const estaciones = this.ESTACIONES[direccion];
         
         const opcionesEstaciones = estaciones.map((estacion, idx) => {
             const esEspecial = this.ESTACIONES_ESPECIALES.includes(estacion);
@@ -116,7 +130,7 @@ const CicloTracking = {
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum}</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -164,7 +178,8 @@ const CicloTracking = {
                 return;
             }
             
-            const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, estacionIdx + 1);
+            // ✅ Usar la dirección correcta para el cálculo
+            const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, estacionIdx + 1, direccion);
             const ahora = new Date();
             const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             
@@ -425,7 +440,7 @@ const CicloTracking = {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
         } catch (e) {
-            console.error(' Error al guardar:', e);
+            console.error('❌ Error al guardar:', e);
         }
     },
 
@@ -484,11 +499,11 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(` Carrera ${carreraNum} desmarcada`);
+        App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
     },
 
     omitirCarrera(carreraKey, carreraNum) {
-        console.log('️ [Omitir] Carrera:', carreraNum);
+        console.log('⏭️ [Omitir] Carrera:', carreraNum);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -527,7 +542,7 @@ const CicloTracking = {
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
-        console.log('📍 [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
+        console.log(' [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -538,7 +553,7 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        console.log('⏱️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
+        console.log('️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
 
         this.state.lastDelayMin = minutosAtraso;
 
@@ -627,7 +642,6 @@ const CicloTracking = {
         }
     },
 
-    // ✅ NUEVA FUNCIÓN: Mostrar mensaje de bloqueo
     mostrarMensajeBloqueo() {
         App.showToast('⚠️ Debes registrar la llegada u omitir la carrera actual para continuar');
     },
@@ -663,7 +677,7 @@ const CicloTracking = {
                 </h3>
                 <div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Total de atraso</h4>
+                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Total de atraso</h4>
                         <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : '#4CAF50'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
                             ${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'DENTRO DEL MÁXIMO'}
                         </span>
@@ -760,7 +774,6 @@ const CicloTracking = {
                     const llegadaInfo = this.state.llegadasRegistradas[carreraKey];
                     const esOmitida = llegadaInfo && llegadaInfo.omitida;
                     
-                    // ✅ NUEVA LÓGICA: Determinar si la carrera está activa, completada o bloqueada
                     const esCarreraActual = (trenIdx === this.state.currentTrenIndex && carrera.numero === this.state.currentCarrera);
                     const esCarreraFutura = (trenIdx > this.state.currentTrenIndex) || (trenIdx === this.state.currentTrenIndex && carrera.numero > this.state.currentCarrera);
 
@@ -776,7 +789,7 @@ const CicloTracking = {
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
                                     <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">
-                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}
+                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? ' ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}
                                     </div>
                                     <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">
                                         ${carrera.direccion}
@@ -794,7 +807,6 @@ const CicloTracking = {
                             </div>
                             
                             ${esCarreraActual && !estaCompletada ? `
-                                <!-- ✅ Carrera ACTIVA: botones habilitados -->
                                 <div style="display: flex; gap: 8px; margin-top: 8px;">
                                     <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="
                                         flex: 2;
@@ -836,7 +848,7 @@ const CicloTracking = {
                                         ⏭️ Omitir
                                     </button>
                                 </div>
-                                <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}')" style="
+                                <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="
                                     width: 100%;
                                     margin-top: 8px;
                                     padding: 10px;
@@ -854,12 +866,11 @@ const CicloTracking = {
                                     -webkit-tap-highlight-color: transparent;
                                     touch-action: manipulation;
                                 ">
-                                    📍 Mi atraso en la Carrera
+                                     Mi atraso en la Carrera
                                 </button>
                             ` : ''}
                             
                             ${esCarreraFutura && !estaCompletada ? `
-                                <!-- ✅ Carrera FUTURA: botones bloqueados con mensaje -->
                                 <div onclick="CicloTracking.mostrarMensajeBloqueo()" style="
                                     width: 100%;
                                     margin-top: 8px;
@@ -910,7 +921,7 @@ const CicloTracking = {
                                                 -webkit-tap-highlight-color: transparent;
                                                 touch-action: manipulation;
                                             " onmouseover="this.style.background='rgba(255,255,255,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">
-                                                ↺
+                                                
                                             </button>
                                         ` : ''}
                                     </div>
@@ -922,10 +933,9 @@ const CicloTracking = {
 
                 html += `</div>`;
             } else if (esTrenFuturo) {
-                // ✅ Tren futuro completo bloqueado
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;">🔒 Pendiente - Completa el tren actual primero</div>`;
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;"> Pendiente - Completa el tren actual primero</div>`;
             } else {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;"> Pendiente</div>`;
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;">⏳ Pendiente</div>`;
             }
 
             html += `</div>`;
@@ -1000,4 +1010,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CicloTracking;
 } else {
     window.CicloTracking = CicloTracking;
-}
+                                    }
