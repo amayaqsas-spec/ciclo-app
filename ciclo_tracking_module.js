@@ -1,12 +1,38 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Botón Omitir
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Atraso por Estación
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
     POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
-    STORAGE_KEY: 'ciclo_tracking_state_v10',
+    STORAGE_KEY: 'ciclo_tracking_state_v11',
+
+    ESTACIONES: {
+        norte_sur: [
+            'Cuatro Caminos', 'Panteones', 'Tacuba', 'Cuitláhuac',
+            'Popotla', 'Colegio Militar', 'Normal', 'San Cosme',
+            'Revolución', 'Hidalgo', 'Bellas Artes', 'Allende',
+            'Zócalo/Tenochtitlan', 'Pino Suárez', 'San Antonio Abad',
+            'Chabacano', 'Viaducto', 'Xola', 'Villa de Cortés',
+            'Nativitas', 'Portales', 'Ermita', 'General Anaya', 'Tasqueña'
+        ],
+        sur_norte: [
+            'Tasqueña', 'General Anaya', 'Ermita', 'Portales',
+            'Nativitas', 'Villa de Cortés', 'Xola', 'Viaducto',
+            'Chabacano', 'San Antonio Abad', 'Pino Suárez', 'Zócalo/Tenochtitlan',
+            'Allende', 'Bellas Artes', 'Hidalgo', 'Revolución',
+            'San Cosme', 'Normal', 'Colegio Militar', 'Popotla',
+            'Cuitláhuac', 'Tacuba', 'Panteones', 'Cuatro Caminos'
+        ]
+    },
+
+    ESTACIONES_ESPECIALES: ['Hidalgo', 'Bellas Artes', 'Zócalo/Tenochtitlan', 'Pino Suárez', 'Chabacano', 'Ermita'],
+    TIEMPO_BASE: 3.043,
+    TIEMPO_ESPECIAL: 4.043,
+    ESPERA_INICIO: 3,
+    ESPERA_FINAL: 3,
+    DURACION_TOTAL: 82,
 
     state: {
         turnoId: null,
@@ -17,7 +43,8 @@ const CicloTracking = {
         llegadasRegistradas: {},
         expirationTime: null,
         isTracking: false,
-        turnoFinalizado: false
+        turnoFinalizado: false,
+        direccion: 'norte_sur'
     },
 
     intervalId: null,
@@ -35,6 +62,151 @@ const CicloTracking = {
         return `0:${String(mins).padStart(2, '0')}`;
     },
 
+    horaAMinutos(horaStr) {
+        if (!horaStr || horaStr === '--:--') return 0;
+        const [h, m] = horaStr.split(':').map(Number);
+        return h * 60 + m;
+    },
+
+    minutosAHora(minutos) {
+        const h = Math.floor(minutos / 60) % 24;
+        const m = Math.floor(minutos % 60);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    },
+
+    calcularHoraEstacion(horaSalida, estacionIndex) {
+        const minSalida = this.horaAMinutos(horaSalida);
+        let horaActual = minSalida + this.ESPERA_INICIO;
+        
+        for (let i = 0; i < estacionIndex; i++) {
+            const nombreEstacion = this.ESTACIONES[this.state.direccion][i];
+            const esEspecial = this.ESTACIONES_ESPECIALES.includes(nombreEstacion);
+            horaActual += esEspecial ? this.TIEMPO_ESPECIAL : this.TIEMPO_BASE;
+        }
+        
+        return this.minutosAHora(horaActual);
+    },
+
+    determinarDireccion() {
+        const userTerminalId = DB.get('userTerminalId');
+        const terminales = DB.load('terminales');
+        const terminal = terminales.find(t => t.id === userTerminalId);
+        
+        if (terminal) {
+            const nombreTerminal = terminal.nombre.toLowerCase();
+            if (nombreTerminal.includes('cuatro') || nombreTerminal.includes('caminos')) {
+                this.state.direccion = 'norte_sur';
+            } else if (nombreTerminal.includes('tasqueña')) {
+                this.state.direccion = 'sur_norte';
+            }
+        }
+        
+        console.log('🧭 [Dirección] Viaje:', this.state.direccion);
+    },
+
+    reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera) {
+        console.log('📍 [Reportar] Carrera:', carreraNum, 'Hora salida:', horaSalidaCarrera);
+        
+        const estaciones = this.ESTACIONES[this.state.direccion];
+        
+        const opcionesEstaciones = estaciones.map((estacion, idx) => {
+            const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, idx + 1);
+            const esEspecial = this.ESTACIONES_ESPECIALES.includes(estacion);
+            return `<option value="${idx}">${idx + 1}. ${estacion}${esEspecial ? ' ⚠️' : ''} - ${horaTeorica}</option>`;
+        }).join('');
+        
+        const modalHTML = `
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum}</h3>
+                
+                <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
+                        ⚠️ Los tiempos son aproximados de acuerdo a la hora de llegada del tren a la terminal.
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text);">
+                        ¿En qué estación te encuentras?
+                    </label>
+                    <select id="selectEstacion" style="width: 100%; padding: 12px; border: 2px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                        <option value="">Selecciona una estación...</option>
+                        ${opcionesEstaciones}
+                    </select>
+                </div>
+                
+                <div id="resultadoAtraso" style="display: none; background: var(--bg-soft); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: var(--text-soft); margin-bottom: 4px;">Atraso calculado:</div>
+                    <div id="valorAtraso" style="font-size: 24px; font-weight: 800; color: var(--accent);"></div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnCancelarAtraso" style="flex: 1; padding: 12px; background: var(--bg-soft); color: var(--text); border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Cancelar
+                    </button>
+                    <button id="btnActualizarAtraso" style="flex: 1; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        ✅ Actualizar Atraso
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const modalOverlay = App.showModal(modalHTML);
+        
+        const selectEstacion = document.getElementById('selectEstacion');
+        const resultadoDiv = document.getElementById('resultadoAtraso');
+        const valorAtrasoDiv = document.getElementById('valorAtraso');
+        let atrasoCalculado = 0;
+        
+        selectEstacion.addEventListener('change', () => {
+            const estacionIdx = parseInt(selectEstacion.value);
+            if (isNaN(estacionIdx)) {
+                resultadoDiv.style.display = 'none';
+                return;
+            }
+            
+            const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, estacionIdx + 1);
+            const ahora = new Date();
+            const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+            
+            const minTeoricos = this.horaAMinutos(horaTeorica);
+            const minReales = this.horaAMinutos(horaReal);
+            atrasoCalculado = Math.max(0, minReales - minTeoricos);
+            
+            resultadoDiv.style.display = 'block';
+            valorAtrasoDiv.textContent = this.formatMinutos(atrasoCalculado);
+            valorAtrasoDiv.style.color = atrasoCalculado > 0 ? 'var(--accent)' : '#4CAF50';
+        });
+        
+        document.getElementById('btnCancelarAtraso').addEventListener('click', () => modalOverlay.remove());
+        
+        document.getElementById('btnActualizarAtraso').addEventListener('click', () => {
+            if (selectEstacion.value === '') {
+                App.showToast('⚠️ Selecciona una estación');
+                return;
+            }
+            
+            this.state.lastDelayMin = atrasoCalculado;
+            this.saveState();
+            this.renderTrackingPanel();
+            
+            modalOverlay.remove();
+            
+            if (atrasoCalculado > 0) {
+                App.showToast(`⚠️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
+            } else {
+                App.showToast('✅ Atraso actualizado: A tiempo');
+            }
+            
+            if (atrasoCalculado >= 60) {
+                this.startBlinking();
+            } else {
+                this.stopBlinking();
+            }
+        });
+    },
+
+    // ✅ MODIFICADO: Detecta y limpia estado finalizado al iniciar
     async init() {
         console.log('🛰️ [CicloTracking] Inicializando...');
         
@@ -45,22 +217,49 @@ const CicloTracking = {
         }
         console.log('✅ [CicloTracking] Contenedor encontrado');
 
+        // ✅ NUEVO: Detectar si hay tiempo extra activo y forzar reset del estado
+        const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
+        const savedState = localStorage.getItem(this.STORAGE_KEY);
+        
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                // Si el turno guardado está finalizado pero ahora hay tiempo extra, resetear
+                if (parsed.turnoFinalizado && tiempoExtraActivo) {
+                    console.log('🔄 [CicloTracking] Detectado turno finalizado con tiempo extra activo. Reseteando...');
+                    localStorage.removeItem(this.STORAGE_KEY);
+                }
+            } catch (e) {
+                console.error('❌ Error al parsear estado guardado:', e);
+            }
+        }
+
         this.extractServiceData();
         
         if (!this.servicioData) {
             console.error('❌ [CicloTracking] No se encontró servicio');
-            console.log('🔍 userLineaId:', DB.get('userLineaId'));
-            console.log(' userNumeroRol:', DB.get('userNumeroRol'));
-            console.log('🔍 servicios:', DB.load('servicios').length);
-            console.log('🔍 rolesSemanal:', DB.load('rolesSemanal').length);
-            console.log('🔍 semanas:', DB.load('semanas').length);
             return;
         }
         
         console.log('✅ [CicloTracking] Servicio encontrado:', this.servicioData.nombre);
-        console.log('🔍 [CicloTracking] Trenes:', this.servicioData.trenes.length);
+
+        this.determinarDireccion();
 
         this.loadState();
+        
+        // ✅ NUEVO: Si el turno está finalizado pero hay servicio activo, resetear
+        if (this.state.turnoFinalizado && this.servicioData) {
+            console.log('🔄 [CicloTracking] Turno estaba finalizado pero hay servicio activo. Reseteando...');
+            this.state.turnoFinalizado = false;
+            this.state.lastDelayMin = 0;
+            this.state.currentTrenIndex = 0;
+            this.state.currentCarrera = 1;
+            this.state.carrerasCompletadas = {};
+            this.state.llegadasRegistradas = {};
+            this.state.expirationTime = null;
+            this.saveState();
+        }
+
         this.checkExpiration();
 
         if (!this.state.expirationTime) {
@@ -218,6 +417,7 @@ const CicloTracking = {
                     this.state.llegadasRegistradas = parsed.llegadasRegistradas || {};
                     this.state.expirationTime = parsed.expirationTime || null;
                     this.state.turnoFinalizado = parsed.turnoFinalizado || false;
+                    this.state.direccion = parsed.direccion || 'norte_sur';
                     this.state.isTracking = true;
                 }
             }
@@ -268,9 +468,11 @@ const CicloTracking = {
             llegadasRegistradas: {},
             expirationTime: null,
             isTracking: false,
-            turnoFinalizado: false
+            turnoFinalizado: false,
+            direccion: 'norte_sur'
         };
         localStorage.removeItem(this.STORAGE_KEY);
+        console.log('🔄 [Reset] Estado reiniciado');
         this.renderTrackingPanel();
     },
 
@@ -290,18 +492,16 @@ const CicloTracking = {
         App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
     },
 
-    // ✅ NUEVA FUNCIÓN: Omitir carrera (sin registrar atraso)
     omitirCarrera(carreraKey, carreraNum) {
         console.log('⏭️ [Omitir] Carrera:', carreraNum);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
 
-        // ✅ Marcar como omitida con atraso = 0
         this.state.llegadasRegistradas[carreraKey] = {
             horaReal: horaReal,
             atraso: 0,
-            omitida: true, // ✅ Marcador especial
+            omitida: true,
             timestamp: ahora.getTime()
         };
 
@@ -312,7 +512,6 @@ const CicloTracking = {
             timestamp: ahora.getTime()
         };
 
-        // ✅ Avanzar al siguiente tren si es la última carrera
         if (carreraNum === this.state.currentCarrera) {
             this.state.currentCarrera = carreraNum + 1;
             
@@ -329,11 +528,11 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(`️ Carrera ${carreraNum} omitida`);
+        App.showToast(`⏭️ Carrera ${carreraNum} omitida`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
-        console.log(' [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
+        console.log('📍 [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -464,14 +663,14 @@ const CicloTracking = {
                 </h3>
                 <div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Último Atraso Registrado</h4>
+                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Total de atraso</h4>
                         <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : '#4CAF50'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">
                             ${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'DENTRO DEL MÁXIMO'}
                         </span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                            <div style="font-size: 11px; color: var(--text-soft);">Último Atraso</div>
+                            <div style="font-size: 11px; color: var(--text-soft);">Total de atraso</div>
                             <div style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
                                 ${this.formatMinutos(this.state.lastDelayMin)}
                             </div>
@@ -485,7 +684,7 @@ const CicloTracking = {
                     </div>
                     ${esUmbralAlcanzado ? `
                         <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">
-                            ️ Se alcanzó el tiempo equivalente a un ciclo completo de regulación operacional.
+                            ⚙️ Se alcanzó el tiempo equivalente a un ciclo completo de regulación operacional.
                         </div>
                     ` : `
                         <div style="background: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; color: #4CAF50; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">
@@ -504,7 +703,7 @@ const CicloTracking = {
         
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                ${esTiempoExtra ? '️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
+                ${esTiempoExtra ? '⏱️' : ''} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
             </h3>
         `;
 
@@ -552,7 +751,7 @@ const CicloTracking = {
                 const carreras = this.calcularCarreras(tren);
                 
                 html += `<div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Carreras:</div>`;
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;"> Desglose de Carreras:</div>`;
 
                 carreras.forEach((carrera) => {
                     const carreraKey = `${trenIdx}_${carrera.numero}`;
@@ -571,7 +770,7 @@ const CicloTracking = {
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
                                     <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : 'var(--text)'};">
-                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : ' '}Carrera ${carrera.numero} - ${carrera.tipo}
+                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}
                                     </div>
                                     <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">
                                         ${carrera.direccion}
@@ -627,9 +826,29 @@ const CicloTracking = {
                                         -webkit-tap-highlight-color: transparent;
                                         touch-action: manipulation;
                                     ">
-                                        ⏭️ Omitir
+                                        ️ Omitir
                                     </button>
                                 </div>
+                                <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}')" style="
+                                    width: 100%;
+                                    margin-top: 8px;
+                                    padding: 10px;
+                                    background: var(--primary);
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 6px;
+                                    -webkit-tap-highlight-color: transparent;
+                                    touch-action: manipulation;
+                                ">
+                                    📍 Mi atraso en la Carrera
+                                </button>
                             ` : ''}
                             
                             ${llegadaInfo ? `
@@ -637,7 +856,7 @@ const CicloTracking = {
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <div style="flex: 1;">
                                             <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
-                                                ${esOmitida ? '️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}
+                                                ${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}
                                             </div>
                                             <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">
                                                 ${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}
@@ -692,7 +911,7 @@ const CicloTracking = {
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                     <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 11px; color: var(--text-soft);">Atraso en Linea</div>
+                        <div style="font-size: 11px; color: var(--text-soft);">Total de atraso</div>
                         <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">
                             ${this.formatMinutos(this.state.lastDelayMin)}
                         </div>

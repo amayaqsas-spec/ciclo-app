@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Descanso entre Trenes
+// HOME.JS - Dashboard con Fecha Fija de Inicio
 // ============================================
 
 const Home = {
@@ -56,7 +56,7 @@ const Home = {
 
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        console.log(' [Home] Cálculo de semana:');
+        console.log('📅 [Home] Cálculo de semana:');
         console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
         console.log('  Hoy:', hoy.toISOString().split('T')[0]);
         console.log('  Días transcurridos:', diferenciaDias);
@@ -71,7 +71,6 @@ const Home = {
         return semanaActual;
     },
 
-    // ✅ NUEVA FUNCIÓN: Convertir hora "HH:MM" a minutos desde medianoche
     horaAMinutos(horaStr) {
         if (!horaStr || horaStr === '--:--') return -1;
         const [h, m] = horaStr.split(':').map(Number);
@@ -111,6 +110,7 @@ const Home = {
         return null;
     },
 
+    // ✅ MODIFICADO: Limpia estado de CicloTracking antes de activar tiempo extra
     async cargarTiempoExtra() {
         const tipoDia = this.getTipoDiaActual();
         const userLineaId = DB.get('userLineaId');
@@ -127,6 +127,14 @@ const Home = {
         if (!infoServicio) {
             App.showToast(`❌ No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
             return;
+        }
+
+        // ✅ NUEVO: Limpiar estado de CicloTracking antes de activar tiempo extra
+        if (typeof CicloTracking !== 'undefined') {
+            console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
+            CicloTracking.resetState();
+            // Esperar un momento para que se guarde el reset
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
 
         this.tiempoExtraActivo = true;
@@ -146,7 +154,14 @@ const Home = {
         }
     },
 
+    // ✅ MODIFICADO: Limpia estado de CicloTracking al cancelar tiempo extra
     cancelarTiempoExtra() {
+        // ✅ NUEVO: Limpiar estado de CicloTracking al cancelar tiempo extra
+        if (typeof CicloTracking !== 'undefined') {
+            console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
+            CicloTracking.resetState();
+        }
+
         this.tiempoExtraActivo = false;
         this.servicioTiempoExtra = null;
         DB.remove('tiempoExtraActivo');
@@ -259,7 +274,7 @@ const Home = {
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
                                 <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">️ Tiempo Extra</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -317,7 +332,6 @@ const Home = {
         `;
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Renderiza servicio con descanso intercalado entre trenes
     renderServicioDia(info, tipoDia, posicion) {
         const { servicio, linea, terminal } = info;
         const trenes = (servicio && servicio.trenes) || [];
@@ -328,7 +342,6 @@ const Home = {
         const descansoInicioMin = this.horaAMinutos(descansoInicio);
         const descansoFinalMin = this.horaAMinutos(descansoFinal);
 
-        // ✅ Construir lista cronológica: trenes + descanso en su posición correcta
         const bloques = [];
         
         trenes.forEach((tren, idx) => {
@@ -346,14 +359,10 @@ const Home = {
                 numTren: numTren
             });
             
-            // ✅ Si el descanso está entre la llegada de este tren y la salida del siguiente, insertarlo
             if (descansoInicioMin >= 0 && descansoFinalMin >= 0) {
                 const siguienteTren = trenes[idx + 1];
                 const siguienteSalida = siguienteTren ? this.horaAMinutos(siguienteTren.salida) : 9999;
                 
-                // El descanso va después de este tren si:
-                // - La hora de inicio del descanso >= hora de llegada de este tren
-                // - Y la hora de inicio del descanso < hora de salida del siguiente tren
                 if (descansoInicioMin >= llegadaMin && descansoInicioMin < siguienteSalida) {
                     bloques.push({
                         tipo: 'descanso',
@@ -363,7 +372,6 @@ const Home = {
             }
         });
         
-        // ✅ Si el descanso no se insertó entre trenes (ej. después del último), agregarlo al final
         const yaInsertado = bloques.some(b => b.tipo === 'descanso');
         if (!yaInsertado && descansoInicioMin >= 0 && descansoFinalMin >= 0) {
             const ultimaLlegada = this.horaAMinutos(trenes[trenes.length - 1].llegada);
@@ -385,12 +393,11 @@ const Home = {
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);"> Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 
-                <!-- ✅ BLOQUES INTERCALADOS: Trenes y Descanso en orden cronológico -->
                 ${bloques.map(bloque => {
                     if (bloque.tipo === 'tren') {
                         const tren = bloque.tren;
@@ -408,7 +415,6 @@ const Home = {
                             </div>
                         `;
                     } else if (bloque.tipo === 'descanso') {
-                        // ✅ Bloque de descanso intercalado
                         return `
                             <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft); margin: 12px 0;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
@@ -478,8 +484,8 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
         const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
@@ -541,7 +547,6 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ FUNCIÓN MODIFICADA: Texto del contador corregido
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -586,12 +591,11 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--night-blue, var(--primary))';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
-                // ✅ TEXTO CORREGIDO
                 relojEtiqueta.textContent = 'Si no ha llegado tu siguiente tren, este es el atraso hasta el momento'; 
                 relojTiempo.style.color = '#FF9800';
             } else {
