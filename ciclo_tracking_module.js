@@ -1,12 +1,12 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Lógica CORREGIDA: hora teórica FIJA por estación
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Hora Teórica Proporcional
 // ============================================
 
 const CicloTracking = {
     DWELL_TIME_MS: 166000,
     RECOVERY_THRESHOLD_MIN: 82.5,
     POST_SHIFT_TOLERANCE_MS: 85 * 60 * 1000,
-    STORAGE_KEY: 'ciclo_tracking_state_v12',
+    STORAGE_KEY: 'ciclo_tracking_state_v13',
 
     ESTACIONES: {
         norte_sur: [
@@ -28,10 +28,6 @@ const CicloTracking = {
     },
 
     ESTACIONES_ESPECIALES: ['Hidalgo', 'Bellas Artes', 'Zócalo/Tenochtitlan', 'Pino Suárez', 'Chabacano', 'Ermita'],
-    TIEMPO_BASE: 3.043,
-    TIEMPO_ESPECIAL: 4.043,
-    ESPERA_INICIO: 3,
-    ESPERA_FINAL: 3,
 
     state: {
         turnoId: null,
@@ -72,19 +68,31 @@ const CicloTracking = {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     },
 
-    // ✅ CORREGIDO: Hora teórica FIJA de cada estación (NO suma atraso acumulado)
-    calcularHoraTeoricaEstacion(horaSalidaCarrera, estacionIndex, direccion) {
+    // ✅ CORREGIDO: Usa duración COMPLETA de la carrera (sin restar 3 min)
+    // Distribuye todo el tiempo entre las 24 estaciones proporcionalmente
+    calcularHoraTeoricaEstacion(horaSalidaCarrera, horaLlegadaCarrera, estacionIndex, direccion) {
         const minSalida = this.horaAMinutos(horaSalidaCarrera);
-        let horaActual = minSalida + this.ESPERA_INICIO;
+        const minLlegada = this.horaAMinutos(horaLlegadaCarrera);
         
-        for (let i = 0; i < estacionIndex; i++) {
-            const nombreEstacion = this.ESTACIONES[direccion][i];
-            const esEspecial = this.ESTACIONES_ESPECIALES.includes(nombreEstacion);
-            horaActual += esEspecial ? this.TIEMPO_ESPECIAL : this.TIEMPO_BASE;
+        // Duración completa de la carrera (sin restar nada)
+        let duracionCarrera = minLlegada - minSalida;
+        if (duracionCarrera < 0) duracionCarrera += 24 * 60;
+        
+        // Total de tramos (24 estaciones = 23 tramos)
+        const totalTramos = 23;
+        
+        // Tiempo por tramo (proporcional a la duración completa)
+        const tiempoPorTramo = duracionCarrera / totalTramos;
+        
+        // Calcular hora en la estación seleccionada
+        // estacionIndex va de 1 a 24, necesitamos (estacionIndex - 1) tramos
+        let horaEstacion = minSalida;
+        
+        for (let i = 0; i < estacionIndex - 1; i++) {
+            horaEstacion += tiempoPorTramo;
         }
         
-        // ✅ NO sumamos atraso acumulado. La hora teórica es FIJA.
-        return horaActual;
+        return horaEstacion; // En minutos desde medianoche
     },
 
     getDireccionCarrera(tipoCarrera) {
@@ -110,7 +118,6 @@ const CicloTracking = {
         console.log('🧭 [Dirección] Viaje base:', this.state.direccion);
     },
 
-    // ✅ CORREGIDO: Lógica simple - hora actual vs hora teórica FIJA
     reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera, tipoCarrera) {
         const direccion = this.getDireccionCarrera(tipoCarrera);
         
@@ -125,7 +132,7 @@ const CicloTracking = {
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -168,6 +175,14 @@ const CicloTracking = {
         const detalleCalculoDiv = document.getElementById('detalleCalculo');
         let atrasoCalculado = 0;
         
+        // ✅ Obtener la hora de llegada de esta carrera específica
+        const tren = this.servicioData.trenes[this.state.currentTrenIndex];
+        const carreras = this.calcularCarreras(tren);
+        const carreraActual = carreras.find(c => c.numero === carreraNum);
+        const horaLlegadaCarrera = carreraActual ? carreraActual.horaLlegada : '11:39';
+        
+        console.log('🔍 [Debug] Hora salida:', horaSalidaCarrera, 'Hora llegada:', horaLlegadaCarrera);
+        
         selectEstacion.addEventListener('change', () => {
             const estacionIdx = parseInt(selectEstacion.value);
             if (isNaN(estacionIdx)) {
@@ -175,16 +190,18 @@ const CicloTracking = {
                 return;
             }
             
-            // ✅ LÓGICA CORRECTA Y SIMPLE:
-            // 1. Hora teórica FIJA de la estación (no cambia)
-            const horaTeoricaEstacion = this.calcularHoraTeoricaEstacion(horaSalidaCarrera, estacionIdx + 1, direccion);
+            // ✅ Calcular hora teórica proporcional a esta carrera (duración completa)
+            const horaTeoricaEstacion = this.calcularHoraTeoricaEstacion(
+                horaSalidaCarrera, 
+                horaLlegadaCarrera, 
+                estacionIdx + 1, 
+                direccion
+            );
             
-            // 2. Hora actual real
             const ahora = new Date();
             const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
             const horaActualStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             
-            // 3. Atraso = hora actual - hora teórica (simple resta)
             atrasoCalculado = Math.max(0, horaActualMinutos - horaTeoricaEstacion);
             
             const horaTeoricaStr = this.minutosAHora(horaTeoricaEstacion);
@@ -208,7 +225,6 @@ const CicloTracking = {
                 return;
             }
             
-            // ✅ SUSTITUIR el atraso (no acumular)
             this.state.lastDelayMin = atrasoCalculado;
             this.saveState();
             this.renderTrackingPanel();
@@ -250,7 +266,7 @@ const CicloTracking = {
                     localStorage.removeItem(this.STORAGE_KEY);
                 }
             } catch (e) {
-                console.error(' Error al parsear estado:', e);
+                console.error('❌ Error al parsear estado:', e);
             }
         }
 
@@ -712,7 +728,7 @@ const CicloTracking = {
                     html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                             <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : ' '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
+                                <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? ' ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
                                 <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
                                 <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
                             </div>
@@ -752,7 +768,7 @@ const CicloTracking = {
             } else if (esTrenFuturo) {
                 html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">🔒 Pendiente - Completa el tren actual primero</div>`;
             } else {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente</div>`;
             }
             html += `</div>`;
         });
@@ -776,7 +792,7 @@ const CicloTracking = {
                     <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
                 </div>
             </div>
-            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
+            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
         </div>`;
 
         panel.innerHTML = html;
