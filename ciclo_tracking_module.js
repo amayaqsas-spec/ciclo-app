@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Atraso por Estación
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Secuencia Obligatoria
 // ============================================
 
 const CicloTracking = {
@@ -105,11 +105,10 @@ const CicloTracking = {
     },
 
     reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera) {
-        console.log('📍 [Reportar] Carrera:', carreraNum, 'Hora salida:', horaSalidaCarrera);
+        console.log(' [Reportar] Carrera:', carreraNum, 'Hora salida:', horaSalidaCarrera);
         
         const estaciones = this.ESTACIONES[this.state.direccion];
         
-        // ✅ CAMBIO: Solo muestra número y nombre de estación (sin hora teórica)
         const opcionesEstaciones = estaciones.map((estacion, idx) => {
             const esEspecial = this.ESTACIONES_ESPECIALES.includes(estacion);
             return `<option value="${idx}">${idx + 1}. ${estacion}${esEspecial ? ' ⚠️' : ''}</option>`;
@@ -165,7 +164,6 @@ const CicloTracking = {
                 return;
             }
             
-            // ✅ Se sigue calculando internamente la hora teórica (no se muestra)
             const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, estacionIdx + 1);
             const ahora = new Date();
             const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -235,7 +233,7 @@ const CicloTracking = {
         this.extractServiceData();
         
         if (!this.servicioData) {
-            console.error('❌ [CicloTracking] No se encontró servicio');
+            console.error(' [CicloTracking] No se encontró servicio');
             return;
         }
         
@@ -246,7 +244,7 @@ const CicloTracking = {
         this.loadState();
         
         if (this.state.turnoFinalizado && this.servicioData) {
-            console.log(' [CicloTracking] Turno estaba finalizado pero hay servicio activo. Reseteando...');
+            console.log('🔄 [CicloTracking] Turno estaba finalizado pero hay servicio activo. Reseteando...');
             this.state.turnoFinalizado = false;
             this.state.lastDelayMin = 0;
             this.state.currentTrenIndex = 0;
@@ -427,7 +425,7 @@ const CicloTracking = {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
         } catch (e) {
-            console.error('❌ Error al guardar:', e);
+            console.error(' Error al guardar:', e);
         }
     },
 
@@ -486,11 +484,11 @@ const CicloTracking = {
         this.saveState();
         this.renderTrackingPanel();
 
-        App.showToast(`↺ Carrera ${carreraNum} desmarcada`);
+        App.showToast(` Carrera ${carreraNum} desmarcada`);
     },
 
     omitirCarrera(carreraKey, carreraNum) {
-        console.log('⏭️ [Omitir] Carrera:', carreraNum);
+        console.log('️ [Omitir] Carrera:', carreraNum);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -529,7 +527,7 @@ const CicloTracking = {
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
-        console.log(' [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
+        console.log('📍 [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -540,7 +538,7 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        console.log('️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
+        console.log('⏱️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
 
         this.state.lastDelayMin = minutosAtraso;
 
@@ -629,6 +627,11 @@ const CicloTracking = {
         }
     },
 
+    // ✅ NUEVA FUNCIÓN: Mostrar mensaje de bloqueo
+    mostrarMensajeBloqueo() {
+        App.showToast('⚠️ Debes registrar la llegada u omitir la carrera actual para continuar');
+    },
+
     renderTrackingPanel() {
         const container = document.getElementById('skeServicioDiaContainer');
         if (!container || !this.servicioData) return;
@@ -711,6 +714,7 @@ const CicloTracking = {
             const labelTren = trenIdx === 0 ? 'Primer Tren' : trenIdx === 1 ? 'Segundo Tren' : `Tren #${numTren}`;
             const esTrenActivo = trenIdx === this.state.currentTrenIndex;
             const esTrenCompletado = trenIdx < this.state.currentTrenIndex;
+            const esTrenFuturo = trenIdx > this.state.currentTrenIndex;
 
             html += `
                 <div class="ct-tren-card" data-tren-index="${trenIdx}" style="
@@ -719,11 +723,11 @@ const CicloTracking = {
                     background: var(--bg-soft);
                     border-radius: 12px;
                     border-left: 4px solid ${esTrenCompletado ? '#4CAF50' : esTrenActivo ? 'var(--primary)' : 'var(--bg-soft)'};
-                    opacity: ${esTrenCompletado ? '0.7' : '1'};
+                    opacity: ${esTrenCompletado ? '0.7' : esTrenFuturo ? '0.5' : '1'};
                 ">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <h4 style="margin: 0; font-size: 16px; color: var(--night-blue, var(--primary)); font-weight: 700;">
-                            ${esTrenCompletado ? '✓ ' : ''}${labelTren} #${numTren}
+                            ${esTrenCompletado ? '✓ ' : esTrenFuturo ? '🔒 ' : ''}${labelTren} #${numTren}
                         </h4>
                         ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;">GARAGE</span>' : ''}
                     </div>
@@ -755,36 +759,42 @@ const CicloTracking = {
                     const estaCompletada = this.state.carrerasCompletadas[carreraKey];
                     const llegadaInfo = this.state.llegadasRegistradas[carreraKey];
                     const esOmitida = llegadaInfo && llegadaInfo.omitida;
+                    
+                    // ✅ NUEVA LÓGICA: Determinar si la carrera está activa, completada o bloqueada
+                    const esCarreraActual = (trenIdx === this.state.currentTrenIndex && carrera.numero === this.state.currentCarrera);
+                    const esCarreraFutura = (trenIdx > this.state.currentTrenIndex) || (trenIdx === this.state.currentTrenIndex && carrera.numero > this.state.currentCarrera);
 
                     html += `
                         <div class="ct-carrera-card" data-carrera-key="${carreraKey}" style="
                             margin-bottom: 10px;
                             padding: 12px;
-                            background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : 'var(--surface)'};
+                            background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'};
                             border-radius: 10px;
-                            border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : 'var(--bg-soft)'};
+                            border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'};
+                            opacity: ${esCarreraFutura ? '0.6' : '1'};
                         ">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : 'var(--text)'};">
-                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}
+                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">
+                                        ${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}
                                     </div>
-                                    <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">
+                                    <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">
                                         ${carrera.direccion}
                                     </div>
-                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'}; margin-top: 2px;">
+                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">
                                         Salida: ${carrera.horaSalida}
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : 'var(--text-soft)'};">Llegada aprox.</div>
-                                    <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada ? 'white' : 'var(--night-blue, var(--text))'};">
+                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">Llegada aprox.</div>
+                                    <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--night-blue, var(--text))'};">
                                         ${carrera.horaLlegada}
                                     </div>
                                 </div>
                             </div>
                             
-                            ${!estaCompletada && esTrenActivo ? `
+                            ${esCarreraActual && !estaCompletada ? `
+                                <!-- ✅ Carrera ACTIVA: botones habilitados -->
                                 <div style="display: flex; gap: 8px; margin-top: 8px;">
                                     <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="
                                         flex: 2;
@@ -823,7 +833,7 @@ const CicloTracking = {
                                         -webkit-tap-highlight-color: transparent;
                                         touch-action: manipulation;
                                     ">
-                                        ️ Omitir
+                                        ⏭️ Omitir
                                     </button>
                                 </div>
                                 <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}')" style="
@@ -846,6 +856,30 @@ const CicloTracking = {
                                 ">
                                     📍 Mi atraso en la Carrera
                                 </button>
+                            ` : ''}
+                            
+                            ${esCarreraFutura && !estaCompletada ? `
+                                <!-- ✅ Carrera FUTURA: botones bloqueados con mensaje -->
+                                <div onclick="CicloTracking.mostrarMensajeBloqueo()" style="
+                                    width: 100%;
+                                    margin-top: 8px;
+                                    padding: 10px;
+                                    background: #BDBDBD;
+                                    color: #616161;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    cursor: not-allowed;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 6px;
+                                    -webkit-tap-highlight-color: transparent;
+                                    touch-action: manipulation;
+                                ">
+                                    🔒 Completa la carrera actual primero
+                                </div>
                             ` : ''}
                             
                             ${llegadaInfo ? `
@@ -887,8 +921,11 @@ const CicloTracking = {
                 });
 
                 html += `</div>`;
+            } else if (esTrenFuturo) {
+                // ✅ Tren futuro completo bloqueado
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;">🔒 Pendiente - Completa el tren actual primero</div>`;
             } else {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;">⏳ Pendiente</div>`;
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px; font-style: italic;"> Pendiente</div>`;
             }
 
             html += `</div>`;
