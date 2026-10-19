@@ -109,15 +109,15 @@ const CicloTracking = {
         
         const estaciones = this.ESTACIONES[this.state.direccion];
         
+        // ✅ CAMBIO: Solo muestra número y nombre de estación (sin hora teórica)
         const opcionesEstaciones = estaciones.map((estacion, idx) => {
-            const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, idx + 1);
             const esEspecial = this.ESTACIONES_ESPECIALES.includes(estacion);
-            return `<option value="${idx}">${idx + 1}. ${estacion}${esEspecial ? ' ⚠️' : ''} - ${horaTeorica}</option>`;
+            return `<option value="${idx}">${idx + 1}. ${estacion}${esEspecial ? ' ⚠️' : ''}</option>`;
         }).join('');
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum}</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum}</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -165,6 +165,7 @@ const CicloTracking = {
                 return;
             }
             
+            // ✅ Se sigue calculando internamente la hora teórica (no se muestra)
             const horaTeorica = this.calcularHoraEstacion(horaSalidaCarrera, estacionIdx + 1);
             const ahora = new Date();
             const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -206,7 +207,6 @@ const CicloTracking = {
         });
     },
 
-    // ✅ MODIFICADO: Detecta y limpia estado finalizado al iniciar
     async init() {
         console.log('🛰️ [CicloTracking] Inicializando...');
         
@@ -217,14 +217,12 @@ const CicloTracking = {
         }
         console.log('✅ [CicloTracking] Contenedor encontrado');
 
-        // ✅ NUEVO: Detectar si hay tiempo extra activo y forzar reset del estado
         const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
         const savedState = localStorage.getItem(this.STORAGE_KEY);
         
         if (savedState) {
             try {
                 const parsed = JSON.parse(savedState);
-                // Si el turno guardado está finalizado pero ahora hay tiempo extra, resetear
                 if (parsed.turnoFinalizado && tiempoExtraActivo) {
                     console.log('🔄 [CicloTracking] Detectado turno finalizado con tiempo extra activo. Reseteando...');
                     localStorage.removeItem(this.STORAGE_KEY);
@@ -247,9 +245,8 @@ const CicloTracking = {
 
         this.loadState();
         
-        // ✅ NUEVO: Si el turno está finalizado pero hay servicio activo, resetear
         if (this.state.turnoFinalizado && this.servicioData) {
-            console.log('🔄 [CicloTracking] Turno estaba finalizado pero hay servicio activo. Reseteando...');
+            console.log(' [CicloTracking] Turno estaba finalizado pero hay servicio activo. Reseteando...');
             this.state.turnoFinalizado = false;
             this.state.lastDelayMin = 0;
             this.state.currentTrenIndex = 0;
@@ -532,7 +529,7 @@ const CicloTracking = {
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
-        console.log('📍 [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
+        console.log(' [Marcar] Carrera:', carreraNum, 'Hora teórica:', horaLlegadaTeorica);
         
         const ahora = new Date();
         const horaReal = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -543,7 +540,7 @@ const CicloTracking = {
 
         const minutosAtraso = Math.max(0, Math.floor((ahora - llegadaTeorica) / (1000 * 60)));
 
-        console.log('⏱️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
+        console.log('️ [Marcar] Hora real:', horaReal, 'Atraso:', minutosAtraso, 'min');
 
         this.state.lastDelayMin = minutosAtraso;
 
@@ -703,7 +700,7 @@ const CicloTracking = {
         
         let html = `
             <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                ${esTiempoExtra ? '⏱️' : ''} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
+                ${esTiempoExtra ? '⏱️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}
             </h3>
         `;
 
@@ -751,7 +748,7 @@ const CicloTracking = {
                 const carreras = this.calcularCarreras(tren);
                 
                 html += `<div style="margin-bottom: 12px;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;"> Desglose de Carreras:</div>`;
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Carreras:</div>`;
 
                 carreras.forEach((carrera) => {
                     const carreraKey = `${trenIdx}_${carrera.numero}`;
