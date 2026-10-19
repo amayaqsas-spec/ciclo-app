@@ -110,7 +110,6 @@ const Home = {
         return null;
     },
 
-    // ✅ MODIFICADO: Limpia estado de CicloTracking antes de activar tiempo extra
     async cargarTiempoExtra() {
         const tipoDia = this.getTipoDiaActual();
         const userLineaId = DB.get('userLineaId');
@@ -129,11 +128,9 @@ const Home = {
             return;
         }
 
-        // ✅ NUEVO: Limpiar estado de CicloTracking antes de activar tiempo extra
         if (typeof CicloTracking !== 'undefined') {
-            console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
+            console.log('🧹 [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
             CicloTracking.resetState();
-            // Esperar un momento para que se guarde el reset
             await new Promise(resolve => setTimeout(resolve, 300));
         }
 
@@ -154,9 +151,7 @@ const Home = {
         }
     },
 
-    // ✅ MODIFICADO: Limpia estado de CicloTracking al cancelar tiempo extra
     cancelarTiempoExtra() {
-        // ✅ NUEVO: Limpiar estado de CicloTracking al cancelar tiempo extra
         if (typeof CicloTracking !== 'undefined') {
             console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
             CicloTracking.resetState();
@@ -312,7 +307,7 @@ const Home = {
                         </div>
                     ` : servicioAMostrar ? this.renderServicioDia(servicioAMostrar, tipoDiaActual, posicionHoy) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                            <h3>Sin servicio asignado</h3>
+                            <h3 style="color: var(--text);">Sin servicio asignado</h3>
                             <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
                         </div>
                     `}
@@ -388,13 +383,21 @@ const Home = {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--bg-soft);">
                     <div>
                         <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">${this.tiempoExtraActivo ? 'Servicio de Tiempo Extra' : 'Servicio del Día'}</div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--night-blue, var(--primary));">Servicio ${servicio.nombre}</div>
+                        <!-- ✅ CORREGIDO: var(--primary) en lugar de var(--night-blue, ...) -->
+                        <div style="font-size: 28px; font-weight: 800; color: var(--primary);">Servicio ${servicio.nombre}</div>
                     </div>
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
+                        <!-- ✅ CORREGIDO: var(--text) en lugar de var(--night-blue, ...) -->
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
+                    </div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text);">${terminal ? terminal.nombre : 'N/A'}</div>
+                    </div>
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 
@@ -404,13 +407,23 @@ const Home = {
                         return `
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-weight: 700; color: var(--night-blue, var(--primary)); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
+                                    <!-- ✅ CORREGIDO -->
+                                    <span style="font-weight: 700; color: var(--primary); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
                                     ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;">GARAGE</span>' : ''}
                                 </div>
                                 <div style="display: grid; grid-template-columns: ${tren.vueltas ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 8px;">
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Salida</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.salida || '--:--'}</div></div>
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Llegada</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.llegada || '--:--'}</div></div>
-                                    ${tren.vueltas ? `<div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Vueltas</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.vueltas}</div></div>` : ''}
+                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Salida</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.salida || '--:--'}</div>
+                                    </div>
+                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Llegada</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.llegada || '--:--'}</div>
+                                    </div>
+                                    ${tren.vueltas ? `<div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Vueltas</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.vueltas}</div>
+                                    </div>` : ''}
                                 </div>
                             </div>
                         `;
@@ -422,12 +435,13 @@ const Home = {
                                     <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
-                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoInicio}</div></div>
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoInicio}</div></div>
                                     <div style="font-size: 24px; color: var(--text-soft);">→</div>
-                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoFinal}</div></div>
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoFinal}</div></div>
                                 </div>
                                 <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                                    <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
+                                    <!-- ✅ CORREGIDO -->
+                                    <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                                     <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                                 </div>
                                 <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
@@ -484,7 +498,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -581,18 +595,18 @@ const Home = {
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
-                    relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                    relojTiempo.style.color = 'var(--primary)';
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
-                relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;
