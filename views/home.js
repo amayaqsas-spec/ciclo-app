@@ -56,7 +56,7 @@ const Home = {
 
         const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
         
-        console.log(' [Home] Cálculo de semana:');
+        console.log('📅 [Home] Cálculo de semana:');
         console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
         console.log('  Hoy:', hoy.toISOString().split('T')[0]);
         console.log('  Días transcurridos:', diferenciaDias);
@@ -255,30 +255,24 @@ const Home = {
         return `
             <div class="view active ske-home">
                 <div class="ske-greeting-card">
-                    <div class="ske-greeting-content" style="display: flex; align-items: center; gap: 16px; padding: 20px; position: relative;">
-                        <!-- ✅ AVATAR CUADRADO CON TEXTO AL LADO -->
-                        <div class="ske-avatar-frame" id="welcomeIcon" style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; max-width: 120px; max-height: 120px; border-radius: 12px; overflow: hidden; position: relative; background: var(--bg-soft); flex-shrink: 0;">
-                            <div class="ske-avatar-inner" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder" style="width: 60px; height: 60px; color: var(--text-soft);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+                    <div class="ske-greeting-content">
+                        <div class="ske-avatar-frame" id="welcomeIcon">
+                            <div class="ske-avatar-inner">
+                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
                             </div>
-                            <button class="ske-avatar-btn" id="btnCambiarFoto" style="position: absolute; bottom: 6px; right: 6px; background: white; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                            </button>
+                            <button class="ske-avatar-btn" id="btnCambiarFoto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
                             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
                         </div>
-                        
-                        <!-- ✅ TEXTO AL LADO DERECHO -->
-                        <div class="ske-greeting-text" style="flex: 1; text-align: left;">
-                            <h1 class="ske-greeting-title" style="margin: 0 0 4px 0; font-size: 24px;">¡Hola, ${name}!</h1>
-                            <p class="ske-greeting-subtitle" style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-soft);">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start;">
-                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white; font-size: 13px; padding: 6px 12px;"> Semana ${semanaActualNum}</span>
-                                ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px; padding: 6px 12px;"> Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px; padding: 6px 12px;">🕐 Tiempo Extra</span>` : ''}
+                        <div class="ske-greeting-text">
+                            <h1 class="ske-greeting-title">¡Hola, ${name}!</h1>
+                            <p class="ske-greeting-subtitle">${diaNombreReal} ${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}</p>
+                            <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
+                                <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
+                                ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">🕐 Tiempo Extra</span>` : ''}
                             </div>
                         </div>
-                        
-                        ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos" style="position: absolute; top: 16px; right: 16px;"><svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
+                        ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
                     </div>
                 </div>
 
@@ -287,7 +281,7 @@ const Home = {
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
                             <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
@@ -459,7 +453,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        console.log('📥 [Home] Cargando datos de Firebase...');
+        console.log(' [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -485,7 +479,7 @@ const Home = {
                 if (!file) return;
                 
                 if (!file.type.startsWith('image/')) {
-                    App.showToast('️ El archivo no es una imagen válida');
+                    App.showToast('⚠️ El archivo no es una imagen válida');
                     return;
                 }
                 
@@ -524,21 +518,21 @@ const Home = {
                                 if (imgExistente) {
                                     imgExistente.src = imagenComprimida;
                                 } else {
-                                    welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${imagenComprimida}" alt="Perfil" class="ske-avatar-img" style="width: 100%; height: 100%; object-fit: cover; display: block;">`;
+                                    welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${imagenComprimida}" alt="Perfil" class="ske-avatar-img">`;
                                 }
                                 App.showToast('✅ Foto de perfil actualizada');
                             } catch (err) {
                                 console.error('Error al guardar:', err);
-                                App.showToast('⚠️ Error al guardar la imagen. Intenta con otra más pequeña.');
+                                App.showToast('️ Error al guardar la imagen. Intenta con otra más pequeña.');
                             }
                         };
                         img.onerror = () => {
-                            App.showToast('⚠️ No se pudo procesar la imagen');
+                            App.showToast('️ No se pudo procesar la imagen');
                         };
                         img.src = ev.target.result;
                     };
                     reader.onerror = () => {
-                        App.showToast('️ Error al leer el archivo');
+                        App.showToast('⚠️ Error al leer el archivo');
                     };
                     reader.readAsDataURL(file);
                 } catch (err) {
@@ -546,6 +540,7 @@ const Home = {
                     App.showToast('⚠️ Error al procesar la imagen');
                 }
                 
+                // ✅ Limpiar el input para poder seleccionar la misma imagen otra vez
                 e.target.value = '';
             });
         }
@@ -647,12 +642,12 @@ const Home = {
                     const segundosRestantes = diffSegundos;
                     
                     relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
+                    relojEtiqueta.textContent = ' Tu descanso inicia en...';
                     relojTiempo.style.color = '#FF9800';
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
@@ -662,7 +657,7 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
