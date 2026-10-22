@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Hora Teórica Proporcional
+// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Hora Teórica Proporcional y Redondeo
 // ============================================
 
 const CicloTracking = {
@@ -68,31 +68,24 @@ const CicloTracking = {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     },
 
-    // ✅ CORREGIDO: Usa duración COMPLETA de la carrera (sin restar 3 min)
-    // Distribuye todo el tiempo entre las 24 estaciones proporcionalmente
+    // ✅ Cálculo proporcional: usa duración COMPLETA de la carrera (sin restar 3 min)
     calcularHoraTeoricaEstacion(horaSalidaCarrera, horaLlegadaCarrera, estacionIndex, direccion) {
         const minSalida = this.horaAMinutos(horaSalidaCarrera);
         const minLlegada = this.horaAMinutos(horaLlegadaCarrera);
         
-        // Duración completa de la carrera (sin restar nada)
         let duracionCarrera = minLlegada - minSalida;
         if (duracionCarrera < 0) duracionCarrera += 24 * 60;
         
-        // Total de tramos (24 estaciones = 23 tramos)
         const totalTramos = 23;
-        
-        // Tiempo por tramo (proporcional a la duración completa)
         const tiempoPorTramo = duracionCarrera / totalTramos;
         
-        // Calcular hora en la estación seleccionada
-        // estacionIndex va de 1 a 24, necesitamos (estacionIndex - 1) tramos
         let horaEstacion = minSalida;
         
         for (let i = 0; i < estacionIndex - 1; i++) {
             horaEstacion += tiempoPorTramo;
         }
         
-        return horaEstacion; // En minutos desde medianoche
+        return horaEstacion;
     },
 
     getDireccionCarrera(tipoCarrera) {
@@ -132,7 +125,7 @@ const CicloTracking = {
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -175,7 +168,6 @@ const CicloTracking = {
         const detalleCalculoDiv = document.getElementById('detalleCalculo');
         let atrasoCalculado = 0;
         
-        // ✅ Obtener la hora de llegada de esta carrera específica
         const tren = this.servicioData.trenes[this.state.currentTrenIndex];
         const carreras = this.calcularCarreras(tren);
         const carreraActual = carreras.find(c => c.numero === carreraNum);
@@ -190,7 +182,7 @@ const CicloTracking = {
                 return;
             }
             
-            // ✅ Calcular hora teórica proporcional a esta carrera (duración completa)
+            // ✅ Calcular hora teórica proporcional
             const horaTeoricaEstacion = this.calcularHoraTeoricaEstacion(
                 horaSalidaCarrera, 
                 horaLlegadaCarrera, 
@@ -202,9 +194,13 @@ const CicloTracking = {
             const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
             const horaActualStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             
-            atrasoCalculado = Math.max(0, horaActualMinutos - horaTeoricaEstacion);
+            // ✅ REDONDEO: redondear la hora teórica al minuto más cercano para evitar decimales
+            const horaTeoricaRedondeada = Math.round(horaTeoricaEstacion);
             
-            const horaTeoricaStr = this.minutosAHora(horaTeoricaEstacion);
+            // ✅ Calcular atraso con hora redondeada
+            atrasoCalculado = Math.max(0, horaActualMinutos - horaTeoricaRedondeada);
+            
+            const horaTeoricaStr = this.minutosAHora(horaTeoricaRedondeada);
             
             resultadoDiv.style.display = 'block';
             valorAtrasoDiv.textContent = this.formatMinutos(atrasoCalculado);
@@ -221,7 +217,7 @@ const CicloTracking = {
         
         document.getElementById('btnActualizarAtraso').addEventListener('click', () => {
             if (selectEstacion.value === '') {
-                App.showToast('⚠️ Selecciona una estación');
+                App.showToast('️ Selecciona una estación');
                 return;
             }
             
@@ -232,7 +228,7 @@ const CicloTracking = {
             modalOverlay.remove();
             
             if (atrasoCalculado > 0) {
-                App.showToast(`⚠️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
+                App.showToast(`️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
             } else {
                 App.showToast('✅ Atraso actualizado: A tiempo');
             }
@@ -554,7 +550,7 @@ const CicloTracking = {
 
         this.saveState();
         this.renderTrackingPanel();
-        App.showToast(`⏭️ Carrera ${carreraNum} omitida`);
+        App.showToast(`️ Carrera ${carreraNum} omitida`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
@@ -728,7 +724,7 @@ const CicloTracking = {
                     html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                             <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? ' ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
+                                <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
                                 <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
                                 <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
                             </div>
@@ -747,14 +743,14 @@ const CicloTracking = {
                     }
 
                     if (esCarreraFutura && !estaCompletada) {
-                        html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;">🔒 Completa la carrera actual primero</div>`;
+                        html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;"> Completa la carrera actual primero</div>`;
                     }
 
                     if (llegadaInfo) {
                         html += `<div style="margin-top: 8px; padding: 8px; background: ${esOmitida ? 'rgba(158,158,158,0.2)' : llegadaInfo.atraso > 0 ? 'rgba(255,152,0,0.2)' : 'rgba(76,175,80,0.2)'}; border-radius: 6px; border-left: 3px solid ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
+                                    <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
                                     <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}</div>
                                 </div>
                                 ${esTrenActivo ? `<button onclick="CicloTracking.resetCarrera('${carreraKey}')" style="background: rgba(255,255,255,0.3); border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: white;">↺</button>` : ''}
@@ -768,7 +764,7 @@ const CicloTracking = {
             } else if (esTrenFuturo) {
                 html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">🔒 Pendiente - Completa el tren actual primero</div>`;
             } else {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente</div>`;
+                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
             }
             html += `</div>`;
         });
@@ -792,7 +788,7 @@ const CicloTracking = {
                     <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
                 </div>
             </div>
-            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
+            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
         </div>`;
 
         panel.innerHTML = html;
