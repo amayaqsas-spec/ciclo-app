@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos
+// AVISOS.JS - Módulo de Documentos (Vista Tabla Compacta)
 // ============================================
 
 const Avisos = {
@@ -110,15 +110,8 @@ const Avisos = {
             
             if (documentos.length === 0) {
                 list.innerHTML = `
-                    <div class="ske-avisos-empty">
-                        <div class="ske-avisos-empty-icono">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                        </div>
+                    <div class="ske-avisos-empty" style="text-align: center; padding: 40px 20px; color: var(--text-soft);">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📂</div>
                         <h3>Sin documentos</h3>
                         <p>No hay documentos registrados aún</p>
                     </div>
@@ -135,14 +128,8 @@ const Avisos = {
         } catch (error) {
             console.error('❌ Error al cargar:', error);
             list.innerHTML = `
-                <div class="ske-avisos-empty">
-                    <div class="ske-avisos-empty-icono">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                    </div>
+                <div class="ske-avisos-empty" style="text-align: center; padding: 40px 20px; color: var(--text-soft);">
+                    <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
                     <h3>Error de conexión</h3>
                     <p>Verifica tu conexión a internet</p>
                 </div>
@@ -150,50 +137,85 @@ const Avisos = {
         }
     },
 
+    // ✅ RENDERIZADO TIPO TABLA COMPACTA
     renderizarLista(documentos) {
         const list = document.getElementById('avisoList');
         const isAdmin = Auth.isAdmin;
 
-        list.innerHTML = `<div class="ske-avisos-lista">` + documentos.map(doc => {
+        // Encabezado de tabla
+        let html = `
+            <div style="display: grid; grid-template-columns: 40px 1fr 120px 160px; gap: 12px; align-items: center; padding: 12px 16px; background: var(--bg-soft); border-radius: 12px 12px 0 0; border-bottom: 2px solid var(--primary); font-size: 11px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="text-align: center;">Tipo</div>
+                <div>Documento</div>
+                <div style="text-align: center;">Fecha</div>
+                <div style="text-align: right;">Acciones</div>
+            </div>
+            <div class="ske-avisos-lista" style="background: var(--bg-soft); padding: 8px; border-radius: 0 0 12px 12px;">
+        `;
+
+        html += documentos.map(doc => {
             const leido = this.estaLeido(doc.id);
-            
             const titulo = doc.titulo || doc.título || 'Sin título';
             const texto = doc.texto || doc.descripcion || doc.descripción || doc.description || '';
             const link = doc.url || doc.link || doc.enlace || doc.enlance || doc.drive || '';
-            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString() : '');
+            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString('es-MX') : 'Sin fecha');
             
+            // Determinar icono según tipo o nombre
+            let icono = '📄';
+            const nombreLower = titulo.toLowerCase();
+            if (nombreLower.includes('pdf')) icono = '📕';
+            else if (nombreLower.includes('jpg') || nombreLower.includes('png') || nombreLower.includes('img')) icono = '🖼️';
+            else if (nombreLower.includes('xls') || nombreLower.includes('excel')) icono = '📗';
+            else if (nombreLower.includes('doc') || nombreLower.includes('word')) icono = '📘';
+            else if (link.includes('drive')) icono = '📁';
+
             return `
-                <div class="ske-avisos-card ${!leido ? 'ske-avisos-nuevo' : ''}">
-                    <div class="ske-avisos-card-indicador"></div>
-                    <div class="ske-avisos-card-contenido">
-                        <div class="ske-avisos-card-header">
-                            <div class="ske-avisos-card-titulo">
-                                <h3>${titulo}</h3>
-                                ${!leido && !isAdmin ? '<span class="ske-avisos-badge-nuevo">NUEVO</span>' : ''}
-                            </div>
-                            <span class="ske-avisos-card-fecha">${fecha}</span>
+                <div class="ske-avisos-card ${!leido && !isAdmin ? 'ske-avisos-nuevo' : ''}" style="
+                    display: grid; 
+                    grid-template-columns: 40px 1fr 120px 160px; 
+                    gap: 12px; 
+                    align-items: center; 
+                    padding: 12px 16px; 
+                    background: var(--surface); 
+                    border-radius: 8px; 
+                    margin-bottom: 4px;
+                    border-left: 3px solid ${!leido && !isAdmin ? 'var(--primary)' : 'transparent'};
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='var(--bg-soft)'" onmouseout="this.style.background='var(--surface)'">
+                    
+                    <!-- Icono -->
+                    <div style="font-size: 22px; text-align: center;">${icono}</div>
+                    
+                    <!-- Nombre y descripción -->
+                    <div style="display: flex; flex-direction: column; overflow: hidden;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: var(--text); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${titulo}</span>
+                            ${!leido && !isAdmin ? '<span class="ske-avisos-badge-nuevo" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: white; font-weight: 700;">NUEVO</span>' : ''}
                         </div>
-                        ${texto ? `<div class="ske-avisos-card-desc">${texto}</div>` : ''}
-                        <div class="ske-avisos-card-acciones">
-                            ${link ? `<a href="${link}" target="_blank" class="ske-avisos-btn ske-avisos-btn-ver">
-                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                                Ver Documento
-                            </a>` : '<span class="ske-avisos-sin-enlace">Sin enlace</span>'}
-                            ${isAdmin ? `
-                                <button class="ske-avisos-btn ske-avisos-btn-editar" data-id="${doc.id}">
-                                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    Editar
-                                </button>
-                                <button class="ske-avisos-btn ske-avisos-btn-eliminar" data-id="${doc.id}">
-                                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                    Eliminar
-                                </button>
-                            ` : ''}
-                        </div>
+                        ${texto ? `<span style="font-size: 11px; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${texto}</span>` : ''}
+                    </div>
+                    
+                    <!-- Fecha -->
+                    <div style="font-size: 12px; color: var(--text-soft); text-align: center;">${fecha}</div>
+                    
+                    <!-- Acciones -->
+                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                        ${link ? `<a href="${link}" target="_blank" class="ske-avisos-btn ske-avisos-btn-ver" style="padding: 6px 10px; font-size: 11px; border-radius: 6px; text-decoration: none; display: flex; align-items: center; gap: 4px; background: var(--primary); color: white; border: none; cursor: pointer;">👁️ Ver</a>` : '<span style="font-size: 11px; color: var(--text-soft); padding: 6px;">Sin enlace</span>'}
+                        ${isAdmin ? `
+                            <button class="ske-avisos-btn ske-avisos-btn-editar" data-id="${doc.id}" style="padding: 6px 10px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #FF9800; color: white; border: none; cursor: pointer;" title="Editar">✏️</button>
+                            <button class="ske-avisos-btn ske-avisos-btn-eliminar" data-id="${doc.id}" style="padding: 6px 10px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #c62828; color: white; border: none; cursor: pointer;" title="Eliminar">🗑️</button>
+                        ` : ''}
                     </div>
                 </div>
             `;
-        }).join('') + `</div>`;
+        }).join('');
+
+        html += `</div>`;
+        
+        // Total de documentos
+        html += `<div style="margin-top: 12px; font-size: 12px; color: var(--text-soft); text-align: right; padding: 0 8px;">Total: ${documentos.length} documento${documentos.length !== 1 ? 's' : ''}</div>`;
+
+        list.innerHTML = html;
 
         if (isAdmin) {
             list.querySelectorAll('.ske-avisos-btn-editar').forEach(btn => {
@@ -294,7 +316,7 @@ const Avisos = {
         document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modalOverlay));
     },
 
-    // ✅ Guardar documento - CORREGIDO
+    // ✅ Guardar documento
     async guardarDocumento(editId, modalOverlay) {
         const titulo = document.getElementById('docTitulo').value.trim();
         const texto = document.getElementById('docTexto').value.trim();
