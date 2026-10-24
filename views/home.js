@@ -117,7 +117,7 @@ const Home = {
         const numeroServicio = prompt(`¿Qué servicio de tipo "${tipoDia}" vas a trabajar?\n\nIngresa el número de servicio:`);
         
         if (!numeroServicio || numeroServicio.trim() === '') {
-            App.showToast('⚠️ Debes ingresar un número de servicio');
+            App.showToast('️ Debes ingresar un número de servicio');
             return;
         }
 
@@ -129,7 +129,7 @@ const Home = {
         }
 
         if (typeof CicloTracking !== 'undefined') {
-            console.log('🧹 [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
+            console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
             CicloTracking.resetState();
             await new Promise(resolve => setTimeout(resolve, 300));
         }
@@ -258,7 +258,10 @@ const Home = {
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
                             <div class="ske-avatar-inner">
-                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+                                ${imagenPerfil 
+                                    ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img" id="imgAvatarClick" style="cursor: pointer;" title="Toca para ver en grande">` 
+                                    : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+                                }
                             </div>
                             <button class="ske-avatar-btn" id="btnCambiarFoto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
                             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
@@ -278,10 +281,10 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Domingo/Festivo</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
+                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
@@ -453,7 +456,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        console.log(' [Home] Cargando datos de Firebase...');
+        console.log('📥 [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -467,11 +470,84 @@ const Home = {
         const welcomeIcon = document.getElementById('welcomeIcon');
 
         if (btnCambiarFoto && inputFotoPerfil) {
+            // ✅ Botón de cámara: cambiar foto
             btnCambiarFoto.addEventListener('click', (e) => { 
                 e.preventDefault(); 
                 e.stopPropagation();
                 inputFotoPerfil.click(); 
             });
+            
+            // ✅ NUEVO: Click en la imagen para verla en grande (estilo WhatsApp)
+            const imgAvatarClick = document.getElementById('imgAvatarClick');
+            if (imgAvatarClick) {
+                imgAvatarClick.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imgSrc = imgAvatarClick.src;
+                    
+                    // Crear modal a pantalla completa
+                    const modalOverlay = document.createElement('div');
+                    modalOverlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.9);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 99999;
+                        cursor: pointer;
+                    `;
+                    
+                    const imgGrande = document.createElement('img');
+                    imgGrande.src = imgSrc;
+                    imgGrande.style.cssText = `
+                        max-width: 95%;
+                        max-height: 95%;
+                        object-fit: contain;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                    `;
+                    
+                    // Botón cerrar
+                    const btnCerrar = document.createElement('button');
+                    btnCerrar.innerHTML = '✕';
+                    btnCerrar.style.cssText = `
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        width: 44px;
+                        height: 44px;
+                        border-radius: 50%;
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        color: white;
+                        font-size: 24px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        backdrop-filter: blur(10px);
+                    `;
+                    
+                    modalOverlay.appendChild(imgGrande);
+                    modalOverlay.appendChild(btnCerrar);
+                    document.body.appendChild(modalOverlay);
+                    
+                    // Cerrar al tocar cualquier parte
+                    const cerrarModal = () => {
+                        modalOverlay.remove();
+                    };
+                    
+                    modalOverlay.addEventListener('click', cerrarModal);
+                    btnCerrar.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        cerrarModal();
+                    });
+                    imgGrande.addEventListener('click', (e) => e.stopPropagation());
+                });
+            }
             
             // ✅ CARGA UNIVERSAL DE IMAGEN CON COMPRESIÓN
             inputFotoPerfil.addEventListener('change', async (e) => {
@@ -523,16 +599,16 @@ const Home = {
                                 App.showToast('✅ Foto de perfil actualizada');
                             } catch (err) {
                                 console.error('Error al guardar:', err);
-                                App.showToast('️ Error al guardar la imagen. Intenta con otra más pequeña.');
+                                App.showToast('⚠️ Error al guardar la imagen. Intenta con otra más pequeña.');
                             }
                         };
                         img.onerror = () => {
-                            App.showToast('️ No se pudo procesar la imagen');
+                            App.showToast('⚠️ No se pudo procesar la imagen');
                         };
                         img.src = ev.target.result;
                     };
                     reader.onerror = () => {
-                        App.showToast('⚠️ Error al leer el archivo');
+                        App.showToast('️ Error al leer el archivo');
                     };
                     reader.readAsDataURL(file);
                 } catch (err) {
@@ -642,12 +718,12 @@ const Home = {
                     const segundosRestantes = diffSegundos;
                     
                     relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = ' Tu descanso inicia en...';
+                    relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
                     relojTiempo.style.color = '#FF9800';
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
@@ -657,7 +733,7 @@ const Home = {
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
-                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '️ Tiempo restante de descanso';
+                relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
                 relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
