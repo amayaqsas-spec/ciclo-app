@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos (Vista Móvil Optimizada)
+// AVISOS.JS - Módulo de Documentos (Lista Minimalista sin Fecha)
 // ============================================
 
 const Avisos = {
@@ -96,7 +96,7 @@ const Avisos = {
                 documentos.push({ id: doc.id, ...doc.data() });
             });
             
-            console.log(' Total de documentos cargados:', documentos.length);
+            console.log('📄 Total de documentos cargados:', documentos.length);
             
             documentos.sort((a, b) => {
                 const fechaA = a.fecha || a.createdAt || '';
@@ -133,63 +133,40 @@ const Avisos = {
         }
     },
 
-    // ✅ VISTA MÓVIL OPTIMIZADA - SIN COLUMNA TIPO
+    // ✅ LISTA EN UNA SOLA LÍNEA - SIN FECHA
     renderizarLista(documentos) {
         const list = document.getElementById('avisoList');
         const isAdmin = Auth.isAdmin;
 
-        let html = `<div class="ske-avisos-lista">`;
+        let html = `<div class="ske-avisos-lista" style="padding: 8px 12px;">`;
 
         html += documentos.map(doc => {
             const leido = this.estaLeido(doc.id);
             const titulo = doc.titulo || doc.título || 'Sin título';
-            const texto = doc.texto || doc.descripcion || doc.descripción || doc.description || '';
             const link = doc.url || doc.link || doc.enlace || doc.enlance || doc.drive || '';
-            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString('es-MX') : 'Sin fecha');
             
-            // Determinar icono según tipo
-            let icono = '📄';
-            const nombreLower = titulo.toLowerCase();
-            if (nombreLower.includes('pdf')) icono = '📕';
-            else if (nombreLower.includes('jpg') || nombreLower.includes('png') || nombreLower.includes('img')) icono = '🖼️';
-            else if (nombreLower.includes('xls') || nombreLower.includes('excel')) icono = '📗';
-            else if (nombreLower.includes('doc') || nombreLower.includes('word')) icono = '📘';
-            else if (link.includes('drive')) icono = '📁';
-
             return `
                 <div class="ske-avisos-card ${!leido && !isAdmin ? 'ske-avisos-nuevo' : ''}" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 14px;
+                    border-bottom: 1px solid var(--bg-soft);
                     background: var(--surface);
-                    border-radius: 12px;
-                    padding: 16px;
-                    margin-bottom: 12px;
-                    border-left: 4px solid ${!leido && !isAdmin ? 'var(--primary)' : 'var(--bg-soft)'};
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    border-radius: 8px;
+                    margin-bottom: 4px;
+                    ${!leido && !isAdmin ? 'border-left: 3px solid var(--primary);' : ''}
                 ">
-                    <!-- Header: Icono + Nombre + Fecha -->
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1; overflow: hidden;">
-                            <div style="font-size: 32px; flex-shrink: 0;">${icono}</div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">${titulo}</h3>
-                                    ${!leido && !isAdmin ? '<span class="ske-avisos-badge-nuevo" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--primary); color: white; font-weight: 700; flex-shrink: 0;">NUEVO</span>' : ''}
-                                </div>
-                                ${texto ? `<p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.4;">${texto}</p>` : ''}
-                            </div>
-                        </div>
-                    </div>
                     
-                    <!-- Fecha -->
-                    <div style="font-size: 12px; color: var(--text-soft); margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--bg-soft);">
-                        📅 ${fecha}
-                    </div>
+                    <!-- Nombre (flexible, con ellipsis si es muy largo) -->
+                    <span style="font-size: 14px; font-weight: 600; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;">${titulo}</span>
                     
-                    <!-- Botones -->
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        ${link ? `<a href="${link}" target="_blank" class="ske-avisos-btn ske-avisos-btn-ver" style="flex: 1; min-width: 100px; padding: 10px 16px; font-size: 13px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 600;">️ Ver</a>` : ''}
+                    <!-- Acciones como texto (fijas, a la derecha) -->
+                    <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
+                        ${link ? `<a href="${link}" target="_blank" style="font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; white-space: nowrap;">Ver</a>` : ''}
                         ${isAdmin ? `
-                            <button class="ske-avisos-btn ske-avisos-btn-editar" data-id="${doc.id}" style="flex: 1; min-width: 80px; padding: 10px 16px; font-size: 13px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; background: #FF9800; color: white; border: none; cursor: pointer; font-weight: 600;">✏️ Editar</button>
-                            <button class="ske-avisos-btn ske-avisos-btn-eliminar" data-id="${doc.id}" style="flex: 1; min-width: 80px; padding: 10px 16px; font-size: 13px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; background: #c62828; color: white; border: none; cursor: pointer; font-weight: 600;">🗑️ Eliminar</button>
+                            <span onclick="Avisos.openModal('${doc.id}')" style="font-size: 13px; color: #FF9800; cursor: pointer; font-weight: 600; white-space: nowrap;">Editar</span>
+                            <span onclick="Avisos.eliminarDocumento('${doc.id}')" style="font-size: 13px; color: #c62828; cursor: pointer; font-weight: 600; white-space: nowrap;">Eliminar</span>
                         ` : ''}
                     </div>
                 </div>
@@ -197,18 +174,9 @@ const Avisos = {
         }).join('');
 
         html += `</div>`;
-        html += `<div style="margin-top: 12px; font-size: 12px; color: var(--text-soft); text-align: right; padding: 0 8px;">Total: ${documentos.length} documento${documentos.length !== 1 ? 's' : ''}</div>`;
+        html += `<div style="margin-top: 12px; font-size: 12px; color: var(--text-soft); text-align: right; padding: 0 8px 8px 8px;">Total: ${documentos.length} documento${documentos.length !== 1 ? 's' : ''}</div>`;
 
         list.innerHTML = html;
-
-        if (isAdmin) {
-            list.querySelectorAll('.ske-avisos-btn-editar').forEach(btn => {
-                btn.addEventListener('click', () => this.openModal(btn.dataset.id));
-            });
-            list.querySelectorAll('.ske-avisos-btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', () => this.eliminarDocumento(btn.dataset.id));
-            });
-        }
     },
 
     estaLeido(docId) {
@@ -306,7 +274,7 @@ const Avisos = {
         const url = document.getElementById('docUrl').value.trim();
 
         if (!titulo) {
-            App.showToast('️ El título es obligatorio');
+            App.showToast('⚠️ El título es obligatorio');
             return;
         }
         if (!url) {
@@ -353,7 +321,7 @@ const Avisos = {
         
         try {
             await this.getCollection().doc(docId).delete();
-            App.showToast('🗑️ Documento eliminado');
+            App.showToast('️ Documento eliminado');
             await this.cargarDocumentos();
         } catch (error) {
             App.showToast('❌ Error: ' + error.message);
