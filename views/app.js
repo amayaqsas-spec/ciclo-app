@@ -114,7 +114,7 @@ const AppInfo = {
                     </div>
                 </div>
 
-                <!-- DISEÑO -->
+                <!-- DISEÑO - ✅ TEXTO ACTUALIZADO (Opción 2) -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-design">
@@ -127,12 +127,12 @@ const AppInfo = {
                             <img src="./assets/lo1.png" alt="Logo Diseño" class="ske-app-logo-img-large">
                         </div>
                         <div class="ske-app-credit-info">
-                            <p>Diseño UI/UX con enfoque en usabilidad y experiencia del usuario. Paleta de colores cuidadosamente seleccionada para crear un ambiente visualmente agradable y funcional.</p>
+                            <p>Diseño de interfaz centrado en el usuario (*User-Centered Design*) con arquitectura de información optimizada para flujos operativos complejos. La identidad visual emplea principios de psicología del color y teoría de la Gestalt para guiar la atención de manera intuitiva. Los componentes gráficos skeuomórficos crean una experiencia táctil y familiar, mientras que la tipografía y el espaciado siguen patrones de ritmo visual que mejoran la eficiencia y reducen la fatiga visual en jornadas laborales extensas.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- PROGRAMACIÓN (SIN LA "A") - ✅ TEXTO ACTUALIZADO -->
+                <!-- PROGRAMACIÓN -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-code">
