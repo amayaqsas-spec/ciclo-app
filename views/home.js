@@ -110,7 +110,6 @@ const Home = {
         return null;
     },
 
-    // ✅ MODIFICADO: Limpia estado de CicloTracking antes de activar tiempo extra
     async cargarTiempoExtra() {
         const tipoDia = this.getTipoDiaActual();
         const userLineaId = DB.get('userLineaId');
@@ -118,7 +117,7 @@ const Home = {
         const numeroServicio = prompt(`¿Qué servicio de tipo "${tipoDia}" vas a trabajar?\n\nIngresa el número de servicio:`);
         
         if (!numeroServicio || numeroServicio.trim() === '') {
-            App.showToast('⚠️ Debes ingresar un número de servicio');
+            App.showToast('️ Debes ingresar un número de servicio');
             return;
         }
 
@@ -129,11 +128,9 @@ const Home = {
             return;
         }
 
-        // ✅ NUEVO: Limpiar estado de CicloTracking antes de activar tiempo extra
         if (typeof CicloTracking !== 'undefined') {
             console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
             CicloTracking.resetState();
-            // Esperar un momento para que se guarde el reset
             await new Promise(resolve => setTimeout(resolve, 300));
         }
 
@@ -154,9 +151,7 @@ const Home = {
         }
     },
 
-    // ✅ MODIFICADO: Limpia estado de CicloTracking al cancelar tiempo extra
     cancelarTiempoExtra() {
-        // ✅ NUEVO: Limpiar estado de CicloTracking al cancelar tiempo extra
         if (typeof CicloTracking !== 'undefined') {
             console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
             CicloTracking.resetState();
@@ -263,7 +258,10 @@ const Home = {
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
                             <div class="ske-avatar-inner">
-                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
+                                ${imagenPerfil 
+                                    ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img" id="imgAvatarClick" style="cursor: pointer;" title="Toca para ver en grande">` 
+                                    : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+                                }
                             </div>
                             <button class="ske-avatar-btn" id="btnCambiarFoto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
                             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
@@ -274,7 +272,7 @@ const Home = {
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
                                 <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">⏱️ Tiempo Extra</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">🕐 Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -283,23 +281,23 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
 
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">⏱️ Tiempo Extra</div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🕐 Servicio de Reserva o Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             ❌ Cancelar Tiempo Extra
                         </button>
                     ` : `
                         <button id="btnTiempoExtra" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                            ⏱️ Activar Tiempo Extra
+                            🕐 Servicio de Reserva o Tiempo Extra
                         </button>
                     `}
                 </div>
@@ -312,7 +310,7 @@ const Home = {
                         </div>
                     ` : servicioAMostrar ? this.renderServicioDia(servicioAMostrar, tipoDiaActual, posicionHoy) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                            <h3>Sin servicio asignado</h3>
+                            <h3 style="color: var(--text);">Sin servicio asignado</h3>
                             <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
                         </div>
                     `}
@@ -388,13 +386,19 @@ const Home = {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--bg-soft);">
                     <div>
                         <div style="font-size: 11px; color: var(--text-soft); text-transform: uppercase;">${this.tiempoExtraActivo ? 'Servicio de Tiempo Extra' : 'Servicio del Día'}</div>
-                        <div style="font-size: 28px; font-weight: 800; color: var(--night-blue, var(--primary));">Servicio ${servicio.nombre}</div>
+                        <div style="font-size: 28px; font-weight: 800; color: var(--primary);">Servicio ${servicio.nombre}</div>
                     </div>
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${linea ? linea.nombre : 'N/A'}</div></div>
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div><div style="font-size: 14px; font-weight: 700; color: var(--night-blue, var(--text));">${terminal ? terminal.nombre : 'N/A'}</div></div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
+                    </div>
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 10px; color: var(--text-soft);">🚇 Terminal</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text);">${terminal ? terminal.nombre : 'N/A'}</div>
+                    </div>
                 </div>
                 ${haceGarage ? `<div style="background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 16px;">✅ Hace Garage</div>` : ''}
                 
@@ -404,13 +408,22 @@ const Home = {
                         return `
                             <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <span style="font-weight: 700; color: var(--night-blue, var(--primary)); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
+                                    <span style="font-weight: 700; color: var(--primary); font-size: 14px;">${bloque.labelTren} #${bloque.numTren}</span>
                                     ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;">GARAGE</span>' : ''}
                                 </div>
                                 <div style="display: grid; grid-template-columns: ${tren.vueltas ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 8px;">
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Salida</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.salida || '--:--'}</div></div>
-                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Llegada</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.llegada || '--:--'}</div></div>
-                                    ${tren.vueltas ? `<div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;"><div style="font-size: 10px; color: var(--text-soft);">Vueltas</div><div style="font-size: 16px; font-weight: 800; color: var(--night-blue, var(--text));">${tren.vueltas}</div></div>` : ''}
+                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Salida</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.salida || '--:--'}</div>
+                                    </div>
+                                    <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Llegada</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.llegada || '--:--'}</div>
+                                    </div>
+                                    ${tren.vueltas ? `<div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 6px;">
+                                        <div style="font-size: 10px; color: var(--text-soft);">Vueltas</div>
+                                        <div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.vueltas}</div>
+                                    </div>` : ''}
                                 </div>
                             </div>
                         `;
@@ -422,12 +435,12 @@ const Home = {
                                     <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
-                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoInicio}</div></div>
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoInicio}</div></div>
                                     <div style="font-size: 24px; color: var(--text-soft);">→</div>
-                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--night-blue, var(--text));">${descansoFinal}</div></div>
+                                    <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Final</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoFinal}</div></div>
                                 </div>
                                 <div id="hsdRelojContainer" style="text-align: center; margin-bottom: 12px; padding: 20px; background: var(--surface); border-radius: 10px; border: 2px solid var(--bg-soft);">
-                                    <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--night-blue, var(--primary)); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
+                                    <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                                     <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                                 </div>
                                 <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
@@ -457,25 +470,154 @@ const Home = {
         const welcomeIcon = document.getElementById('welcomeIcon');
 
         if (btnCambiarFoto && inputFotoPerfil) {
+            // ✅ Botón de cámara: cambiar foto
             btnCambiarFoto.addEventListener('click', (e) => { 
                 e.preventDefault(); 
                 e.stopPropagation();
                 inputFotoPerfil.click(); 
             });
+            
+            // ✅ NUEVO: Click en la imagen para verla en grande (estilo WhatsApp)
+            const imgAvatarClick = document.getElementById('imgAvatarClick');
+            if (imgAvatarClick) {
+                imgAvatarClick.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const imgSrc = imgAvatarClick.src;
+                    
+                    // Crear modal a pantalla completa
+                    const modalOverlay = document.createElement('div');
+                    modalOverlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.9);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 99999;
+                        cursor: pointer;
+                    `;
+                    
+                    const imgGrande = document.createElement('img');
+                    imgGrande.src = imgSrc;
+                    imgGrande.style.cssText = `
+                        max-width: 95%;
+                        max-height: 95%;
+                        object-fit: contain;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                    `;
+                    
+                    // Botón cerrar
+                    const btnCerrar = document.createElement('button');
+                    btnCerrar.innerHTML = '✕';
+                    btnCerrar.style.cssText = `
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        width: 44px;
+                        height: 44px;
+                        border-radius: 50%;
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        color: white;
+                        font-size: 24px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        backdrop-filter: blur(10px);
+                    `;
+                    
+                    modalOverlay.appendChild(imgGrande);
+                    modalOverlay.appendChild(btnCerrar);
+                    document.body.appendChild(modalOverlay);
+                    
+                    // Cerrar al tocar cualquier parte
+                    const cerrarModal = () => {
+                        modalOverlay.remove();
+                    };
+                    
+                    modalOverlay.addEventListener('click', cerrarModal);
+                    btnCerrar.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        cerrarModal();
+                    });
+                    imgGrande.addEventListener('click', (e) => e.stopPropagation());
+                });
+            }
+            
+            // ✅ CARGA UNIVERSAL DE IMAGEN CON COMPRESIÓN
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    if (file.size > 5 * 1024 * 1024) { App.showToast('La imagen es muy grande. Máximo 5MB'); return; }
+                if (!file) return;
+                
+                if (!file.type.startsWith('image/')) {
+                    App.showToast('⚠️ El archivo no es una imagen válida');
+                    return;
+                }
+                
+                try {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
-                        DB.set('imagenPerfil', ev.target.result);
-                        const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
-                        if (imgExistente) imgExistente.src = ev.target.result;
-                        else welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${ev.target.result}" alt="Perfil" class="ske-avatar-img">`;
-                        App.showToast('Foto de perfil actualizada');
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 240;
+                            const MAX_HEIGHT = 240;
+                            
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > MAX_WIDTH) {
+                                height = (height * MAX_WIDTH) / width;
+                                width = MAX_WIDTH;
+                            }
+                            if (height > MAX_HEIGHT) {
+                                width = (width * MAX_HEIGHT) / height;
+                                height = MAX_HEIGHT;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const imagenComprimida = canvas.toDataURL('image/jpeg', 0.8);
+                            
+                            try {
+                                DB.set('imagenPerfil', imagenComprimida);
+                                const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
+                                if (imgExistente) {
+                                    imgExistente.src = imagenComprimida;
+                                } else {
+                                    welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${imagenComprimida}" alt="Perfil" class="ske-avatar-img">`;
+                                }
+                                App.showToast('✅ Foto de perfil actualizada');
+                            } catch (err) {
+                                console.error('Error al guardar:', err);
+                                App.showToast('⚠️ Error al guardar la imagen. Intenta con otra más pequeña.');
+                            }
+                        };
+                        img.onerror = () => {
+                            App.showToast('⚠️ No se pudo procesar la imagen');
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.onerror = () => {
+                        App.showToast('️ Error al leer el archivo');
                     };
                     reader.readAsDataURL(file);
+                } catch (err) {
+                    console.error('Error:', err);
+                    App.showToast('⚠️ Error al procesar la imagen');
                 }
+                
+                // ✅ Limpiar el input para poder seleccionar la misma imagen otra vez
+                e.target.value = '';
             });
         }
 
@@ -484,7 +626,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -581,18 +723,18 @@ const Home = {
                     
                     if (diffMinutos <= 1) {
                         relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = ' ¡Tu descanso está por iniciar!';
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
                     }
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
-                    relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                    relojTiempo.style.color = 'var(--primary)';
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(60 - segundosActuales).padStart(2, '0')}`;
                 relojEtiqueta.textContent = minutosAtraso > 0 ? `🍽️ Tiempo restante (+${minutosAtraso} min)` : '🍽️ Tiempo restante de descanso';
-                relojTiempo.style.color = 'var(--night-blue, var(--primary))';
+                relojTiempo.style.color = 'var(--primary)';
             } else if (horaActualMinutos >= minutosFinalAjustado && horaActualMinutos < minutosLimite) {
                 const diff = horaActualMinutos - minutosFinalAjustado;
                 relojTiempo.textContent = `${String(Math.floor(diff / 60)).padStart(2, '0')}:${String(diff % 60).padStart(2, '0')}:${String(segundosActuales).padStart(2, '0')}`;

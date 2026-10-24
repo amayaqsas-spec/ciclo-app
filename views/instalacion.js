@@ -231,21 +231,35 @@ const Instalacion = {
             modalAndroid.classList.remove('show');
         });
 
+        // ✅ CORRECCIÓN: Manejo robusto de la instalación en Android
         document.getElementById('btnAceptarAndroid')?.addEventListener('click', async () => {
             modalAndroid.classList.remove('show');
             
-            // Intentar instalación PWA
+            // 1. Verificar si ya está instalada en modo standalone
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isStandalone) {
+                App.showToast('✅ ¡La aplicación ya está instalada!');
+                return;
+            }
+
+            // 2. Intentar instalación PWA con manejo de errores
             if (window.deferredPrompt) {
-                window.deferredPrompt.prompt();
-                const { outcome } = await window.deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    App.showToast('✅ ¡Instalación iniciada!');
-                } else {
-                    App.showToast('⚠️ Instalación cancelada');
+                try {
+                    window.deferredPrompt.prompt();
+                    const { outcome } = await window.deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        App.showToast('✅ ¡Instalación iniciada!');
+                    } else {
+                        App.showToast('⚠️ Instalación cancelada');
+                    }
+                } catch (error) {
+                    console.error('Error al instalar:', error);
+                    App.showToast('⚠️ Error al instalar. Intenta desde el menú del navegador.');
                 }
                 window.deferredPrompt = null;
             } else {
-                App.showToast('⚠️ No se pudo iniciar la instalación');
+                // 3. Fallback si el prompt no está disponible
+                App.showToast('⚠️ Usa el menú del navegador (⋮) y selecciona "Instalar app" o "Agregar a pantalla de inicio"');
             }
         });
 

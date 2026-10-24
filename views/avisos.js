@@ -1,5 +1,5 @@
 // ============================================
-// AVISOS.JS - Módulo de Documentos
+// AVISOS.JS - Módulo de Documentos (Lista Minimalista sin Fecha)
 // ============================================
 
 const Avisos = {
@@ -51,7 +51,6 @@ const Avisos = {
     init() {
         const isAdmin = Auth.isAdmin;
         
-        // ✅ Marcar todos los documentos como leídos al entrar al módulo
         this.marcarTodosComoLeidos();
         
         if (isAdmin) {
@@ -61,7 +60,6 @@ const Avisos = {
         this.cargarDocumentos();
     },
 
-    // ✅ Marcar todos como leídos (para la campanita)
     async marcarTodosComoLeidos() {
         try {
             const leidos = DB.get('docsLeidos', []);
@@ -87,7 +85,6 @@ const Avisos = {
         }
     },
 
-    // ✅ Cargar documentos SIN orderBy (más confiable)
     async cargarDocumentos() {
         const list = document.getElementById('avisoList');
         
@@ -101,7 +98,6 @@ const Avisos = {
             
             console.log('📄 Total de documentos cargados:', documentos.length);
             
-            // ✅ Ordenar en el cliente por fecha (más reciente primero)
             documentos.sort((a, b) => {
                 const fechaA = a.fecha || a.createdAt || '';
                 const fechaB = b.fecha || b.createdAt || '';
@@ -110,15 +106,8 @@ const Avisos = {
             
             if (documentos.length === 0) {
                 list.innerHTML = `
-                    <div class="ske-avisos-empty">
-                        <div class="ske-avisos-empty-icono">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                        </div>
+                    <div class="ske-avisos-empty" style="text-align: center; padding: 40px 20px; color: var(--text-soft);">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📂</div>
                         <h3>Sin documentos</h3>
                         <p>No hay documentos registrados aún</p>
                     </div>
@@ -135,14 +124,8 @@ const Avisos = {
         } catch (error) {
             console.error('❌ Error al cargar:', error);
             list.innerHTML = `
-                <div class="ske-avisos-empty">
-                    <div class="ske-avisos-empty-icono">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                    </div>
+                <div class="ske-avisos-empty" style="text-align: center; padding: 40px 20px; color: var(--text-soft);">
+                    <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
                     <h3>Error de conexión</h3>
                     <p>Verifica tu conexión a internet</p>
                 </div>
@@ -150,59 +133,50 @@ const Avisos = {
         }
     },
 
+    // ✅ LISTA EN UNA SOLA LÍNEA - SIN FECHA
     renderizarLista(documentos) {
         const list = document.getElementById('avisoList');
         const isAdmin = Auth.isAdmin;
 
-        list.innerHTML = `<div class="ske-avisos-lista">` + documentos.map(doc => {
+        let html = `<div class="ske-avisos-lista" style="padding: 8px 12px;">`;
+
+        html += documentos.map(doc => {
             const leido = this.estaLeido(doc.id);
-            
             const titulo = doc.titulo || doc.título || 'Sin título';
-            const texto = doc.texto || doc.descripcion || doc.descripción || doc.description || '';
             const link = doc.url || doc.link || doc.enlace || doc.enlance || doc.drive || '';
-            const fecha = doc.fecha || (doc.timestamp ? new Date(doc.timestamp.toDate ? doc.timestamp.toDate() : doc.timestamp).toLocaleDateString() : '');
             
             return `
-                <div class="ske-avisos-card ${!leido ? 'ske-avisos-nuevo' : ''}">
-                    <div class="ske-avisos-card-indicador"></div>
-                    <div class="ske-avisos-card-contenido">
-                        <div class="ske-avisos-card-header">
-                            <div class="ske-avisos-card-titulo">
-                                <h3>${titulo}</h3>
-                                ${!leido && !isAdmin ? '<span class="ske-avisos-badge-nuevo">NUEVO</span>' : ''}
-                            </div>
-                            <span class="ske-avisos-card-fecha">${fecha}</span>
-                        </div>
-                        ${texto ? `<div class="ske-avisos-card-desc">${texto}</div>` : ''}
-                        <div class="ske-avisos-card-acciones">
-                            ${link ? `<a href="${link}" target="_blank" class="ske-avisos-btn ske-avisos-btn-ver">
-                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                                Ver Documento
-                            </a>` : '<span class="ske-avisos-sin-enlace">Sin enlace</span>'}
-                            ${isAdmin ? `
-                                <button class="ske-avisos-btn ske-avisos-btn-editar" data-id="${doc.id}">
-                                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                    Editar
-                                </button>
-                                <button class="ske-avisos-btn ske-avisos-btn-eliminar" data-id="${doc.id}">
-                                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                    Eliminar
-                                </button>
-                            ` : ''}
-                        </div>
+                <div class="ske-avisos-card ${!leido && !isAdmin ? 'ske-avisos-nuevo' : ''}" style="
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 14px;
+                    border-bottom: 1px solid var(--bg-soft);
+                    background: var(--surface);
+                    border-radius: 8px;
+                    margin-bottom: 4px;
+                    ${!leido && !isAdmin ? 'border-left: 3px solid var(--primary);' : ''}
+                ">
+                    
+                    <!-- Nombre (flexible, con ellipsis si es muy largo) -->
+                    <span style="font-size: 14px; font-weight: 600; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;">${titulo}</span>
+                    
+                    <!-- Acciones como texto (fijas, a la derecha) -->
+                    <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
+                        ${link ? `<a href="${link}" target="_blank" style="font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; white-space: nowrap;">Ver</a>` : ''}
+                        ${isAdmin ? `
+                            <span onclick="Avisos.openModal('${doc.id}')" style="font-size: 13px; color: #FF9800; cursor: pointer; font-weight: 600; white-space: nowrap;">Editar</span>
+                            <span onclick="Avisos.eliminarDocumento('${doc.id}')" style="font-size: 13px; color: #c62828; cursor: pointer; font-weight: 600; white-space: nowrap;">Eliminar</span>
+                        ` : ''}
                     </div>
                 </div>
             `;
-        }).join('') + `</div>`;
+        }).join('');
 
-        if (isAdmin) {
-            list.querySelectorAll('.ske-avisos-btn-editar').forEach(btn => {
-                btn.addEventListener('click', () => this.openModal(btn.dataset.id));
-            });
-            list.querySelectorAll('.ske-avisos-btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', () => this.eliminarDocumento(btn.dataset.id));
-            });
-        }
+        html += `</div>`;
+        html += `<div style="margin-top: 12px; font-size: 12px; color: var(--text-soft); text-align: right; padding: 0 8px 8px 8px;">Total: ${documentos.length} documento${documentos.length !== 1 ? 's' : ''}</div>`;
+
+        list.innerHTML = html;
     },
 
     estaLeido(docId) {
@@ -294,7 +268,6 @@ const Avisos = {
         document.getElementById('btnSave').addEventListener('click', () => this.guardarDocumento(editId, modalOverlay));
     },
 
-    // ✅ Guardar documento - CORREGIDO
     async guardarDocumento(editId, modalOverlay) {
         const titulo = document.getElementById('docTitulo').value.trim();
         const texto = document.getElementById('docTexto').value.trim();
@@ -331,7 +304,6 @@ const Avisos = {
             
             await this.cargarDocumentos();
             
-            // ✅ Recalcular campanita para todos los usuarios
             if (window.App && window.App.inicializarCampanita) {
                 setTimeout(() => {
                     window.App.inicializarCampanita();
@@ -349,7 +321,7 @@ const Avisos = {
         
         try {
             await this.getCollection().doc(docId).delete();
-            App.showToast('🗑️ Documento eliminado');
+            App.showToast('️ Documento eliminado');
             await this.cargarDocumentos();
         } catch (error) {
             App.showToast('❌ Error: ' + error.message);

@@ -9006,3 +9006,92 @@ body {
         height: 100vh !important;
     }
 }
+/* ============================================
+   🛠️ CORRECCIÓN: Restablecer colores de texto por tema
+   (Pegar esto al FINAL ABSOLUTO de styles.css)
+   ============================================ */
+
+/* 1. Forzar que el contenedor principal use la variable de texto del tema activo */
+body, .view {
+    color: var(--text) !important;
+}
+
+/* 2. Aplicar el color de texto principal a los elementos de texto más comunes de la app */
+h1, h2, h3, h4, h5, h6, 
+p, span, label, a, 
+.ske-greeting-title, 
+.ske-greeting-subtitle,
+.theme-name,
+.info-card-title,
+.info-card-text,
+.time-label,
+.time-value,
+.servicio-title,
+.servicio-subtitle,
+.tren-label,
+.descanso-title,
+.reloj-tiempo,
+.reloj-etiqueta,
+.ct-tren-card h4,
+.ct-carrera-card,
+.ske-beneficio-texto strong,
+.ske-beneficio-texto span,
+.ske-modal-contenido p,
+.ske-modal-paso span {
+    color: var(--text) !important;
+}
+
+/* 3. Aplicar el color de texto secundario (más tenue) donde corresponda */
+.ske-greeting-subtitle,
+.theme-name,
+.info-card-text,
+.time-label,
+.reloj-etiqueta,
+.ske-beneficio-texto span,
+.ske-modal-contenido p,
+.ske-modal-paso span {
+    color: var(--text-soft) !important;
+}
+
+/* 4. PROTEGER elementos que NO deben cambiar de color (iconos, badges, botones) */
+/* 'revert' hace que vuelvan a su color original definido en su propia clase */
+svg, 
+.ske-chip, 
+.ske-fab-badge, 
+.ske-btn-instalar,
+.ske-btn-modal,
+.ct-btn-llegada-vuelta,
+.ct-btn-reset-vuelta,
+.garage-badge,
+.garage-tag,
+.ske-avatar-placeholder {
+    color: revert !important; 
+}
+
+/* 5. Refuerzo específico para el tema Noche (para garantizar que use el azul de sus variables) */
+/* Como en apariencia.js definimos --text como azul para 'night', esto lo asegura */
+body[data-theme="night"], 
+.view[data-theme="night"] {
+    color: var(--text) !important;
+}
+/* Animaciones para el modal de avatar en grande */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.8); 
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1); 
+    }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
