@@ -44,9 +44,13 @@ const Servicios = {
                                         <div style="font-size:14px;margin-bottom:8px;">
                                             <strong>Terminal:</strong> ${terminal ? terminal.nombre : 'Sin terminal'}
                                         </div>
-                                        <div style="font-size:14px;margin-bottom:12px;">
+                                        <div style="font-size:14px;margin-bottom:8px;">
                                             <strong>Tipo de Día:</strong> ${semana ? semana.tipo : 'Sin tipo'}
                                         </div>
+                                        
+                                        <!-- ✅ NUEVOS CAMPOS VISUALIZADOS -->
+                                        ${s.horaEntrada ? `<div style="font-size:14px;margin-bottom:8px;"><strong>Hora de Entrada:</strong> ${s.horaEntrada}</div>` : ''}
+                                        ${s.tolerancia ? `<div style="font-size:14px;margin-bottom:12px;"><strong>Tolerancia:</strong> ${s.tolerancia} min</div>` : ''}
 
                                         ${trenes.length > 0 ? `
                                             <div style="margin-bottom:12px;">
@@ -157,6 +161,19 @@ const Servicios = {
                     </label>
                 </div>
 
+                <!-- ✅ NUEVOS CAMPOS AGREGADOS EN EL ORDEN SOLICITADO -->
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Hora de Entrada</label>
+                        <input type="time" id="servicioHoraEntrada" value="${data ? data.horaEntrada : ''}" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Tolerancia (min)</label>
+                        <input type="number" id="servicioTolerancia" value="${data ? data.tolerancia : ''}" placeholder="Ej. 15" min="0" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                    </div>
+                </div>
+                <!-- ✅ FIN NUEVOS CAMPOS -->
+
                 <div style="margin-bottom:12px;">
                     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Trenes</label>
                     <div id="trenesContainer">
@@ -237,6 +254,11 @@ const Servicios = {
             const semanaId = selectSemana.value;
             const nombre = document.getElementById('servicioNombre').value.trim();
             const garage = document.getElementById('servicioGarage').checked;
+            
+            // ✅ CAPTURA DE LOS NUEVOS CAMPOS
+            const horaEntrada = document.getElementById('servicioHoraEntrada').value;
+            const tolerancia = document.getElementById('servicioTolerancia').value;
+            
             const descansoInicio = document.getElementById('servicioDescansoInicio').value;
             const descansoFinal = document.getElementById('servicioDescansoFinal').value;
 
@@ -254,13 +276,13 @@ const Servicios = {
                 if (idx !== -1) {
                     serviciosData[idx] = { 
                         ...serviciosData[idx], 
-                        lineaId, terminalId, semanaId, nombre, garage, trenes, descansoInicio, descansoFinal
+                        lineaId, terminalId, semanaId, nombre, garage, horaEntrada, tolerancia, trenes, descansoInicio, descansoFinal
                     };
                 }
             } else {
                 serviciosData.push({
                     id: DB.generateId(),
-                    lineaId, terminalId, semanaId, nombre, garage, trenes, descansoInicio, descansoFinal,
+                    lineaId, terminalId, semanaId, nombre, garage, horaEntrada, tolerancia, trenes, descansoInicio, descansoFinal,
                     createdAt: Date.now()
                 });
             }
