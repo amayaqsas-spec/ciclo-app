@@ -48,6 +48,7 @@ const viewModules = {
     'registro-reservas': './views/registro/reservas.js',
     'registro-servicios': './views/registro/servicios.js',
     'registro-numero-semana': './views/registro/numero-semana.js',
+    'configuracion-ciclo': './views/registro/configuracion-ciclo.js',
     'registro-rol-semanal': './views/registro/rol-semanal.js',
     'registro-espejo': './views/registro/espejo.js',
     'bd': './views/bd.js',
@@ -86,6 +87,7 @@ const Views = {
                 { id: 'registro-reservas', label: 'Reservas' },
                 { id: 'registro-servicios', label: 'Servicios' },
                 { id: 'registro-numero-semana', label: 'Número de Semana' },
+                { id: 'configuracion-ciclo', label: 'Configuración Semana' },
                 { id: 'registro-rol-semanal', label: 'Rol Semanal' },
                 { id: 'registro-espejo', label: 'Espejo' }
             ]
@@ -253,7 +255,7 @@ const App = {
         console.log('🚀 App.init() llamado');
 
         if (!firebase || !firebase.apps || !firebase.apps.length) {
-            console.error('❌ Firebase no está inicializado');
+            console.error(' Firebase no está inicializado');
             return;
         }
 
@@ -267,7 +269,6 @@ const App = {
                 Auth.currentUser = user;
                 Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
 
-                // ✅ OCULTAR AUTH CONTAINER CON ESTILOS INLINE DIRECTOS
                 const authContainer = document.getElementById('authContainer');
                 if (authContainer) {
                     authContainer.classList.remove('show');
@@ -275,7 +276,6 @@ const App = {
                     authContainer.innerHTML = '';
                 }
 
-                // ✅ MOSTRAR MAIN APP
                 const mainApp = document.getElementById('mainApp');
                 if (mainApp) {
                     mainApp.style.display = 'block';
@@ -317,14 +317,12 @@ const App = {
                 Auth.currentUser = null;
                 Auth.isAdmin = false;
 
-                // ✅ OCULTAR MAIN APP
                 const mainApp = document.getElementById('mainApp');
                 if (mainApp) {
                     mainApp.classList.remove('show');
                     mainApp.style.display = 'none';
                 }
 
-                // ✅ MOSTRAR AUTH CONTAINER CON ESTILOS INLINE
                 const authContainer = document.getElementById('authContainer');
                 if (authContainer) {
                     authContainer.style.display = 'flex';
