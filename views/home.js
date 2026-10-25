@@ -156,7 +156,7 @@ const Home = {
 
     cancelarTiempoExtra() {
         if (typeof CicloTracking !== 'undefined') {
-            console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
+            console.log(' [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
             CicloTracking.resetState();
         }
 
@@ -165,7 +165,7 @@ const Home = {
         DB.remove('tiempoExtraActivo');
         DB.remove('servicioTiempoExtra');
         
-        App.showToast(' Tiempo Extra cancelado');
+        App.showToast('❌ Tiempo Extra cancelado');
         
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
@@ -255,7 +255,6 @@ const Home = {
         const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
         const errorAMostrar = this.tiempoExtraActivo ? null : errorMensaje;
 
-        // ✅ Obtener hora de entrada y tolerancia del servicio
         const horaEntrada = servicioAMostrar?.servicio?.horaEntrada || '';
         const tolerancia = servicioAMostrar?.servicio?.tolerancia || '';
 
@@ -276,7 +275,7 @@ const Home = {
                             <div class="ske-badges-row" style="margin-top: 12px; justify-content: flex-end; gap: 8px;">
                                 <span class="ske-chip ske-chip-soft" style="background: var(--primary); color: white;">📆 Semana ${semanaActualNum}</span>
                                 ${modoForzado ? `<span class="ske-chip" style="background: var(--accent); color: white; font-size: 11px;">🔄 Modo: ${tipoDiaActual}</span>` : ''}
-                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;">🕐 Tiempo Extra</span>` : ''}
+                                ${this.tiempoExtraActivo ? `<span class="ske-chip" style="background: #FF9800; color: white; font-size: 11px;"> Tiempo Extra</span>` : ''}
                             </div>
                         </div>
                         ${avisosNoLeidos > 0 ? `<button class="ske-fab-notification" id="btnVerAvisos"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="ske-fab-badge">${avisosNoLeidos}</span></button>` : ''}
@@ -285,9 +284,9 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
@@ -301,7 +300,7 @@ const Home = {
                         </button>
                     ` : `
                         <button id="btnTiempoExtra" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                            🕐 Servicio de Reserva o Tiempo Extra
+                             Servicio de Reserva o Tiempo Extra
                         </button>
                     `}
                 </div>
@@ -395,7 +394,6 @@ const Home = {
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
                 
-                <!-- ✅ HORA DE ENTRADA Y TOLERANCIA -->
                 ${horaEntrada ? `
                     <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center;">
                         <div style="text-align: center;">
@@ -451,7 +449,15 @@ const Home = {
                         return `
                             <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft); margin: 12px 0;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                                    <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                                    <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                                            <line x1="6" y1="1" x2="6" y2="4"/>
+                                            <line x1="10" y1="1" x2="10" y2="4"/>
+                                            <line x1="14" y1="1" x2="14" y2="4"/>
+                                        </svg>
+                                    </div>
                                     <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
@@ -463,7 +469,7 @@ const Home = {
                                     <div id="hsdRelojTiempo" style="font-size: 42px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; letter-spacing: 2px;">00:00:00</div>
                                     <div id="hsdRelojEtiqueta" style="font-size: 13px; color: var(--text-soft); margin-top: 8px; font-weight: 600;">Esperando inicio de descanso...</div>
                                 </div>
-                                <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">⏱️ Agregar Atraso al Tiempo de Alimentos</button>
+                                <button id="btnAgregarAtrasoHome" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3); line-height: 1.2;">️ Agregar Atraso al Tiempo de Alimentos</button>
                             </div>
                         `;
                     }
@@ -528,7 +534,7 @@ const Home = {
                     `;
                     
                     const btnCerrar = document.createElement('button');
-                    btnCerrar.innerHTML = '';
+                    btnCerrar.innerHTML = '✕';
                     btnCerrar.style.cssText = `
                         position: absolute;
                         top: 20px;
@@ -622,7 +628,7 @@ const Home = {
                         img.src = ev.target.result;
                     };
                     reader.onerror = () => {
-                        App.showToast('️ Error al leer el archivo');
+                        App.showToast('⚠️ Error al leer el archivo');
                     };
                     reader.readAsDataURL(file);
                 } catch (err) {
@@ -639,7 +645,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -670,7 +676,6 @@ const Home = {
             this.iniciarReloj(servicioParaReloj);
         }
 
-        // ✅ TOGGLE DE CUENTA REGRESIVA DE TOLERANCIA
         const toleranciaDisplay = document.getElementById('toleranciaDisplay');
         if (toleranciaDisplay) {
             toleranciaDisplay.addEventListener('click', () => {
@@ -739,7 +744,6 @@ const Home = {
             const segundos = segundosRestantes % 60;
             toleranciaDisplay.textContent = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
 
-            // ✅ Iniciar parpadeo cuando falten 5 minutos o menos
             if (segundosRestantes <= 300) {
                 this.iniciarParpadeoTolerancia();
             }
