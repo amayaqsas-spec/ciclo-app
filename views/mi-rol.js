@@ -3,9 +3,7 @@
 // ============================================
 
 const MiRol = {
-    // ✅ FECHA FIJA DE INICIO DEL CICLO (Domingo de la Semana 1)
-    FECHA_INICIO_CICLO: new Date(2026, 9, 11), // 11 de octubre 2026 (mes 9 = octubre)
-    TOTAL_SEMANAS_CICLO: 5,
+    // ✅ AHORA USA LA CONFIGURACIÓN CENTRALIZADA (config-ciclo.js)
 
     getFechaLocal(fecha) {
         const year = fecha.getFullYear();
@@ -14,37 +12,9 @@ const MiRol = {
         return `${year}-${month}-${day}`;
     },
 
-    // ✅ CÁLCULO SIMPLE Y DIRECTO
+    // ✅ CÁLCULO USANDO LA FUNCIÓN GLOBAL
     calcularSemanaActual() {
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        const fechaInicio = new Date(this.FECHA_INICIO_CICLO);
-        fechaInicio.setHours(0, 0, 0, 0);
-
-        // Calcular diferencia en días
-        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-        
-        console.log('📅 Cálculo de semana:');
-        console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
-        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
-        console.log('  Días transcurridos:', diferenciaDias);
-
-        // Si es antes de la fecha de inicio, mostrar semana 1
-        if (diferenciaDias < 0) {
-            console.log('  Antes del inicio, retornando semana 1');
-            return 1;
-        }
-
-        // Calcular semanas transcurridas
-        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        console.log('  Semanas transcurridas:', semanasTranscurridas);
-
-        // Calcular semana actual (ciclo de 5 semanas, empieza en 1)
-        const semanaActual = (semanasTranscurridas % this.TOTAL_SEMANAS_CICLO) + 1;
-        console.log('  Semana actual:', semanaActual);
-
-        return semanaActual;
+        return typeof window.calcularSemanaActual === 'function' ? window.calcularSemanaActual() : 1;
     },
 
     render() {
@@ -62,6 +32,8 @@ const MiRol = {
         let miRol = null;
         
         const semanaActualNum = this.calcularSemanaActual();
+        // ✅ Obtener total de semanas desde la configuración global (con fallback seguro)
+        const totalSemanasCiclo = window.CICLO_CONFIG ? window.CICLO_CONFIG.totalSemanas : 5;
         
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const hoy = new Date();
@@ -80,7 +52,7 @@ const MiRol = {
             let diferencia = semana.numero - semanaActualNum;
             
             if (diferencia < 0) {
-                diferencia += this.TOTAL_SEMANAS_CICLO;
+                diferencia += totalSemanasCiclo; // ✅ USAR VARIABLE GLOBAL
             }
             
             const domingoSemana = new Date(domingoSemanaActual);
@@ -301,7 +273,7 @@ const MiRol = {
             const nuevoNumeroRol = document.getElementById('editNumeroRol').value.trim();
 
             if (!nuevaLineaId || !nuevaTerminalId || !nuevoNumeroRol) {
-                App.showToast('️ Completa todos los campos');
+                App.showToast('⚠️ Completa todos los campos');
                 return;
             }
 

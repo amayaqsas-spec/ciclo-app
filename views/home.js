@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Fecha Fija de Inicio
+// HOME.JS - Dashboard con Configuración Centralizada del Ciclo
 // ============================================
 
 const Home = {
@@ -11,9 +11,7 @@ const Home = {
     toleranciaCountdownActive: false,
     toleranciaInterval: null,
     toleranciaParpadeoInterval: null,
-
-    FECHA_INICIO_CICLO: new Date(2026, 9, 11),
-    TOTAL_SEMANAS_CICLO: 5,
+    // ✅ ELIMINADOS: FECHA_INICIO_CICLO y TOTAL_SEMANAS_CICLO (ahora son globales)
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -31,18 +29,9 @@ const Home = {
     },
 
     getTipoDiaActual() {
-        const dia = new Date().getDay();
-        const hoyStr = this.getFechaLocal(new Date());
-        
-        // ✅ Los sábados SIEMPRE son automáticos (no se pueden forzar)
-        if (dia === 6) {
-            DB.remove('modoDiaForzado');
-            DB.remove('fechaModoForzado');
-            return 'Sábado';
-        }
-        
         const modoForzado = DB.get('modoDiaForzado', null);
         const fechaForzada = DB.get('fechaModoForzado', null);
+        const hoyStr = this.getFechaLocal(new Date());
 
         if (modoForzado && fechaForzada !== hoyStr) {
             DB.remove('modoDiaForzado');
@@ -53,32 +42,15 @@ const Home = {
         if (modoActual === 'domingo') return 'Domingo/Festivos';
         if (modoActual === 'laboral') return 'Laboral';
 
+        const dia = new Date().getDay();
         if (dia === 0) return 'Domingo/Festivos';
+        if (dia === 6) return 'Sábado';
         return 'Laboral';
     },
 
+    // ✅ AHORA USA LA FUNCIÓN GLOBAL DE config-ciclo.js
     calcularSemanaActual() {
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        const fechaInicio = new Date(this.FECHA_INICIO_CICLO);
-        fechaInicio.setHours(0, 0, 0, 0);
-
-        const diferenciaDias = Math.floor((hoy - fechaInicio) / (1000 * 60 * 60 * 24));
-        
-        console.log('📅 [Home] Cálculo de semana:');
-        console.log('  Fecha inicio:', fechaInicio.toISOString().split('T')[0]);
-        console.log('  Hoy:', hoy.toISOString().split('T')[0]);
-        console.log('  Días transcurridos:', diferenciaDias);
-
-        if (diferenciaDias < 0) {
-            return 1;
-        }
-
-        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        const semanaActual = (semanasTranscurridas % this.TOTAL_SEMANAS_CICLO) + 1;
-
-        return semanaActual;
+        return typeof window.calcularSemanaActual === 'function' ? window.calcularSemanaActual() : 1;
     },
 
     horaAMinutos(horaStr) {
@@ -127,7 +99,7 @@ const Home = {
         const numeroServicio = prompt(`¿Qué servicio de tipo "${tipoDia}" vas a trabajar?\n\nIngresa el número de servicio:`);
         
         if (!numeroServicio || numeroServicio.trim() === '') {
-            App.showToast('️ Debes ingresar un número de servicio');
+            App.showToast('⚠️ Debes ingresar un número de servicio');
             return;
         }
 
@@ -139,7 +111,7 @@ const Home = {
         }
 
         if (typeof CicloTracking !== 'undefined') {
-            console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
+            console.log('🧹 [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
             CicloTracking.resetState();
             await new Promise(resolve => setTimeout(resolve, 300));
         }
@@ -163,7 +135,7 @@ const Home = {
 
     cancelarTiempoExtra() {
         if (typeof CicloTracking !== 'undefined') {
-            console.log(' [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
+            console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
             CicloTracking.resetState();
         }
 
@@ -198,6 +170,7 @@ const Home = {
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
 
+        // ✅ Usa la función global
         const semanaActualNum = this.calcularSemanaActual();
         
         let posicionHoy = 'N/A';
@@ -300,7 +273,7 @@ const Home = {
                 ` : ''}
 
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Servicio de Reserva o Tiempo Extra</div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🕐 Servicio de Reserva o Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             ❌ Cancelar Tiempo Extra
@@ -489,7 +462,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        console.log(' [Home] Cargando datos de Firebase...');
+        console.log('📥 [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -517,71 +490,33 @@ const Home = {
                     
                     const modalOverlay = document.createElement('div');
                     modalOverlay.style.cssText = `
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.9);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 99999;
-                        cursor: pointer;
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                        background: rgba(0, 0, 0, 0.9); display: flex; align-items: center;
+                        justify-content: center; z-index: 99999; cursor: pointer;
                     `;
                     
                     const imgGrande = document.createElement('img');
                     imgGrande.src = imgSrc;
-                    imgGrande.style.cssText = `
-                        max-width: 95%;
-                        max-height: 95%;
-                        object-fit: contain;
-                        border-radius: 12px;
-                        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-                    `;
+                    imgGrande.style.cssText = `max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);`;
                     
                     const btnCerrar = document.createElement('button');
                     btnCerrar.innerHTML = '✕';
-                    btnCerrar.style.cssText = `
-                        position: absolute;
-                        top: 20px;
-                        right: 20px;
-                        width: 44px;
-                        height: 44px;
-                        border-radius: 50%;
-                        background: rgba(255,255,255,0.2);
-                        border: none;
-                        color: white;
-                        font-size: 24px;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        backdrop-filter: blur(10px);
-                    `;
+                    btnCerrar.style.cssText = `position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);`;
                     
                     modalOverlay.appendChild(imgGrande);
                     modalOverlay.appendChild(btnCerrar);
                     document.body.appendChild(modalOverlay);
                     
-                    const cerrarModal = () => {
-                        modalOverlay.remove();
-                    };
-                    
+                    const cerrarModal = () => modalOverlay.remove();
                     modalOverlay.addEventListener('click', cerrarModal);
-                    btnCerrar.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        cerrarModal();
-                    });
+                    btnCerrar.addEventListener('click', (e) => { e.stopPropagation(); cerrarModal(); });
                     imgGrande.addEventListener('click', (e) => e.stopPropagation());
                 });
             }
             
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
-                if (!file) return;
-                
-                if (!file.type.startsWith('image/')) {
+                if (!file || !file.type.startsWith('image/')) {
                     App.showToast('⚠️ El archivo no es una imagen válida');
                     return;
                 }
@@ -592,57 +527,32 @@ const Home = {
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 240;
-                            const MAX_HEIGHT = 240;
+                            const MAX_WIDTH = 240, MAX_HEIGHT = 240;
+                            let width = img.width, height = img.height;
                             
-                            let width = img.width;
-                            let height = img.height;
+                            if (width > MAX_WIDTH) { height = (height * MAX_WIDTH) / width; width = MAX_WIDTH; }
+                            if (height > MAX_HEIGHT) { width = (width * MAX_HEIGHT) / height; height = MAX_HEIGHT; }
                             
-                            if (width > MAX_WIDTH) {
-                                height = (height * MAX_WIDTH) / width;
-                                width = MAX_WIDTH;
-                            }
-                            if (height > MAX_HEIGHT) {
-                                width = (width * MAX_HEIGHT) / height;
-                                height = MAX_HEIGHT;
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
+                            canvas.width = width; canvas.height = height;
+                            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                             const imagenComprimida = canvas.toDataURL('image/jpeg', 0.8);
                             
                             try {
                                 DB.set('imagenPerfil', imagenComprimida);
                                 const imgExistente = welcomeIcon.querySelector('.ske-avatar-img');
-                                if (imgExistente) {
-                                    imgExistente.src = imagenComprimida;
-                                } else {
-                                    welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${imagenComprimida}" alt="Perfil" class="ske-avatar-img">`;
-                                }
+                                if (imgExistente) imgExistente.src = imagenComprimida;
+                                else welcomeIcon.querySelector('.ske-avatar-inner').innerHTML = `<img src="${imagenComprimida}" alt="Perfil" class="ske-avatar-img">`;
                                 App.showToast('✅ Foto de perfil actualizada');
                             } catch (err) {
-                                console.error('Error al guardar:', err);
-                                App.showToast('⚠️ Error al guardar la imagen. Intenta con otra más pequeña.');
+                                App.showToast('⚠️ Error al guardar la imagen');
                             }
-                        };
-                        img.onerror = () => {
-                            App.showToast('⚠️ No se pudo procesar la imagen');
                         };
                         img.src = ev.target.result;
                     };
-                    reader.onerror = () => {
-                        App.showToast('⚠️ Error al leer el archivo');
-                    };
                     reader.readAsDataURL(file);
                 } catch (err) {
-                    console.error('Error:', err);
                     App.showToast('⚠️ Error al procesar la imagen');
                 }
-                
                 e.target.value = '';
             });
         }
@@ -653,46 +563,32 @@ const Home = {
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
-        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Domingo/Festivo'); recargarHome(); });
+        if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
         const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
 
-        if (btnTiempoExtra) {
-            btnTiempoExtra.addEventListener('click', () => this.cargarTiempoExtra());
-        }
-
-        if (btnCancelarTiempoExtra) {
-            btnCancelarTiempoExtra.addEventListener('click', () => this.cancelarTiempoExtra());
-        }
+        if (btnTiempoExtra) btnTiempoExtra.addEventListener('click', () => this.cargarTiempoExtra());
+        if (btnCancelarTiempoExtra) btnCancelarTiempoExtra.addEventListener('click', () => this.cancelarTiempoExtra());
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
             btnAtraso.addEventListener('click', () => {
                 const servicioActual = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
-                if (servicioActual) {
-                    this.agregarAtraso(servicioActual);
-                } else {
-                    App.showToast('⚠️ No hay servicio disponible para agregar atraso');
-                }
+                if (servicioActual) this.agregarAtraso(servicioActual);
+                else App.showToast('⚠️ No hay servicio disponible para agregar atraso');
             });
         }
 
         const servicioParaReloj = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
-        if (servicioParaReloj) {
-            this.iniciarReloj(servicioParaReloj);
-        }
+        if (servicioParaReloj) this.iniciarReloj(servicioParaReloj);
 
         const toleranciaDisplay = document.getElementById('toleranciaDisplay');
         if (toleranciaDisplay) {
             toleranciaDisplay.addEventListener('click', () => {
                 this.toleranciaCountdownActive = !this.toleranciaCountdownActive;
-                
-                if (this.toleranciaCountdownActive) {
-                    this.iniciarCuentaRegresivaTolerancia();
-                } else {
-                    this.detenerCuentaRegresivaTolerancia();
-                }
+                if (this.toleranciaCountdownActive) this.iniciarCuentaRegresivaTolerancia();
+                else this.detenerCuentaRegresivaTolerancia();
             });
         }
 
@@ -700,35 +596,22 @@ const Home = {
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
 
         if (typeof CicloTracking !== 'undefined') {
-            console.log('️ [Home] Preparando CicloTracking...');
-            
             setTimeout(() => {
                 const container = document.getElementById('skeServicioDiaContainer');
-                if (container) {
-                    console.log('✅ [Home] Contenedor encontrado, iniciando CicloTracking...');
-                    CicloTracking.init();
-                } else {
-                    console.error('❌ [Home] Contenedor #skeServicioDiaContainer no encontrado');
-                }
+                if (container) CicloTracking.init();
             }, 1000);
-        } else {
-            console.error('❌ [Home] CicloTracking no está definido');
         }
     },
 
     iniciarCuentaRegresivaTolerancia() {
         const toleranciaDisplay = document.getElementById('toleranciaDisplay');
         if (!toleranciaDisplay) return;
-
         const servicio = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
         if (!servicio || !servicio.tolerancia) return;
 
         const toleranciaMinutos = this.horaAMinutos(servicio.tolerancia);
         const ahora = new Date();
-        const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
-        const segundosActuales = ahora.getSeconds();
-
-        let segundosRestantes = (toleranciaMinutos * 60) - (horaActualMinutos * 60 + segundosActuales);
+        let segundosRestantes = (toleranciaMinutos * 60) - (ahora.getHours() * 60 * 60 + ahora.getMinutes() * 60 + ahora.getSeconds());
 
         if (segundosRestantes <= 0) {
             toleranciaDisplay.textContent = '00:00';
@@ -738,7 +621,6 @@ const Home = {
 
         this.toleranciaInterval = setInterval(() => {
             segundosRestantes--;
-            
             if (segundosRestantes <= 0) {
                 clearInterval(this.toleranciaInterval);
                 toleranciaDisplay.textContent = '00:00';
@@ -746,39 +628,28 @@ const Home = {
                 this.detenerParpadeoTolerancia();
                 return;
             }
-
             const minutos = Math.floor(segundosRestantes / 60);
             const segundos = segundosRestantes % 60;
             toleranciaDisplay.textContent = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
-
-            if (segundosRestantes <= 300) {
-                this.iniciarParpadeoTolerancia();
-            }
+            if (segundosRestantes <= 300) this.iniciarParpadeoTolerancia();
         }, 1000);
     },
 
     detenerCuentaRegresivaTolerancia() {
-        if (this.toleranciaInterval) {
-            clearInterval(this.toleranciaInterval);
-            this.toleranciaInterval = null;
-        }
-
+        if (this.toleranciaInterval) { clearInterval(this.toleranciaInterval); this.toleranciaInterval = null; }
         const toleranciaDisplay = document.getElementById('toleranciaDisplay');
         if (toleranciaDisplay) {
             const servicio = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
             toleranciaDisplay.textContent = servicio?.tolerancia || '';
             toleranciaDisplay.style.color = 'var(--primary)';
         }
-
         this.detenerParpadeoTolerancia();
     },
 
     iniciarParpadeoTolerancia() {
         if (this.toleranciaParpadeoInterval) return;
-
         const toleranciaDisplay = document.getElementById('toleranciaDisplay');
         if (!toleranciaDisplay) return;
-
         let visible = true;
         this.toleranciaParpadeoInterval = setInterval(() => {
             if (visible) {
@@ -796,7 +667,6 @@ const Home = {
         if (this.toleranciaParpadeoInterval) {
             clearInterval(this.toleranciaParpadeoInterval);
             this.toleranciaParpadeoInterval = null;
-
             const toleranciaDisplay = document.getElementById('toleranciaDisplay');
             if (toleranciaDisplay) {
                 toleranciaDisplay.style.color = 'var(--primary)';
@@ -806,18 +676,10 @@ const Home = {
     },
 
     onLeave() {
-        if (this.relojInterval) {
-            clearInterval(this.relojInterval);
-            this.relojInterval = null;
-        }
-        if (this.toleranciaInterval) {
-            clearInterval(this.toleranciaInterval);
-            this.toleranciaInterval = null;
-        }
+        if (this.relojInterval) { clearInterval(this.relojInterval); this.relojInterval = null; }
+        if (this.toleranciaInterval) { clearInterval(this.toleranciaInterval); this.toleranciaInterval = null; }
         this.detenerParpadeoTolerancia();
-        if (typeof CicloTracking !== 'undefined') {
-            CicloTracking.destroy();
-        }
+        if (typeof CicloTracking !== 'undefined') CicloTracking.destroy();
         this.minutosAtraso = 0;
         return Promise.resolve(true);
     },
@@ -845,19 +707,10 @@ const Home = {
             if (horaActualMinutos < minutosInicio) {
                 const diffMinutos = minutosInicio - horaActualMinutos;
                 const diffSegundos = 60 - segundosActuales;
-                
                 if (diffMinutos <= 10) {
-                    const minutosRestantes = diffMinutos - 1;
-                    const segundosRestantes = diffSegundos;
-                    
-                    relojTiempo.textContent = `${String(minutosRestantes).padStart(2, '0')}:${String(segundosRestantes).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
-                    relojTiempo.style.color = '#FF9800';
-                    
-                    if (diffMinutos <= 1) {
-                        relojTiempo.style.color = '#c62828';
-                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
-                    }
+                    relojTiempo.textContent = `${String(diffMinutos - 1).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                    relojEtiqueta.textContent = diffMinutos <= 1 ? '🔔 ¡Tu descanso está por iniciar!' : '⏰ Tu descanso inicia en...';
+                    relojTiempo.style.color = diffMinutos <= 1 ? '#c62828' : '#FF9800';
                 } else {
                     relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
