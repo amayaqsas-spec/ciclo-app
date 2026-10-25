@@ -8,6 +8,9 @@ const Home = {
     infoServicio: null,
     tiempoExtraActivo: false,
     servicioTiempoExtra: null,
+    toleranciaCountdownActive: false,
+    toleranciaInterval: null,
+    toleranciaParpadeoInterval: null,
 
     FECHA_INICIO_CICLO: new Date(2026, 9, 11),
     TOTAL_SEMANAS_CICLO: 5,
@@ -117,7 +120,7 @@ const Home = {
         const numeroServicio = prompt(`¿Qué servicio de tipo "${tipoDia}" vas a trabajar?\n\nIngresa el número de servicio:`);
         
         if (!numeroServicio || numeroServicio.trim() === '') {
-            App.showToast('️ Debes ingresar un número de servicio');
+            App.showToast('⚠️ Debes ingresar un número de servicio');
             return;
         }
 
@@ -129,7 +132,7 @@ const Home = {
         }
 
         if (typeof CicloTracking !== 'undefined') {
-            console.log(' [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
+            console.log('🧹 [Home] Limpiando estado de CicloTracking antes de activar tiempo extra...');
             CicloTracking.resetState();
             await new Promise(resolve => setTimeout(resolve, 300));
         }
@@ -162,7 +165,7 @@ const Home = {
         DB.remove('tiempoExtraActivo');
         DB.remove('servicioTiempoExtra');
         
-        App.showToast('❌ Tiempo Extra cancelado');
+        App.showToast(' Tiempo Extra cancelado');
         
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
@@ -252,16 +255,17 @@ const Home = {
         const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
         const errorAMostrar = this.tiempoExtraActivo ? null : errorMensaje;
 
+        // ✅ Obtener hora de entrada y tolerancia del servicio
+        const horaEntrada = servicioAMostrar?.servicio?.horaEntrada || '';
+        const tolerancia = servicioAMostrar?.servicio?.tolerancia || '';
+
         return `
             <div class="view active ske-home">
                 <div class="ske-greeting-card">
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
                             <div class="ske-avatar-inner">
-                                ${imagenPerfil 
-                                    ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img" id="imgAvatarClick" style="cursor: pointer;" title="Toca para ver en grande">` 
-                                    : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
-                                }
+                                ${imagenPerfil ? `<img src="${imagenPerfil}" alt="Perfil" class="ske-avatar-img" id="imgAvatarClick" style="cursor: pointer;" title="Toca para ver en grande">` : `<svg viewBox="0 0 24 24" class="ske-avatar-placeholder"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`}
                             </div>
                             <button class="ske-avatar-btn" id="btnCambiarFoto"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
                             <input type="file" id="inputFotoPerfil" accept="image/*" style="display:none;">
@@ -308,7 +312,7 @@ const Home = {
                             <h3 style="color: var(--text); margin-bottom: 8px;">Información no disponible</h3>
                             <p style="color: var(--text-soft); font-size: 14px;">${errorAMostrar}</p>
                         </div>
-                    ` : servicioAMostrar ? this.renderServicioDia(servicioAMostrar, tipoDiaActual, posicionHoy) : `
+                    ` : servicioAMostrar ? this.renderServicioDia(servicioAMostrar, tipoDiaActual, posicionHoy, horaEntrada, tolerancia) : `
                         <div style="text-align: center; padding: 40px 20px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                             <h3 style="color: var(--text);">Sin servicio asignado</h3>
                             <p style="color: var(--text-soft);">No hay servicio registrado para tu posición hoy.</p>
@@ -330,7 +334,7 @@ const Home = {
         `;
     },
 
-    renderServicioDia(info, tipoDia, posicion) {
+    renderServicioDia(info, tipoDia, posicion, horaEntrada, tolerancia) {
         const { servicio, linea, terminal } = info;
         const trenes = (servicio && servicio.trenes) || [];
         const haceGarage = servicio.garage === true || servicio.garage === 'Si' || servicio.garage === 'Sí';
@@ -390,6 +394,22 @@ const Home = {
                     </div>
                     <div style="text-align: right;"><div style="font-size: 11px; color: var(--text-soft);">Tipo de día</div><div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tipoDia}</div></div>
                 </div>
+                
+                <!-- ✅ HORA DE ENTRADA Y TOLERANCIA -->
+                ${horaEntrada ? `
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase;">Hora de Entrada</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--text);">${horaEntrada}</div>
+                        </div>
+                        <div style="font-size: 24px; color: var(--text-soft);">→</div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase;">Tolerancia</div>
+                            <div id="toleranciaDisplay" style="font-size: 20px; font-weight: 800; color: var(--primary); cursor: pointer; padding: 4px 8px; border-radius: 6px; user-select: none;" title="Toca para ver cuenta regresiva">${tolerancia}</div>
+                        </div>
+                    </div>
+                ` : ''}
+                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
                         <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
@@ -470,21 +490,18 @@ const Home = {
         const welcomeIcon = document.getElementById('welcomeIcon');
 
         if (btnCambiarFoto && inputFotoPerfil) {
-            // ✅ Botón de cámara: cambiar foto
             btnCambiarFoto.addEventListener('click', (e) => { 
                 e.preventDefault(); 
                 e.stopPropagation();
                 inputFotoPerfil.click(); 
             });
             
-            // ✅ NUEVO: Click en la imagen para verla en grande (estilo WhatsApp)
             const imgAvatarClick = document.getElementById('imgAvatarClick');
             if (imgAvatarClick) {
                 imgAvatarClick.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const imgSrc = imgAvatarClick.src;
                     
-                    // Crear modal a pantalla completa
                     const modalOverlay = document.createElement('div');
                     modalOverlay.style.cssText = `
                         position: fixed;
@@ -510,9 +527,8 @@ const Home = {
                         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
                     `;
                     
-                    // Botón cerrar
                     const btnCerrar = document.createElement('button');
-                    btnCerrar.innerHTML = '✕';
+                    btnCerrar.innerHTML = '';
                     btnCerrar.style.cssText = `
                         position: absolute;
                         top: 20px;
@@ -535,7 +551,6 @@ const Home = {
                     modalOverlay.appendChild(btnCerrar);
                     document.body.appendChild(modalOverlay);
                     
-                    // Cerrar al tocar cualquier parte
                     const cerrarModal = () => {
                         modalOverlay.remove();
                     };
@@ -549,7 +564,6 @@ const Home = {
                 });
             }
             
-            // ✅ CARGA UNIVERSAL DE IMAGEN CON COMPRESIÓN
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -616,7 +630,6 @@ const Home = {
                     App.showToast('⚠️ Error al procesar la imagen');
                 }
                 
-                // ✅ Limpiar el input para poder seleccionar la misma imagen otra vez
                 e.target.value = '';
             });
         }
@@ -626,7 +639,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -657,6 +670,20 @@ const Home = {
             this.iniciarReloj(servicioParaReloj);
         }
 
+        // ✅ TOGGLE DE CUENTA REGRESIVA DE TOLERANCIA
+        const toleranciaDisplay = document.getElementById('toleranciaDisplay');
+        if (toleranciaDisplay) {
+            toleranciaDisplay.addEventListener('click', () => {
+                this.toleranciaCountdownActive = !this.toleranciaCountdownActive;
+                
+                if (this.toleranciaCountdownActive) {
+                    this.iniciarCuentaRegresivaTolerancia();
+                } else {
+                    this.detenerCuentaRegresivaTolerancia();
+                }
+            });
+        }
+
         const btnVerAvisos = document.getElementById('btnVerAvisos');
         if (btnVerAvisos) btnVerAvisos.addEventListener('click', () => { if (typeof Views !== 'undefined' && Views.load) Views.load('avisos', true); });
 
@@ -677,11 +704,106 @@ const Home = {
         }
     },
 
+    iniciarCuentaRegresivaTolerancia() {
+        const toleranciaDisplay = document.getElementById('toleranciaDisplay');
+        if (!toleranciaDisplay) return;
+
+        const servicio = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
+        if (!servicio || !servicio.tolerancia) return;
+
+        const toleranciaMinutos = this.horaAMinutos(servicio.tolerancia);
+        const ahora = new Date();
+        const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
+        const segundosActuales = ahora.getSeconds();
+
+        let segundosRestantes = (toleranciaMinutos * 60) - (horaActualMinutos * 60 + segundosActuales);
+
+        if (segundosRestantes <= 0) {
+            toleranciaDisplay.textContent = '00:00';
+            toleranciaDisplay.style.color = '#c62828';
+            return;
+        }
+
+        this.toleranciaInterval = setInterval(() => {
+            segundosRestantes--;
+            
+            if (segundosRestantes <= 0) {
+                clearInterval(this.toleranciaInterval);
+                toleranciaDisplay.textContent = '00:00';
+                toleranciaDisplay.style.color = '#c62828';
+                this.detenerParpadeoTolerancia();
+                return;
+            }
+
+            const minutos = Math.floor(segundosRestantes / 60);
+            const segundos = segundosRestantes % 60;
+            toleranciaDisplay.textContent = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+
+            // ✅ Iniciar parpadeo cuando falten 5 minutos o menos
+            if (segundosRestantes <= 300) {
+                this.iniciarParpadeoTolerancia();
+            }
+        }, 1000);
+    },
+
+    detenerCuentaRegresivaTolerancia() {
+        if (this.toleranciaInterval) {
+            clearInterval(this.toleranciaInterval);
+            this.toleranciaInterval = null;
+        }
+
+        const toleranciaDisplay = document.getElementById('toleranciaDisplay');
+        if (toleranciaDisplay) {
+            const servicio = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
+            toleranciaDisplay.textContent = servicio?.tolerancia || '';
+            toleranciaDisplay.style.color = 'var(--primary)';
+        }
+
+        this.detenerParpadeoTolerancia();
+    },
+
+    iniciarParpadeoTolerancia() {
+        if (this.toleranciaParpadeoInterval) return;
+
+        const toleranciaDisplay = document.getElementById('toleranciaDisplay');
+        if (!toleranciaDisplay) return;
+
+        let visible = true;
+        this.toleranciaParpadeoInterval = setInterval(() => {
+            if (visible) {
+                toleranciaDisplay.style.color = '#FF9800';
+                toleranciaDisplay.style.backgroundColor = 'rgba(255, 152, 0, 0.2)';
+            } else {
+                toleranciaDisplay.style.color = 'var(--primary)';
+                toleranciaDisplay.style.backgroundColor = 'transparent';
+            }
+            visible = !visible;
+        }, 500);
+    },
+
+    detenerParpadeoTolerancia() {
+        if (this.toleranciaParpadeoInterval) {
+            clearInterval(this.toleranciaParpadeoInterval);
+            this.toleranciaParpadeoInterval = null;
+
+            const toleranciaDisplay = document.getElementById('toleranciaDisplay');
+            if (toleranciaDisplay) {
+                toleranciaDisplay.style.color = 'var(--primary)';
+                toleranciaDisplay.style.backgroundColor = 'transparent';
+            }
+        }
+    },
+
     onLeave() {
         if (this.relojInterval) {
             clearInterval(this.relojInterval);
             this.relojInterval = null;
         }
+        if (this.toleranciaInterval) {
+            clearInterval(this.toleranciaInterval);
+            this.toleranciaInterval = null;
+        }
+        this.detenerParpadeoTolerancia();
         if (typeof CicloTracking !== 'undefined') {
             CicloTracking.destroy();
         }
