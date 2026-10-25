@@ -86,7 +86,6 @@ const Views = {
                 { id: 'registro-semana', label: 'Tipo de Día' },
                 { id: 'registro-reservas', label: 'Reservas' },
                 { id: 'registro-servicios', label: 'Servicios' },
-                { id: 'registro-numero-semana', label: 'Número de Semana' },
                 { id: 'configuracion-ciclo', label: 'Configuración Semana' },
                 { id: 'registro-rol-semanal', label: 'Rol Semanal' },
                 { id: 'registro-espejo', label: 'Espejo' }
