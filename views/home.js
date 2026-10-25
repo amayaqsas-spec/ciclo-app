@@ -11,7 +11,6 @@ const Home = {
     toleranciaCountdownActive: false,
     toleranciaInterval: null,
     toleranciaParpadeoInterval: null,
-    // ✅ ELIMINADOS: FECHA_INICIO_CICLO y TOTAL_SEMANAS_CICLO (ahora son globales)
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -48,7 +47,6 @@ const Home = {
         return 'Laboral';
     },
 
-    // ✅ AHORA USA LA FUNCIÓN GLOBAL DE config-ciclo.js
     calcularSemanaActual() {
         return typeof window.calcularSemanaActual === 'function' ? window.calcularSemanaActual() : 1;
     },
@@ -170,7 +168,6 @@ const Home = {
         const miLinea = lineas.find(l => l.id === userLineaId);
         const miTerminal = terminales.find(t => t.id === userTerminalId);
 
-        // ✅ Usa la función global
         const semanaActualNum = this.calcularSemanaActual();
         
         let posicionHoy = 'N/A';
@@ -276,7 +273,7 @@ const Home = {
                     <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🕐 Servicio de Reserva o Tiempo Extra</div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            ❌ Cancelar Tiempo Extra
+                            🔄 Regresar a horario normal
                         </button>
                     ` : `
                         <button id="btnTiempoExtra" style="width: 100%; padding: 12px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
@@ -390,7 +387,7 @@ const Home = {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
+                        <div style="font-size: 10px; color: var(--text-soft);"> Línea</div>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
                     </div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
@@ -462,7 +459,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        console.log('📥 [Home] Cargando datos de Firebase...');
+        console.log(' [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -517,7 +514,7 @@ const Home = {
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file || !file.type.startsWith('image/')) {
-                    App.showToast('⚠️ El archivo no es una imagen válida');
+                    App.showToast('️ El archivo no es una imagen válida');
                     return;
                 }
                 
@@ -562,7 +559,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -576,7 +573,7 @@ const Home = {
             btnAtraso.addEventListener('click', () => {
                 const servicioActual = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
                 if (servicioActual) this.agregarAtraso(servicioActual);
-                else App.showToast('⚠️ No hay servicio disponible para agregar atraso');
+                else App.showToast('️ No hay servicio disponible para agregar atraso');
             });
         }
 
