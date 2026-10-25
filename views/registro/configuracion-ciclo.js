@@ -4,14 +4,14 @@
 
 const ConfiguracionCiclo = {
     render() {
-        const config = getCicloConfig();
+        const config = typeof window.getCicloConfig === 'function' ? window.getCicloConfig() : { fechaInicio: '2026-10-11', semanaInicial: 1, totalSemanas: 5 };
         const isAdmin = Auth.isAdmin;
         
         if (!isAdmin) {
             return `
                 <div class="view active">
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-soft);">
-                        <p>Solo el administrador puede cambiar la configuración del ciclo.</p>
+                        <p>🔒 Solo el administrador puede cambiar la configuración del ciclo.</p>
                     </div>
                 </div>
             `;
@@ -49,7 +49,7 @@ const ConfiguracionCiclo = {
                         </div>
                         
                         <div style="margin-top: 20px; padding: 12px; background: var(--bg-soft); border-radius: 8px; font-size: 13px; color: var(--text-soft);">
-                            <strong> Semana actual calculada:</strong> ${calcularSemanaActual()}
+                            <strong>📅 Semana actual calculada:</strong> <span style="color: var(--primary); font-weight: 700; font-size: 16px;">${typeof window.calcularSemanaActual === 'function' ? window.calcularSemanaActual() : 1}</span>
                         </div>
                         
                         <button id="btnGuardarConfig" style="width: 100%; margin-top: 16px; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">
@@ -91,30 +91,38 @@ const ConfiguracionCiclo = {
                     return;
                 }
 
-                setCicloConfig({
-                    fechaInicio,
-                    semanaInicial,
-                    totalSemanas
-                });
+                if (typeof window.setCicloConfig === 'function') {
+                    window.setCicloConfig({
+                        fechaInicio,
+                        semanaInicial,
+                        totalSemanas
+                    });
 
-                App.showToast('✅ Configuración guardada. Recarga la app para ver los cambios.');
-                
-                // Recargar después de 1 segundo
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                    App.showToast('✅ Configuración guardada. Recarga la app para ver los cambios.');
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    App.showToast('❌ Error: Función setCicloConfig no disponible');
+                }
             });
         }
 
         if (btnRestaurar) {
             btnRestaurar.addEventListener('click', () => {
                 if (confirm('¿Restaurar valores por defecto?')) {
-                    DB.remove('cicloConfig');
-                    window.CICLO_CONFIG = { ...CICLO_CONFIG_DEFAULT };
-                    App.showToast('🔄 Valores restaurados');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                    if (typeof window.setCicloConfig === 'function') {
+                        window.setCicloConfig({
+                            fechaInicio: '2026-10-11',
+                            semanaInicial: 1,
+                            totalSemanas: 5
+                        });
+                        App.showToast('🔄 Valores restaurados');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
                 }
             });
         }
