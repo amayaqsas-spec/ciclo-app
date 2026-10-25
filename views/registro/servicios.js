@@ -3,6 +3,19 @@
 // ============================================
 
 const Servicios = {
+    // ✅ Función auxiliar para calcular 10 minutos después
+    calcularTolerancia(hora) {
+        if (!hora) return '';
+        const [h, m] = hora.split(':').map(Number);
+        let newM = m + 10;
+        let newH = h;
+        if (newM >= 60) {
+            newM -= 60;
+            newH = (newH + 1) % 24;
+        }
+        return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+    },
+
     render() {
         const servicios = DB.load('servicios');
         const lineas = DB.load('lineas');
@@ -31,6 +44,7 @@ const Servicios = {
                                 const semana = semanas.find(w => w.id === s.semanaId);
                                 const trenes = s.trenes || [];
                                 const haceGarage = s.garage === true || s.garage === 'Si' || s.garage === 'Sí';
+                                const toleranciaCalc = this.calcularTolerancia(s.horaEntrada);
 
                                 return `
                                     <div style="background:var(--surface);padding:16px;border-radius:12px;box-shadow:var(--clay-shadow-sm);">
@@ -48,9 +62,13 @@ const Servicios = {
                                             <strong>Tipo de Día:</strong> ${semana ? semana.tipo : 'Sin tipo'}
                                         </div>
                                         
-                                        <!-- ✅ NUEVOS CAMPOS VISUALIZADOS -->
-                                        ${s.horaEntrada ? `<div style="font-size:14px;margin-bottom:8px;"><strong>Hora de Entrada:</strong> ${s.horaEntrada}</div>` : ''}
-                                        ${s.tolerancia ? `<div style="font-size:14px;margin-bottom:12px;"><strong>Tolerancia:</strong> ${s.tolerancia} min</div>` : ''}
+                                        <!-- ✅ VISUALIZACIÓN AUTOMÁTICA DE TOLERANCIA -->
+                                        ${s.horaEntrada ? `
+                                            <div style="display:flex;gap:16px;font-size:14px;margin-bottom:12px;padding:8px;background:var(--bg-soft);border-radius:6px;">
+                                                <div><strong>Entrada:</strong> ${s.horaEntrada}</div>
+                                                <div style="color:var(--primary);"><strong>Tolerancia (+10 min):</strong> ${toleranciaCalc}</div>
+                                            </div>
+                                        ` : ''}
 
                                         ${trenes.length > 0 ? `
                                             <div style="margin-bottom:12px;">
@@ -161,18 +179,13 @@ const Servicios = {
                     </label>
                 </div>
 
-                <!-- ✅ NUEVOS CAMPOS AGREGADOS EN EL ORDEN SOLICITADO -->
-                <div style="display:flex;gap:8px;margin-bottom:12px;">
-                    <div style="flex:1;">
-                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Hora de Entrada</label>
-                        <input type="time" id="servicioHoraEntrada" value="${data ? data.horaEntrada : ''}" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
-                    </div>
-                    <div style="flex:1;">
-                        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Tolerancia (min)</label>
-                        <input type="number" id="servicioTolerancia" value="${data ? data.tolerancia : ''}" placeholder="Ej. 15" min="0" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
-                    </div>
+                <!-- ✅ SOLO HORA DE ENTRADA (Tolerancia automática) -->
+                <div style="margin-bottom:12px;">
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Hora de Entrada</label>
+                    <input type="time" id="servicioHoraEntrada" value="${data ? data.horaEntrada : ''}" style="width:100%;padding:8px;border:1px solid var(--bg-soft);border-radius:6px;">
+                    <p style="font-size:11px;color:var(--text-soft);margin-top:4px;margin-bottom:0;">* La tolerancia se asigna automáticamente (10 minutos después).</p>
                 </div>
-                <!-- ✅ FIN NUEVOS CAMPOS -->
+                <!-- ✅ FIN CAMPO ÚNICO -->
 
                 <div style="margin-bottom:12px;">
                     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Trenes</label>
@@ -255,9 +268,9 @@ const Servicios = {
             const nombre = document.getElementById('servicioNombre').value.trim();
             const garage = document.getElementById('servicioGarage').checked;
             
-            // ✅ CAPTURA DE LOS NUEVOS CAMPOS
+            // ✅ CAPTURA HORA DE ENTRADA Y CALCULA TOLERANCIA AUTOMÁTICA
             const horaEntrada = document.getElementById('servicioHoraEntrada').value;
-            const tolerancia = document.getElementById('servicioTolerancia').value;
+            const tolerancia = this.calcularTolerancia(horaEntrada);
             
             const descansoInicio = document.getElementById('servicioDescansoInicio').value;
             const descansoFinal = document.getElementById('servicioDescansoFinal').value;
