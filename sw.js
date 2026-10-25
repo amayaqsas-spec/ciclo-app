@@ -2,7 +2,7 @@
 // SW.JS - Service Worker con Forzado de Actualización Automática
 // ============================================
 
-const CACHE_VERSION = 'v5.67'; // ⚠️ CAMBIA ESTE NÚMERO (ej: v5.1) cada vez que hagas un cambio importante
+const CACHE_VERSION = 'v5.68'; // ⚠️ CAMBIADO A v5.68 para forzar limpieza de caché viejo
 const CACHE_NAME = 'ciclo-app-' + CACHE_VERSION;
 
 const urlsToCache = [
@@ -12,6 +12,7 @@ const urlsToCache = [
     './db.js',
     './auth.js',
     './app.js',
+    './views/apariencia.js', // ✅ AGREGADO: Ahora se precachea y actualiza correctamente
     './manifest.json',
     './assets/icon-192.png',
     './assets/icon-512.png'
