@@ -68,7 +68,6 @@ const CicloTracking = {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     },
 
-    // ✅ Cálculo proporcional: usa duración COMPLETA de la carrera (sin restar 3 min)
     calcularHoraTeoricaEstacion(horaSalidaCarrera, horaLlegadaCarrera, estacionIndex, direccion) {
         const minSalida = this.horaAMinutos(horaSalidaCarrera);
         const minLlegada = this.horaAMinutos(horaLlegadaCarrera);
@@ -114,7 +113,7 @@ const CicloTracking = {
     reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera, tipoCarrera) {
         const direccion = this.getDireccionCarrera(tipoCarrera);
         
-        console.log(' [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
+        console.log('📍 [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
         
         const estaciones = this.ESTACIONES[direccion];
         
@@ -182,7 +181,6 @@ const CicloTracking = {
                 return;
             }
             
-            // ✅ Calcular hora teórica proporcional
             const horaTeoricaEstacion = this.calcularHoraTeoricaEstacion(
                 horaSalidaCarrera, 
                 horaLlegadaCarrera, 
@@ -194,10 +192,7 @@ const CicloTracking = {
             const horaActualMinutos = ahora.getHours() * 60 + ahora.getMinutes();
             const horaActualStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             
-            // ✅ REDONDEO: redondear la hora teórica al minuto más cercano para evitar decimales
             const horaTeoricaRedondeada = Math.round(horaTeoricaEstacion);
-            
-            // ✅ Calcular atraso con hora redondeada
             atrasoCalculado = Math.max(0, horaActualMinutos - horaTeoricaRedondeada);
             
             const horaTeoricaStr = this.minutosAHora(horaTeoricaRedondeada);
@@ -217,7 +212,7 @@ const CicloTracking = {
         
         document.getElementById('btnActualizarAtraso').addEventListener('click', () => {
             if (selectEstacion.value === '') {
-                App.showToast('️ Selecciona una estación');
+                App.showToast('⚠️ Selecciona una estación');
                 return;
             }
             
@@ -228,7 +223,7 @@ const CicloTracking = {
             modalOverlay.remove();
             
             if (atrasoCalculado > 0) {
-                App.showToast(`️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
+                App.showToast(`⚠️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
             } else {
                 App.showToast('✅ Atraso actualizado: A tiempo');
             }
@@ -446,6 +441,7 @@ const CicloTracking = {
                     this.state.expirationTime = parsed.expirationTime || null;
                     this.state.turnoFinalizado = parsed.turnoFinalizado || false;
                     this.state.direccion = parsed.direccion || 'norte_sur';
+                    this.state.trenesColapsados = parsed.trenesColapsados || {};
                     this.state.isTracking = true;
                 }
             }
@@ -497,7 +493,8 @@ const CicloTracking = {
             expirationTime: null,
             isTracking: false,
             turnoFinalizado: false,
-            direccion: 'norte_sur'
+            direccion: 'norte_sur',
+            trenesColapsados: {}
         };
         localStorage.removeItem(this.STORAGE_KEY);
         this.renderTrackingPanel();
@@ -550,7 +547,7 @@ const CicloTracking = {
 
         this.saveState();
         this.renderTrackingPanel();
-        App.showToast(`️ Carrera ${carreraNum} omitida`);
+        App.showToast(`⏭️ Carrera ${carreraNum} omitida`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
@@ -642,7 +639,20 @@ const CicloTracking = {
     },
 
     mostrarMensajeBloqueo() {
-        App.showToast('⚠️ Debes registrar la llegada u omitir la carrera actual para continuar');
+        App.showToast('️ Debes registrar la llegada u omitir la carrera actual para continuar');
+    },
+
+    // ✅ FUNCIÓN NUEVA: Toggle colapso de tren
+    toggleCollapse(trenIdx) {
+        const collapseKey = `tren_${trenIdx}_collapsed`;
+        
+        if (!this.state.trenesColapsados) {
+            this.state.trenesColapsados = {};
+        }
+        
+        this.state.trenesColapsados[collapseKey] = !this.state.trenesColapsados[collapseKey];
+        this.saveState();
+        this.renderTrackingPanel();
     },
 
     renderTrackingPanel() {
@@ -687,7 +697,7 @@ const CicloTracking = {
         }
 
         const esTiempoExtra = DB.get('tiempoExtraActivo', false);
-        let html = `<h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">${esTiempoExtra ? '⏱️' : '🚂'} Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}</h3>`;
+        let html = `<h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">🚂 Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}</h3>`;
 
         trenes.forEach((tren, trenIdx) => {
             const vueltas = tren.vueltas || 1;
@@ -698,10 +708,21 @@ const CicloTracking = {
             const esTrenCompletado = trenIdx < this.state.currentTrenIndex;
             const esTrenFuturo = trenIdx > this.state.currentTrenIndex;
 
+            const carreras = this.calcularCarreras(tren);
+            const carrerasCompletadas = carreras.filter(c => {
+                const carreraKey = `${trenIdx}_${c.numero}`;
+                return this.state.carrerasCompletadas[carreraKey];
+            }).length;
+            const trenCompleto = carrerasCompletadas === totalCarreras;
+
+            const collapseKey = `tren_${trenIdx}_collapsed`;
+            const isCollapsed = this.state.trenesColapsados?.[collapseKey] || false;
+
             html += `<div class="ct-tren-card" style="margin-bottom: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esTrenCompletado ? '#4CAF50' : esTrenActivo ? 'var(--primary)' : 'var(--bg-soft)'}; opacity: ${esTrenCompletado ? '0.7' : esTrenFuturo ? '0.5' : '1'};">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 16px; color: var(--primary); font-weight: 700;">${esTrenCompletado ? '✓ ' : esTrenFuturo ? '🔒 ' : ''}${labelTren} #${numTren}</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h4 style="margin: 0; font-size: 16px; color: var(--primary); font-weight: 700; flex: 1;">${esTrenCompletado ? '✓ ' : esTrenFuturo ? '🔒 ' : ''}${labelTren} #${numTren}</h4>
                     ${tren.garage ? '<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;">GARAGE</span>' : ''}
+                    ${trenCompleto ? `<button onclick="CicloTracking.toggleCollapse(${trenIdx})" style="background: var(--primary); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; margin-left: 8px;">${isCollapsed ? 'Mostrar' : 'Ocultar'}</button>` : ''}
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                     <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Salida</div><div style="font-size: 16px; font-weight: 800; color: var(--text);">${tren.salida || '--:--'}</div></div>
@@ -709,62 +730,67 @@ const CicloTracking = {
                     <div style="text-align: center; background: var(--surface); padding: 8px; border-radius: 8px;"><div style="font-size: 10px; color: var(--text-soft);">Carreras</div><div style="font-size: 16px; font-weight: 800; color: var(--text);">${totalCarreras}</div></div>
                 </div>`;
 
-            if (esTrenActivo || esTrenCompletado) {
-                const carreras = this.calcularCarreras(tren);
-                html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Carreras:</div>`;
+            if (!isCollapsed) {
+                if (esTrenActivo || esTrenCompletado) {
+                    html += `<div style="margin-bottom: 12px;"><div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 8px;">📋 Desglose de Carreras:</div>`;
 
-                carreras.forEach((carrera) => {
-                    const carreraKey = `${trenIdx}_${carrera.numero}`;
-                    const estaCompletada = this.state.carrerasCompletadas[carreraKey];
-                    const llegadaInfo = this.state.llegadasRegistradas[carreraKey];
-                    const esOmitida = llegadaInfo && llegadaInfo.omitida;
-                    const esCarreraActual = (trenIdx === this.state.currentTrenIndex && carrera.numero === this.state.currentCarrera);
-                    const esCarreraFutura = (trenIdx > this.state.currentTrenIndex) || (trenIdx === this.state.currentTrenIndex && carrera.numero > this.state.currentCarrera);
+                    carreras.forEach((carrera) => {
+                        const carreraKey = `${trenIdx}_${carrera.numero}`;
+                        const estaCompletada = this.state.carrerasCompletadas[carreraKey];
+                        const llegadaInfo = this.state.llegadasRegistradas[carreraKey];
+                        const esOmitida = llegadaInfo && llegadaInfo.omitida;
+                        const esCarreraActual = (trenIdx === this.state.currentTrenIndex && carrera.numero === this.state.currentCarrera);
+                        const esCarreraFutura = (trenIdx > this.state.currentTrenIndex) || (trenIdx === this.state.currentTrenIndex && carrera.numero > this.state.currentCarrera);
 
-                    html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                            <div style="flex: 1;">
-                                <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
-                                <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
-                                <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">Llegada aprox.</div>
-                                <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${carrera.horaLlegada}</div>
-                            </div>
-                        </div>`;
-
-                    if (esCarreraActual && !estaCompletada) {
-                        html += `<div style="display: flex; gap: 8px; margin-top: 8px;">
-                            <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Marcar Llegada</button>
-                            <button onclick="if(confirm('¿Omitir registro de esta carrera?')) CicloTracking.omitirCarrera('${carreraKey}', ${carrera.numero})" style="flex: 1; padding: 10px; background: #757575; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">⏭️ Omitir</button>
-                        </div>
-                        <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Mi atraso en la Carrera</button>`;
-                    }
-
-                    if (esCarreraFutura && !estaCompletada) {
-                        html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;"> Completa la carrera actual primero</div>`;
-                    }
-
-                    if (llegadaInfo) {
-                        html += `<div style="margin-top: 8px; padding: 8px; background: ${esOmitida ? 'rgba(158,158,158,0.2)' : llegadaInfo.atraso > 0 ? 'rgba(255,152,0,0.2)' : 'rgba(76,175,80,0.2)'}; border-radius: 6px; border-left: 3px solid ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                        html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
-                                    <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
+                                    <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
+                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
                                 </div>
-                                ${esTrenActivo ? `<button onclick="CicloTracking.resetCarrera('${carreraKey}')" style="background: rgba(255,255,255,0.3); border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: white;">↺</button>` : ''}
-                            </div>
-                        </div>`;
-                    }
+                                <div style="text-align: right;">
+                                    <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">Llegada aprox.</div>
+                                    <div style="font-size: 18px; font-weight: 800; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${carrera.horaLlegada}</div>
+                                </div>
+                            </div>`;
 
+                        if (esCarreraActual && !estaCompletada) {
+                            html += `<div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Marcar Llegada</button>
+                                <button onclick="if(confirm('¿Omitir registro de esta carrera?')) CicloTracking.omitirCarrera('${carreraKey}', ${carrera.numero})" style="flex: 1; padding: 10px; background: #757575; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">⏭️ Omitir</button>
+                            </div>
+                            <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Mi atraso en la Carrera</button>`;
+                        }
+
+                        if (esCarreraFutura && !estaCompletada) {
+                            html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;">🔒 Completa la carrera actual primero</div>`;
+                        }
+
+                        if (llegadaInfo) {
+                            html += `<div style="margin-top: 8px; padding: 8px; background: ${esOmitida ? 'rgba(158,158,158,0.2)' : llegadaInfo.atraso > 0 ? 'rgba(255,152,0,0.2)' : 'rgba(76,175,80,0.2)'}; border-radius: 6px; border-left: 3px solid ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
+                                        <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}</div>
+                                    </div>
+                                    ${esTrenActivo ? `<button onclick="CicloTracking.resetCarrera('${carreraKey}')" style="background: rgba(255,255,255,0.3); border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: white;">↺</button>` : ''}
+                                </div>
+                            </div>`;
+                        }
+
+                        html += `</div>`;
+                    });
                     html += `</div>`;
-                });
-                html += `</div>`;
-            } else if (esTrenFuturo) {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">🔒 Pendiente - Completa el tren actual primero</div>`;
+                } else if (esTrenFuturo) {
+                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente - Completa el tren actual primero</div>`;
+                } else {
+                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
+                }
             } else {
-                html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
+                html += `<div style="text-align: center; padding: 12px; background: var(--surface); border-radius: 8px; color: var(--text-soft); font-size: 12px;">
+                    Tren oculto (${carrerasCompletadas}/${totalCarreras} carreras completadas)
+                </div>`;
             }
             html += `</div>`;
         });
@@ -788,7 +814,7 @@ const CicloTracking = {
                     <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
                 </div>
             </div>
-            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
+            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
         </div>`;
 
         panel.innerHTML = html;

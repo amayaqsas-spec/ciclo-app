@@ -9095,3 +9095,17 @@ body[data-theme="night"],
     from { opacity: 1; }
     to { opacity: 0; }
 }
+/* ✅ FIX: Mostrar todos los temas de consola */
+.theme-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 16px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 20px !important;
+}
+
+.theme-card {
+    min-height: 120px !important;
+    break-inside: avoid !important;
+}

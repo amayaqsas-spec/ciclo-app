@@ -93,7 +93,7 @@ const AppInfo = {
                             </div>
                             <div class="ske-app-benefit-content">
                                 <strong>Personalización Total</strong>
-                                <p>Adapta la aplicación a tu gusto con múltiples temas de colores skeuomórficos, diseñados para ser agradables a la vista en cualquier condición de luz.</p>
+                                <p>Adapta la aplicación a tu gusto con múltiples temas de colores, diseñados para ser agradables a la vista en cualquier condición de luz.</p>
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@ const AppInfo = {
                     </div>
                 </div>
 
-                <!-- DISEÑO - ✅ TEXTO ACTUALIZADO (Opción 2) -->
+                <!-- DISEÑO -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-design">
@@ -127,12 +127,12 @@ const AppInfo = {
                             <img src="./assets/lo1.png" alt="Logo Diseño" class="ske-app-logo-img-large">
                         </div>
                         <div class="ske-app-credit-info">
-                            <p>Diseño de interfaz centrado en el usuario (*User-Centered Design*) con arquitectura de información optimizada para flujos operativos complejos. La identidad visual emplea principios de psicología del color y teoría de la Gestalt para guiar la atención de manera intuitiva. Los componentes gráficos skeuomórficos crean una experiencia táctil y familiar, mientras que la tipografía y el espaciado siguen patrones de ritmo visual que mejoran la eficiencia y reducen la fatiga visual en jornadas laborales extensas.</p>
+                            <p>Diseño claro, cómodo y fácil de usar. Cada color, botón y espacio fue elegido cuidadosamente para que puedas consultar tu información al instante, sin cansar la vista, garantizando una experiencia visual agradable y práctica durante tus jornadas laborales.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- PROGRAMACIÓN -->
+                <!-- PROGRAMACIÓN - ✅ TEXTO SIMPLE Y AMIGABLE -->
                 <div class="ske-app-section">
                     <div class="ske-app-section-header">
                         <div class="ske-app-section-icono ske-app-icono-code">
@@ -145,7 +145,7 @@ const AppInfo = {
                             <img src="./assets/mi.png" alt="Logo Programación" class="ske-app-logo-img-large">
                         </div>
                         <div class="ske-app-credit-info">
-                            <p>Desarrollo bajo patrones de arquitectura escalable y gestión de estado predecible. El núcleo integra algoritmos de mapeo relacional para procesar complejas reglas operativas con complejidad computacional optimizada. Cuenta con persistencia de datos local con mecanismos criptográficos de validación de integridad, garantizando un entorno de ejecución seguro, de baja latencia y alta disponibilidad en cualquier dispositivo.</p>
+                            <p>Programación robusta y confiable. Cada función fue desarrollada pensando en tu experiencia: respuestas rápidas, información precisa y protección total de tus datos. La aplicación trabaja de forma inteligente en segundo plano para que tú solo te enfoques en lo importante: tu servicio.</p>
                         </div>
                     </div>
                 </div>
@@ -156,7 +156,7 @@ const AppInfo = {
                         <div class="ske-app-section-icono ske-app-icono-social">
                             <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                         </div>
-                        <h3>Conócenos</h3>
+                        <h3>Enlaces</h3>
                     </div>
                     <a href="https://www.tiktok.com/@susanaramirezcastro?_r=1&_t=ZS-99r2n8u0iRR" 
                        target="_blank" 
