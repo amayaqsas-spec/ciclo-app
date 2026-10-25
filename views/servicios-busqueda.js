@@ -178,6 +178,22 @@ const ServiciosBusqueda = {
                     <span>${haceGarage ? 'Sí hace Garage' : 'No hace Garage'}</span>
                 </div>
 
+                <!-- ✅ NUEVO: HORA DE ENTRADA Y TOLERANCIA -->
+                ${servicio.horaEntrada ? `
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center; border: 1px solid var(--border);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase; font-weight: 600;">Hora de Entrada</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--text);">${servicio.horaEntrada}</div>
+                        </div>
+                        <div style="font-size: 20px; color: var(--text-soft);">→</div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 10px; color: var(--text-soft); text-transform: uppercase; font-weight: 600;">Tolerancia</div>
+                            <div style="font-size: 18px; font-weight: 800; color: var(--primary);">${servicio.tolerancia || '--:--'}</div>
+                        </div>
+                    </div>
+                ` : ''}
+                <!-- ✅ FIN NUEVO BLOQUE -->
+
                 ${trenes.length > 0 ? `
                     <div class="ske-servicios-trenes">
                         <h3 class="ske-servicios-section-title"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg> Trenes</h3>

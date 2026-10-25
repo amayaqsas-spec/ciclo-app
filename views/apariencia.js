@@ -58,7 +58,6 @@ const Apariencia = {
             vars: {
                 '--bg': '#2A2438', '--bg-soft': '#352F44', '--surface': '#3D3650',
                 '--primary': '#5C5470', '--primary-soft': '#7A7290', '--accent': '#DBD8E3',
-                // ✅ CORRECCIÓN: Texto en tonos azules para que destaque sobre el fondo oscuro
                 '--text': '#A8C8FF', '--text-soft': '#8AA8D4', '--text-light': '#6A88B4',
                 '--clay-shadow': '8px 8px 16px #1A1528, -8px -8px 16px #3A3448',
                 '--clay-shadow-sm': '4px 4px 8px #1A1528, -4px -4px 8px #3A3448',
@@ -111,6 +110,57 @@ const Apariencia = {
                 '--clay-shadow': '8px 8px 16px #050505, -8px -8px 16px #1A1A1A',
                 '--clay-shadow-sm': '4px 4px 8px #050505, -4px -4px 8px #1A1A1A',
                 '--clay-inset': 'inset 4px 4px 8px #050505, inset -4px -4px 8px #1A1A1A'
+            }
+        },
+        // ==========================================
+        // 🎮 NUEVOS TEMAS DE CONSOLAS
+        // ==========================================
+        xbox: {
+            name: 'Xbox',
+            colors: ['#0E0E0E', '#1A1D20', '#107C10', '#FFFFFF'],
+            vars: {
+                '--bg': '#0E0E0E', '--bg-soft': '#1A1D20', '--surface': '#202428',
+                '--primary': '#107C10', '--primary-soft': '#149914', '--accent': '#107C10',
+                '--text': '#FFFFFF', '--text-soft': '#9DA5B4', '--text-light': '#6B7280',
+                '--clay-shadow': '8px 8px 16px #050505, -8px -8px 16px #1A1D20',
+                '--clay-shadow-sm': '4px 4px 8px #050505, -4px -4px 8px #1A1D20',
+                '--clay-inset': 'inset 4px 4px 8px #050505, inset -4px -4px 8px #1A1D20'
+            }
+        },
+        ps5: {
+            name: 'PlayStation 5',
+            colors: ['#0B0E14', '#141A29', '#0070D1', '#00F0FF'],
+            vars: {
+                '--bg': '#0B0E14', '--bg-soft': '#141A29', '--surface': '#1A2236',
+                '--primary': '#0070D1', '--primary-soft': '#0088FF', '--accent': '#00F0FF',
+                '--text': '#F0F6FC', '--text-soft': '#7A8B9E', '--text-light': '#4A5B6E',
+                '--clay-shadow': '8px 8px 16px #05070A, -8px -8px 16px #141A29',
+                '--clay-shadow-sm': '4px 4px 8px #05070A, -4px -4px 8px #141A29',
+                '--clay-inset': 'inset 4px 4px 8px #05070A, inset -4px -4px 8px #141A29'
+            }
+        },
+        switch: {
+            name: 'Nintendo Switch',
+            colors: ['#121214', '#1E1E24', '#FF3C28', '#00C3ED'],
+            vars: {
+                '--bg': '#121214', '--bg-soft': '#1E1E24', '--surface': '#2A2A32',
+                '--primary': '#FF3C28', '--primary-soft': '#FF6A5A', '--accent': '#00C3ED',
+                '--text': '#FFFFFF', '--text-soft': '#9A9AB0', '--text-light': '#6A6A80',
+                '--clay-shadow': '8px 8px 16px #0A0A0C, -8px -8px 16px #1E1E24',
+                '--clay-shadow-sm': '4px 4px 8px #0A0A0C, -4px -4px 8px #1E1E24',
+                '--clay-inset': 'inset 4px 4px 8px #0A0A0C, inset -4px -4px 8px #1E1E24'
+            }
+        },
+        wii: {
+            name: 'Nintendo Wii',
+            colors: ['#EFEFEF', '#FFFFFF', '#00A4E4', '#2C3E50'],
+            vars: {
+                '--bg': '#EFEFEF', '--bg-soft': '#E0E0E0', '--surface': '#FFFFFF',
+                '--primary': '#00A4E4', '--primary-soft': '#33B8ED', '--accent': '#0088C2',
+                '--text': '#2C3E50', '--text-soft': '#6C7A89', '--text-light': '#95A5A6',
+                '--clay-shadow': '8px 8px 16px #D1D1D1, -8px -8px 16px #FFFFFF',
+                '--clay-shadow-sm': '4px 4px 8px #D1D1D1, -4px -4px 8px #FFFFFF',
+                '--clay-inset': 'inset 4px 4px 8px #D1D1D1, inset -4px -4px 8px #FFFFFF'
             }
         }
     },
