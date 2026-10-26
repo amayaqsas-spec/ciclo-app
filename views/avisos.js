@@ -321,12 +321,15 @@ const Avisos = {
         
         try {
             await this.getCollection().doc(docId).delete();
-            App.showToast('️ Documento eliminado');
+            App.showToast('🗑️ Documento eliminado');
             await this.cargarDocumentos();
         } catch (error) {
             App.showToast('❌ Error: ' + error.message);
         }
     }
 };
+
+// ✅ EXPOSICIÓN GLOBAL para que los onclick inline funcionen
+window.Avisos = Avisos;
 
 export default Avisos;
