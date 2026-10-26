@@ -387,7 +387,7 @@ const Home = {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 10px; color: var(--text-soft);"> Línea</div>
+                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
                     </div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
@@ -459,7 +459,7 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        console.log(' [Home] Cargando datos de Firebase...');
+        console.log('📥 [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
         await DB_FIREBASE.load('configuracionGlobal');
         await DB_FIREBASE.load('servicios');
@@ -514,7 +514,7 @@ const Home = {
             inputFotoPerfil.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file || !file.type.startsWith('image/')) {
-                    App.showToast('️ El archivo no es una imagen válida');
+                    App.showToast('⚠️ El archivo no es una imagen válida');
                     return;
                 }
                 
@@ -559,7 +559,7 @@ const Home = {
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
-        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast(' Modo: Laboral'); recargarHome(); });
+        if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -573,7 +573,7 @@ const Home = {
             btnAtraso.addEventListener('click', () => {
                 const servicioActual = this.tiempoExtraActivo ? this.servicioTiempoExtra?.servicio : this.infoServicio?.servicio;
                 if (servicioActual) this.agregarAtraso(servicioActual);
-                else App.showToast('️ No hay servicio disponible para agregar atraso');
+                else App.showToast('⚠️ No hay servicio disponible para agregar atraso');
             });
         }
 
@@ -681,6 +681,7 @@ const Home = {
         return Promise.resolve(true);
     },
 
+    // ✅ FUNCIÓN CORREGIDA: El contador muestra 00:00 hasta que faltan 10 minutos
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -702,16 +703,30 @@ const Home = {
             if (!relojTiempo || !relojEtiqueta) return;
 
             if (horaActualMinutos < minutosInicio) {
-                const diffMinutos = minutosInicio - horaActualMinutos;
-                const diffSegundos = 60 - segundosActuales;
-                if (diffMinutos <= 10) {
-                    relojTiempo.textContent = `${String(diffMinutos - 1).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
-                    relojEtiqueta.textContent = diffMinutos <= 1 ? '🔔 ¡Tu descanso está por iniciar!' : '⏰ Tu descanso inicia en...';
-                    relojTiempo.style.color = diffMinutos <= 1 ? '#c62828' : '#FF9800';
-                } else {
-                    relojTiempo.textContent = `${String(diffMinutos).padStart(2, '0')}:${String(diffSegundos).padStart(2, '0')}`;
+                // Calcular milisegundos exactos para mayor precisión
+                const ahoraMs = ahora.getTime();
+                const inicioMs = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), hInicio, mInicio, 0).getTime();
+                let msRestantes = inicioMs - ahoraMs;
+                
+                if (msRestantes > 10 * 60 * 1000) {
+                    // ✅ Faltan más de 10 minutos: mostrar 00:00
+                    relojTiempo.textContent = '00:00';
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
-                    relojTiempo.style.color = 'var(--primary)';
+                    relojTiempo.style.color = 'var(--text-soft)';
+                } else {
+                    // ✅ Faltan 10 minutos o menos: iniciar cuenta regresiva
+                    const minRestantes = Math.floor(msRestantes / 60000);
+                    const secRestantes = Math.floor((msRestantes % 60000) / 1000);
+                    
+                    relojTiempo.textContent = `${String(minRestantes).padStart(2, '0')}:${String(secRestantes).padStart(2, '0')}`;
+                    
+                    if (minRestantes <= 1) {
+                        relojEtiqueta.textContent = '🔔 ¡Tu descanso está por iniciar!';
+                        relojTiempo.style.color = '#c62828';
+                    } else {
+                        relojEtiqueta.textContent = '⏰ Tu descanso inicia en...';
+                        relojTiempo.style.color = '#FF9800';
+                    }
                 }
             } else if (horaActualMinutos >= minutosInicio && horaActualMinutos < minutosFinalAjustado) {
                 const diff = minutosFinalAjustado - horaActualMinutos;

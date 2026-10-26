@@ -23,8 +23,8 @@ const Avisos = {
                         </svg>
                     </div>
                     <div class="ske-avisos-texto">
-                        <h2 class="ske-avisos-titulo">Documentos</h2>
-                        <p class="ske-avisos-subtitulo">Gestiona y comparte archivos</p>
+                        <h2 class="ske-avisos-titulo">Avisos</h2>
+                        <p class="ske-avisos-subtitulo">Avisos relevantes de interés</p>
                     </div>
                     ${isAdmin ? `
                         <button class="ske-avisos-btn-nuevo" id="btnAddAviso">
@@ -274,7 +274,7 @@ const Avisos = {
         const url = document.getElementById('docUrl').value.trim();
 
         if (!titulo) {
-            App.showToast('⚠️ El título es obligatorio');
+            App.showToast('️ El título es obligatorio');
             return;
         }
         if (!url) {
