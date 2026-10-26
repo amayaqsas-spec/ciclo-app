@@ -104,7 +104,7 @@ const Home = {
         const infoServicio = this.buscarServicioPorTipo(tipoDia, numeroServicio.trim(), userLineaId);
         
         if (!infoServicio) {
-            App.showToast(`❌ No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
+            App.showToast(` No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
             return;
         }
 
@@ -131,10 +131,14 @@ const Home = {
         }
     },
 
+    // ✅ FUNCIÓN CORREGIDA: Destruye el panel de seguimiento y limpia todo
     cancelarTiempoExtra() {
         if (typeof CicloTracking !== 'undefined') {
-            console.log('🧹 [Home] Limpiando estado de CicloTracking al cancelar tiempo extra...');
-            CicloTracking.resetState();
+            console.log('🧹 [Home] Destruyendo panel de seguimiento de tiempo extra...');
+            CicloTracking.destroy();  // ✅ Elimina el panel visual del DOM
+            localStorage.removeItem(CicloTracking.STORAGE_KEY);  // ✅ Limpia estado guardado
+            CicloTracking.servicioData = null;  // ✅ Limpia el servicio cacheado
+            console.log('✅ [Home] Panel de seguimiento eliminado correctamente');
         }
 
         this.tiempoExtraActivo = false;
@@ -142,7 +146,7 @@ const Home = {
         DB.remove('tiempoExtraActivo');
         DB.remove('servicioTiempoExtra');
         
-        App.showToast('❌ Tiempo Extra cancelado');
+        App.showToast('🔄 Horario normal restaurado');
         
         if (typeof Views !== 'undefined' && Views.load) {
             Views.load('home', false);
@@ -261,9 +265,9 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
@@ -387,7 +391,7 @@ const Home = {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
+                        <div style="font-size: 10px; color: var(--text-soft);"> Línea</div>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
                     </div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
@@ -681,7 +685,6 @@ const Home = {
         return Promise.resolve(true);
     },
 
-    // ✅ FUNCIÓN CORREGIDA: El contador muestra 00:00 hasta que faltan 10 minutos
     iniciarReloj(servicio) {
         if (this.relojInterval) clearInterval(this.relojInterval);
         const MINUTOS_TOLERANCIA = 85;
@@ -703,18 +706,15 @@ const Home = {
             if (!relojTiempo || !relojEtiqueta) return;
 
             if (horaActualMinutos < minutosInicio) {
-                // Calcular milisegundos exactos para mayor precisión
                 const ahoraMs = ahora.getTime();
                 const inicioMs = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), hInicio, mInicio, 0).getTime();
                 let msRestantes = inicioMs - ahoraMs;
                 
                 if (msRestantes > 10 * 60 * 1000) {
-                    // ✅ Faltan más de 10 minutos: mostrar 00:00
                     relojTiempo.textContent = '00:00';
                     relojEtiqueta.textContent = '⏳ Esperando inicio de descanso';
                     relojTiempo.style.color = 'var(--text-soft)';
                 } else {
-                    // ✅ Faltan 10 minutos o menos: iniciar cuenta regresiva
                     const minRestantes = Math.floor(msRestantes / 60000);
                     const secRestantes = Math.floor((msRestantes % 60000) / 1000);
                     
