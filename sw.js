@@ -2,7 +2,7 @@
 // SW.JS - Service Worker con Forzado de Actualización Automática
 // ============================================
 
-const CACHE_VERSION = 'v5.74'; // ⚠️ CAMBIADO A v5.68 para forzar limpieza de caché viejo
+const CACHE_VERSION = 'v5.75'; // ⚠️ CAMBIADO A v5.68 para forzar limpieza de caché viejo
 const CACHE_NAME = 'ciclo-app-' + CACHE_VERSION;
 
 const urlsToCache = [

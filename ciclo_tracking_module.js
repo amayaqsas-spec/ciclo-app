@@ -39,7 +39,8 @@ const CicloTracking = {
         expirationTime: null,
         isTracking: false,
         turnoFinalizado: false,
-        direccion: 'norte_sur'
+        direccion: 'norte_sur',
+        trenesColapsados: {}
     },
 
     intervalId: null,
@@ -113,7 +114,7 @@ const CicloTracking = {
     reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera, tipoCarrera) {
         const direccion = this.getDireccionCarrera(tipoCarrera);
         
-        console.log('📍 [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
+        console.log(' [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
         
         const estaciones = this.ESTACIONES[direccion];
         
@@ -124,7 +125,7 @@ const CicloTracking = {
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);"> Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -234,6 +235,99 @@ const CicloTracking = {
                 this.stopBlinking();
             }
         });
+    },
+
+    // ✅ NUEVA FUNCIÓN: Mostrar instrucciones de ayuda
+    mostrarAyuda() {
+        const modalOverlay = App.showModal(`
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 450px; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid var(--bg-soft);">
+                    <div style="background: var(--primary); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; color: var(--primary);">¿Cómo usar el seguimiento?</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-soft);">Guía paso a paso</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid var(--primary);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">1</span>
+                            <strong style="font-size: 14px; color: var(--text);">Entiende las Carreras</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            Cada <strong>vuelta</strong> está compuesta por <strong>2 carreras</strong>: una de <strong>Ida</strong> (Origen → Destino) y una de <strong>Vuelta</strong> (Destino → Origen). Si tu tren tiene 2 vueltas, verás 4 carreras en total.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #4CAF50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span>
+                            <strong style="font-size: 14px; color: var(--text);">Marca tu Llegada</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            Cuando llegues a la terminal al finalizar una carrera, presiona el botón <strong style="color: #FF9800;">📍 Marcar Llegada</strong>. Esto registrará la hora real y calculará si llegaste a tiempo o con atraso.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #757575;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #757575; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">3</span>
+                            <strong style="font-size: 14px; color: var(--text);">Usa "Omitir" si es necesario</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            Si no pudiste registrar la llegada de una carrera, usa el botón <strong style="color: #757575;">⏭️ Omitir</strong>. Esto te permitirá avanzar a la siguiente carrera sin registro de hora.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #FF9800;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #FF9800; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">4</span>
+                            <strong style="font-size: 14px; color: var(--text);">Calcula tu Atraso en Ruta</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            Si quieres saber tu atraso mientras vas en ruta, debes estar en la <strong>carrera correspondiente</strong> (la que aparece activa con el botón naranja). Presiona <strong style="color: var(--primary);"> Mi atraso en la Carrera</strong> y selecciona la estación donde te encuentras.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #2196F3;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #2196F3; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">5</span>
+                            <strong style="font-size: 14px; color: var(--text);">Avanza Carrera por Carrera</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            Debes <strong>registrar u omitir</strong> cada carrera para poder avanzar a la siguiente. Las carreras futuras aparecerán bloqueadas hasta que completes la actual.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 14px; border-radius: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: #FF9800; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <strong style="font-size: 14px; color: #FF9800;">⚠️ Nota Importante sobre el Atraso</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
+                            El cálculo del atraso es <strong>aproximado</strong>. Los tiempos pueden variar <strong>±2 minutos</strong> (2 minutos antes o 2 minutos después) debido a condiciones del tráfico, tiempo de abordaje y otros factores. Usa este valor como referencia, no como dato exacto.
+                        </p>
+                    </div>
+                </div>
+
+                <button id="btnCerrarAyuda" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">
+                    ✅ Entendido
+                </button>
+            </div>
+        `);
+
+        document.getElementById('btnCerrarAyuda').addEventListener('click', () => modalOverlay.remove());
     },
 
     async init() {
@@ -642,7 +736,6 @@ const CicloTracking = {
         App.showToast('️ Debes registrar la llegada u omitir la carrera actual para continuar');
     },
 
-    // ✅ FUNCIÓN NUEVA: Toggle colapso de tren
     toggleCollapse(trenIdx) {
         const collapseKey = `tren_${trenIdx}_collapsed`;
         
@@ -676,7 +769,7 @@ const CicloTracking = {
                 <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">✅ Servicio Finalizado</h3>
                 <div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Total de atraso</h4>
+                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Total de atraso</h4>
                         <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : '#4CAF50'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'DENTRO DEL MÁXIMO'}</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -697,7 +790,20 @@ const CicloTracking = {
         }
 
         const esTiempoExtra = DB.get('tiempoExtraActivo', false);
-        let html = `<h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">🚂 Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}</h3>`;
+        
+        // ✅ TÍTULO CON BOTÓN DE AYUDA
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 18px; color: var(--primary);">🚂 Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}</h3>
+                <button id="btnAyudaTracking" style="background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0;" title="Ver instrucciones de uso">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+            </div>
+        `;
 
         trenes.forEach((tren, trenIdx) => {
             const vueltas = tren.vueltas || 1;
@@ -771,7 +877,7 @@ const CicloTracking = {
                             html += `<div style="margin-top: 8px; padding: 8px; background: ${esOmitida ? 'rgba(158,158,158,0.2)' : llegadaInfo.atraso > 0 ? 'rgba(255,152,0,0.2)' : 'rgba(76,175,80,0.2)'}; border-radius: 6px; border-left: 3px solid ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div style="flex: 1;">
-                                        <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
+                                        <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
                                         <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}</div>
                                     </div>
                                     ${esTrenActivo ? `<button onclick="CicloTracking.resetCarrera('${carreraKey}')" style="background: rgba(255,255,255,0.3); border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: white;">↺</button>` : ''}
@@ -783,13 +889,13 @@ const CicloTracking = {
                     });
                     html += `</div>`;
                 } else if (esTrenFuturo) {
-                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente - Completa el tren actual primero</div>`;
+                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">🔒 Pendiente - Completa el tren actual primero</div>`;
                 } else {
-                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
+                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente</div>`;
                 }
             } else {
                 html += `<div style="text-align: center; padding: 12px; background: var(--surface); border-radius: 8px; color: var(--text-soft); font-size: 12px;">
-                    Tren oculto (${carrerasCompletadas}/${totalCarreras} carreras completadas)
+                    🙈 Tren oculto (${carrerasCompletadas}/${totalCarreras} carreras completadas)
                 </div>`;
             }
             html += `</div>`;
@@ -819,6 +925,12 @@ const CicloTracking = {
 
         panel.innerHTML = html;
         container.parentNode.insertBefore(panel, container.nextSibling);
+
+        // ✅ Asignar evento al botón de ayuda
+        const btnAyuda = document.getElementById('btnAyudaTracking');
+        if (btnAyuda) {
+            btnAyuda.addEventListener('click', () => this.mostrarAyuda());
+        }
 
         if (necesitaParpadeo) this.startBlinking();
         else this.stopBlinking();
