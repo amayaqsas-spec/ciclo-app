@@ -36,6 +36,27 @@ const DiasEconomicos = {
 
         return `
             <div class="view active">
+                <!-- ✅ ESTILO DE ANIMACIÓN PARA EL BOTÓN DE AYUDA -->
+                <style>
+                    @keyframes ske-pulse-help {
+                        0%, 100% {
+                            transform: scale(1);
+                            background: var(--bg-soft);
+                            color: var(--text-soft);
+                            box-shadow: 0 0 0 0 rgba(155, 127, 212, 0);
+                        }
+                        50% {
+                            transform: scale(1.15);
+                            background: var(--primary);
+                            color: white;
+                            box-shadow: 0 0 0 8px rgba(155, 127, 212, 0.3);
+                        }
+                    }
+                    .btn-ayuda-pulse {
+                        animation: ske-pulse-help 2s ease-in-out infinite;
+                    }
+                </style>
+
                 <div style="padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <div>
@@ -43,7 +64,8 @@ const DiasEconomicos = {
                             <p style="margin: 4px 0 0 0; color: var(--text-soft); font-size: 14px;">Gestión de tus días permitidos</p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <button id="btnAyudaDias" style="background: var(--bg-soft); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft);">
+                            <!-- ✅ BOTÓN DE AYUDA CON ANIMACIÓN DE PARPADEO -->
+                            <button id="btnAyudaDias" class="btn-ayuda-pulse" style="background: var(--bg-soft); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); transition: all 0.3s ease;" title="Ver instrucciones">
                                 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -228,7 +250,7 @@ const DiasEconomicos = {
                 <p style="margin: 0 0 16px 0; color: var(--text-soft); font-size: 14px; line-height: 1.6; text-align: left;">
                     • Este módulo te permite registrar tus <strong>Días Económicos</strong> (los días que te son otorgados por la empresa).<br><br>
                     • Puedes registrar un máximo de <strong>10 días por año</strong>.<br><br>
-                    • El contador en la parte superior te mostrará cuántos días te quedan disponibles en el año actual.<br><br>
+                    • El contador en la parte superior te mostrará cuántos días te quedan disponibles.<br><br>
                     • Toca cualquier registro para ver su contenido completo.<br><br>
                     • Los datos se guardan de forma privada en tu dispositivo.<br><br>
                     • <strong>Separación por año:</strong> Los registros se guardan automáticamente separados por año. Cuando inicie un nuevo año, los registros del año anterior se conservarán y podrás consultarlos en cualquier momento usando el selector de año en la parte superior. Esto te permite tener un historial completo para cualquier aclaración futura.
@@ -308,7 +330,7 @@ const DiasEconomicos = {
         const descripcion = document.getElementById('deDescripcion').value.trim();
 
         if (!fecha || !titulo || !descripcion) {
-            App.showToast('️ Todos los campos son obligatorios');
+            App.showToast('⚠️ Todos los campos son obligatorios');
             return;
         }
 
