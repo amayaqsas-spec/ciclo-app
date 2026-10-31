@@ -358,17 +358,21 @@ const App = {
         }
     },
 
-    // ✅ NUEVA FUNCIÓN: Registrar acceso del usuario
+    // ✅ FUNCIÓN MODIFICADA: Registrar acceso del usuario con nombre
     async registrarAccesoUsuario(user) {
         try {
             const ahora = new Date();
             const fecha = ahora.toLocaleDateString('es-MX');
             const hora = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
             
+            // ✅ Obtener el nombre del usuario desde localStorage o Firebase
+            const nombreUsuario = DB.get('userName', '') || user.displayName || user.email;
+            
             const registro = {
                 email: user.email,
+                nombre: nombreUsuario,  // ✅ NUEVO: guardamos el nombre
                 uid: user.uid,
-                displayName: user.displayName || user.email,
+                displayName: user.displayName || nombreUsuario,
                 fecha: fecha,
                 hora: hora,
                 timestamp: ahora.getTime(),
@@ -379,7 +383,7 @@ const App = {
                 .collection('actividad_usuarios')
                 .add(registro);
             
-            console.log('✅ Acceso registrado:', user.email, fecha, hora);
+            console.log('✅ Acceso registrado:', nombreUsuario, user.email, fecha, hora);
         } catch (error) {
             console.error('❌ Error al registrar acceso:', error);
         }
