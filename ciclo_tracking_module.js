@@ -129,7 +129,7 @@ const CicloTracking = {
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
-                        ⚠️ Los tiempos son aproximados de acuerdo a la hora de llegada del tren a la terminal.
+                        ️ Los tiempos son aproximados de acuerdo a la hora de llegada del tren a la terminal.
                     </p>
                 </div>
                 
@@ -224,7 +224,7 @@ const CicloTracking = {
             modalOverlay.remove();
             
             if (atrasoCalculado > 0) {
-                App.showToast(`⚠️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
+                App.showToast(`️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
             } else {
                 App.showToast('✅ Atraso actualizado: A tiempo');
             }
@@ -237,7 +237,6 @@ const CicloTracking = {
         });
     },
 
-    // ✅ NUEVA FUNCIÓN: Mostrar instrucciones de ayuda
     mostrarAyuda() {
         const modalOverlay = App.showModal(`
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 450px; max-height: 90vh; overflow-y: auto;">
@@ -313,7 +312,7 @@ const CicloTracking = {
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <strong style="font-size: 14px; color: #FF9800;">⚠️ Nota Importante sobre el Atraso</strong>
+                            <strong style="font-size: 14px; color: #FF9800;">️ Nota Importante sobre el Atraso</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
                             El cálculo del atraso es <strong>aproximado</strong>. Los tiempos pueden variar <strong>±2 minutos</strong> (2 minutos antes o 2 minutos después) debido a condiciones del tráfico, tiempo de abordaje y otros factores. Usa este valor como referencia, no como dato exacto.
@@ -335,7 +334,7 @@ const CicloTracking = {
         
         const container = document.getElementById('skeServicioDiaContainer');
         if (!container) {
-            console.error('❌ [CicloTracking] Contenedor #skeServicioDiaContainer NO encontrado');
+            console.error(' [CicloTracking] Contenedor #skeServicioDiaContainer NO encontrado');
             return;
         }
         console.log('✅ [CicloTracking] Contenedor encontrado');
@@ -358,7 +357,7 @@ const CicloTracking = {
         this.extractServiceData();
         
         if (!this.servicioData) {
-            console.error('❌ [CicloTracking] No se encontró servicio');
+            console.error(' [CicloTracking] No se encontró servicio');
             return;
         }
         console.log('✅ [CicloTracking] Servicio encontrado:', this.servicioData.nombre);
@@ -540,7 +539,7 @@ const CicloTracking = {
                 }
             }
         } catch (e) {
-            console.error('❌ Error al cargar estado:', e);
+            console.error(' Error al cargar estado:', e);
         }
     },
 
@@ -641,7 +640,7 @@ const CicloTracking = {
 
         this.saveState();
         this.renderTrackingPanel();
-        App.showToast(`⏭️ Carrera ${carreraNum} omitida`);
+        App.showToast(`️ Carrera ${carreraNum} omitida`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
@@ -791,12 +790,31 @@ const CicloTracking = {
 
         const esTiempoExtra = DB.get('tiempoExtraActivo', false);
         
-        // ✅ TÍTULO CON BOTÓN DE AYUDA
         let html = `
+            <!-- ✅ ESTILO DE ANIMACIÓN PARA EL BOTÓN DE AYUDA -->
+            <style>
+                @keyframes ske-pulse-help {
+                    0%, 100% {
+                        transform: scale(1);
+                        background: var(--bg-soft);
+                        color: var(--text-soft);
+                        box-shadow: 0 0 0 0 rgba(155, 127, 212, 0);
+                    }
+                    50% {
+                        transform: scale(1.15);
+                        background: var(--primary);
+                        color: white;
+                        box-shadow: 0 0 0 8px rgba(155, 127, 212, 0.3);
+                    }
+                }
+                .btn-ayuda-pulse {
+                    animation: ske-pulse-help 2s ease-in-out infinite;
+                }
+            </style>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h3 style="margin: 0; font-size: 18px; color: var(--primary);">🚂 Seguimiento de Carreras${esTiempoExtra ? ' (Tiempo Extra)' : ''}</h3>
-                <button id="btnAyudaTracking" style="background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0;" title="Ver instrucciones de uso">
-                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                <button id="btnAyudaTracking" class="btn-ayuda-pulse" style="background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0; transition: all 0.3s ease;" title="Ver instrucciones de uso">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -851,7 +869,7 @@ const CicloTracking = {
                         html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? ' ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
                                     <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
                                     <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
                                 </div>
@@ -863,14 +881,14 @@ const CicloTracking = {
 
                         if (esCarreraActual && !estaCompletada) {
                             html += `<div style="display: flex; gap: 8px; margin-top: 8px;">
-                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Marcar Llegada</button>
+                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;"> Marcar Llegada</button>
                                 <button onclick="if(confirm('¿Omitir registro de esta carrera?')) CicloTracking.omitirCarrera('${carreraKey}', ${carrera.numero})" style="flex: 1; padding: 10px; background: #757575; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">⏭️ Omitir</button>
                             </div>
                             <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Mi atraso en la Carrera</button>`;
                         }
 
                         if (esCarreraFutura && !estaCompletada) {
-                            html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;">🔒 Completa la carrera actual primero</div>`;
+                            html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;"> Completa la carrera actual primero</div>`;
                         }
 
                         if (llegadaInfo) {
@@ -907,7 +925,7 @@ const CicloTracking = {
 
         html += `<div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Atraso del Servicio</h4>
+                <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Atraso del Servicio</h4>
                 <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'EN SEGUIMIENTO'}</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
