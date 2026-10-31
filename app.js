@@ -53,6 +53,7 @@ const viewModules = {
     'configuracion-ciclo': './views/registro/configuracion-ciclo.js',
     'registro-rol-semanal': './views/registro/rol-semanal.js',
     'registro-espejo': './views/registro/espejo.js',
+    'actividad-usuarios': './views/registro/actividad-usuarios.js',
     'bd': './views/bd.js',
     'instalacion': './views/instalacion.js',
     'app': './views/app.js'
@@ -92,7 +93,8 @@ const Views = {
                 { id: 'registro-servicios', label: 'Servicios' },
                 { id: 'configuracion-ciclo', label: 'Configuración Semana' },
                 { id: 'registro-rol-semanal', label: 'Rol Semanal' },
-                { id: 'registro-espejo', label: 'Espejo' }
+                { id: 'registro-espejo', label: 'Espejo' },
+                { id: 'actividad-usuarios', label: '📊 Actividad Usuarios' }
             ]
         },
         { id: 'bd', label: 'B.D.', icon: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>' },
@@ -272,6 +274,9 @@ const App = {
                 Auth.currentUser = user;
                 Auth.isAdmin = user.email === 'amayaqsas@gmail.com';
 
+                // ✅ Registrar acceso del usuario
+                this.registrarAccesoUsuario(user);
+
                 const authContainer = document.getElementById('authContainer');
                 if (authContainer) {
                     authContainer.classList.remove('show');
@@ -350,6 +355,33 @@ const App = {
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        }
+    },
+
+    // ✅ NUEVA FUNCIÓN: Registrar acceso del usuario
+    async registrarAccesoUsuario(user) {
+        try {
+            const ahora = new Date();
+            const fecha = ahora.toLocaleDateString('es-MX');
+            const hora = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            
+            const registro = {
+                email: user.email,
+                uid: user.uid,
+                displayName: user.displayName || user.email,
+                fecha: fecha,
+                hora: hora,
+                timestamp: ahora.getTime(),
+                userAgent: navigator.userAgent.substring(0, 100)
+            };
+            
+            await window.firebase.firestore()
+                .collection('actividad_usuarios')
+                .add(registro);
+            
+            console.log('✅ Acceso registrado:', user.email, fecha, hora);
+        } catch (error) {
+            console.error('❌ Error al registrar acceso:', error);
         }
     },
 
