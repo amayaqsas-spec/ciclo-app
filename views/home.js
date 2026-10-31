@@ -154,7 +154,6 @@ const Home = {
         }
     },
 
-    // ✅ NUEVA FUNCIÓN: Mostrar ayuda del botón de tiempo extra
     mostrarAyudaTiempoExtra() {
         App.showModal(`
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 420px;">
@@ -313,6 +312,27 @@ const Home = {
 
         return `
             <div class="view active ske-home">
+                <!-- ✅ ESTILO DE ANIMACIÓN PARA EL BOTÓN DE AYUDA -->
+                <style>
+                    @keyframes ske-pulse-help {
+                        0%, 100% {
+                            transform: scale(1);
+                            background: var(--bg-soft);
+                            color: var(--text-soft);
+                            box-shadow: 0 0 0 0 rgba(155, 127, 212, 0);
+                        }
+                        50% {
+                            transform: scale(1.15);
+                            background: var(--primary);
+                            color: white;
+                            box-shadow: 0 0 0 8px rgba(155, 127, 212, 0.3);
+                        }
+                    }
+                    .btn-ayuda-pulse {
+                        animation: ske-pulse-help 2s ease-in-out infinite;
+                    }
+                </style>
+
                 <div class="ske-greeting-card">
                     <div class="ske-greeting-content">
                         <div class="ske-avatar-frame" id="welcomeIcon">
@@ -348,8 +368,9 @@ const Home = {
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; text-align: center; flex: 1;">🕐 Servicio de Reserva o Tiempo Extra</div>
-                        <button id="btnAyudaTiempoExtra" style="background: var(--bg-soft); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0; margin-left: 8px;" title="Ver instrucciones">
-                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                        <!-- ✅ BOTÓN DE AYUDA CON ANIMACIÓN DE PARPADEO -->
+                        <button id="btnAyudaTiempoExtra" class="btn-ayuda-pulse" style="background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0; margin-left: 8px; transition: all 0.3s ease;" title="Ver instrucciones de uso">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
