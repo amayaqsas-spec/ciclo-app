@@ -9109,3 +9109,111 @@ body[data-theme="night"],
     min-height: 120px !important;
     break-inside: avoid !important;
 }
+/* ✅ ANIMACIÓN DE PULSO PARA BOTONES DE AYUDA */
+@keyframes ske-pulse-help {
+    0%, 100% {
+        transform: scale(1);
+        background: var(--bg-soft);
+        color: var(--text-soft);
+        box-shadow: 0 0 0 0 rgba(155, 127, 212, 0);
+    }
+    50% {
+        transform: scale(1.15);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 0 0 8px rgba(155, 127, 212, 0.3);
+    }
+}
+
+.btn-ayuda-pulse {
+    animation: ske-pulse-help 2s ease-in-out infinite;
+}
+
+/* ✅ BOTONES EN LÍNEA HORIZONTAL - SIEMPRE */
+.ske-te-card-acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--bg-soft);
+    flex-wrap: nowrap;
+}
+
+.ske-te-btn-accion {
+    flex: 1;
+    max-width: 70px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 2px solid var(--bg-soft);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ske-te-btn-accion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ✅ COLORES ESPECÍFICOS PARA CADA BOTÓN */
+.ske-te-btn-cobrar {
+    background: #4CAF50;
+    border-color: #4CAF50;
+    color: white;
+}
+
+.ske-te-btn-cobrar:hover {
+    background: #45a049;
+    border-color: #45a049;
+}
+
+.ske-te-btn-cobrar.cobrado {
+    background: #9E9E9E;
+    border-color: #9E9E9E;
+}
+
+.ske-te-btn-editar {
+    background: #FF9800;
+    border-color: #FF9800;
+    color: white;
+}
+
+.ske-te-btn-editar:hover {
+    background: #e68a00;
+    border-color: #e68a00;
+}
+
+.ske-te-btn-eliminar {
+    background: #c62828;
+    border-color: #c62828;
+    color: white;
+}
+
+.ske-te-btn-eliminar:hover {
+    background: #b71c1c;
+    border-color: #b71c1c;
+}
+
+/* ✅ RESPONSIVE - MANTENER EN LÍNEA EN MÓVIL */
+@media (max-width: 480px) {
+    .ske-te-card-acciones {
+        gap: 6px;
+    }
+    
+    .ske-te-btn-accion {
+        max-width: 60px;
+        height: 38px;
+    }
+    
+    .ske-te-btn-accion svg {
+        width: 16px;
+        height: 16px;
+    }
+}

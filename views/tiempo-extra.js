@@ -1,5 +1,5 @@
 // ============================================
-// TIEMPO-EXTRA.JS - Módulo con Ayuda y Botones Compactos
+// TIEMPO-EXTRA.JS - Módulo con Botones en Línea y Colores
 // ============================================
 
 const TiempoExtra = {
@@ -153,21 +153,23 @@ const TiempoExtra = {
                                 <span class="ske-te-card-fecha">${item.fecha || ''}</span>
                             </div>
                             ${item.nota ? `<p class="ske-te-card-nota">${item.nota}</p>` : ''}
+                            
+                            <!-- ✅ BOTONES EN UNA SOLA LÍNEA CON COLORES -->
                             <div class="ske-te-card-acciones">
-                                <button class="ske-te-btn-accion" data-index="${index}" data-accion="cobrar" title="${item.cobrado ? 'Marcar como pendiente' : 'Marcar como cobrado'}">
+                                <button class="ske-te-btn-accion ske-te-btn-cobrar ${item.cobrado ? 'cobrado' : ''}" data-index="${index}" title="${item.cobrado ? 'Marcar como pendiente' : 'Marcar como cobrado'}">
                                     <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
                                         ${item.cobrado 
                                             ? '<path d="M19 12H5M12 19l-7-7 7-7"/>' 
                                             : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'}
                                     </svg>
                                 </button>
-                                <button class="ske-te-btn-accion" data-index="${index}" data-accion="editar" title="Editar">
+                                <button class="ske-te-btn-accion ske-te-btn-editar" data-index="${index}" title="Editar">
                                     <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                     </svg>
                                 </button>
-                                <button class="ske-te-btn-accion" data-index="${index}" data-accion="eliminar" title="Eliminar">
+                                <button class="ske-te-btn-accion ske-te-btn-eliminar" data-index="${index}" title="Eliminar">
                                     <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
                                         <polyline points="3 6 5 6 21 6"/>
                                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -181,7 +183,6 @@ const TiempoExtra = {
         `;
     },
 
-    // ✅ NUEVA FUNCIÓN: Mostrar ayuda
     mostrarAyuda() {
         App.showModal(`
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 420px; max-height: 90vh; overflow-y: auto;">
@@ -225,7 +226,7 @@ const TiempoExtra = {
                             <strong style="font-size: 13px; color: var(--text);">Editar o Eliminar</strong>
                         </div>
                         <p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.5;">
-                            Usa los botones de <strong>️ Editar</strong> o <strong>️ Eliminar</strong> para modificar o borrar un registro antes de cobrarlo.
+                            Usa los botones de <strong>️ Editar</strong> o <strong>🗑️ Eliminar</strong> para modificar o borrar un registro antes de cobrarlo.
                         </p>
                     </div>
 
@@ -310,7 +311,8 @@ const TiempoExtra = {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const index = parseInt(btn.dataset.index);
-                const accion = btn.dataset.accion;
+                const accion = btn.classList.contains('ske-te-btn-cobrar') ? 'cobrar' : 
+                              btn.classList.contains('ske-te-btn-editar') ? 'editar' : 'eliminar';
 
                 if (accion === 'cobrar') {
                     items[index].cobrado = !items[index].cobrado;
@@ -330,7 +332,7 @@ const TiempoExtra = {
                     if (confirm('¿Eliminar este registro de tiempo extra?')) {
                         items.splice(index, 1);
                         DB.save('tiempoExtra', items);
-                        this.showToast('️ Registro eliminado');
+                        this.showToast('🗑️ Registro eliminado');
                         this.actualizarLista(items);
                     }
                 }
@@ -384,7 +386,7 @@ const TiempoExtra = {
                 const nota = notaInput.value.trim();
 
                 if (!tipo) {
-                    this.showToast('️ Selecciona un tipo');
+                    this.showToast('⚠️ Selecciona un tipo');
                     return;
                 }
 
