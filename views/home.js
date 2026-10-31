@@ -312,7 +312,6 @@ const Home = {
 
         return `
             <div class="view active ske-home">
-                <!-- ✅ ESTILO DE ANIMACIÓN PARA EL BOTÓN DE AYUDA -->
                 <style>
                     @keyframes ske-pulse-help {
                         0%, 100% {
@@ -368,7 +367,6 @@ const Home = {
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; text-align: center; flex: 1;">🕐 Servicio de Reserva o Tiempo Extra</div>
-                        <!-- ✅ BOTÓN DE AYUDA CON ANIMACIÓN DE PARPADEO -->
                         <button id="btnAyudaTiempoExtra" class="btn-ayuda-pulse" style="background: var(--bg-soft); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0; margin-left: 8px; transition: all 0.3s ease;" title="Ver instrucciones de uso">
                             <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -405,7 +403,12 @@ const Home = {
                 ${tiempoExtraPendiente.length > 0 ? `
                     <div style="margin-top: 20px; background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <div style="background: #FF9800; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                            <div style="background: var(--bg-soft); color: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
                             <h2 style="margin: 0; font-size: 16px; color: var(--text);">Tiempo Extra por Cobrar</h2>
                             <span style="background: #FF9800; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;">${tiempoExtraPendiente.length}</span>
                         </div>
