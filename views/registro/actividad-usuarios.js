@@ -1,5 +1,5 @@
 // ============================================
-// ACTIVIDAD-USUARIOS.JS - Módulo de Admin con Botón de Actualizar
+// ACTIVIDAD-USUARIOS.JS - Módulo de Admin con Nombre de Usuario
 // ============================================
 
 const ActividadUsuarios = {
@@ -43,8 +43,8 @@ const ActividadUsuarios = {
                             <input type="date" id="filtroFecha" style="width: 100%; padding: 10px; border: 1px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
                         </div>
                         <div style="flex: 1; min-width: 200px;">
-                            <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 4px;">Filtrar por email</label>
-                            <input type="text" id="filtroEmail" placeholder="correo@ejemplo.com" style="width: 100%; padding: 10px; border: 1px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 4px;">Filtrar por nombre o correo</label>
+                            <input type="text" id="filtroEmail" placeholder="Nombre o correo..." style="width: 100%; padding: 10px; border: 1px solid var(--bg-soft); border-radius: 8px; font-size: 14px; background: var(--bg); color: var(--text);">
                         </div>
                         <div style="display: flex; align-items: flex-end; gap: 8px;">
                             <button id="btnFiltrar" style="padding: 10px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🔍 Filtrar</button>
@@ -95,7 +95,7 @@ const ActividadUsuarios = {
         const resumen = document.getElementById('resumenActividad');
         const ultimaAct = document.getElementById('ultimaActualizacion');
         const filtroFecha = document.getElementById('filtroFecha').value;
-        const filtroEmail = document.getElementById('filtroEmail').value.trim().toLowerCase();
+        const filtroTexto = document.getElementById('filtroEmail').value.trim().toLowerCase();
 
         try {
             let query = this.getCollection().orderBy('timestamp', 'desc').limit(200);
@@ -115,8 +115,16 @@ const ActividadUsuarios = {
                 registros.push({ id: doc.id, ...doc.data() });
             });
 
-            if (filtroEmail) {
-                registros = registros.filter(r => r.email.toLowerCase().includes(filtroEmail));
+            // ✅ Filtrar por nombre O correo
+            if (filtroTexto) {
+                registros = registros.filter(r => {
+                    const nombre = (r.nombre || '').toLowerCase();
+                    const email = (r.email || '').toLowerCase();
+                    const displayName = (r.displayName || '').toLowerCase();
+                    return nombre.includes(filtroTexto) || 
+                           email.includes(filtroTexto) || 
+                           displayName.includes(filtroTexto);
+                });
             }
 
             const usuariosUnicos = [...new Set(registros.map(r => r.email))];
@@ -155,31 +163,43 @@ const ActividadUsuarios = {
                 return;
             }
 
+            // ✅ Agrupar por usuario mostrando el NOMBRE en lugar del correo
             const porUsuario = {};
             registros.forEach(r => {
-                if (!porUsuario[r.email]) {
-                    porUsuario[r.email] = { email: r.email, accesos: 0, ultimoAcceso: null, fechas: new Set() };
+                const identificador = r.email;
+                if (!porUsuario[identificador]) {
+                    porUsuario[identificador] = { 
+                        email: r.email, 
+                        nombre: r.nombre || r.displayName || r.email,  // ✅ Usar nombre si existe
+                        accesos: 0, 
+                        ultimoAcceso: null, 
+                        fechas: new Set() 
+                    };
                 }
-                porUsuario[r.email].accesos++;
-                porUsuario[r.email].fechas.add(r.fecha);
-                if (!porUsuario[r.email].ultimoAcceso || r.timestamp > porUsuario[r.email].ultimoAcceso.timestamp) {
-                    porUsuario[r.email].ultimoAcceso = r;
+                porUsuario[identificador].accesos++;
+                porUsuario[identificador].fechas.add(r.fecha);
+                if (!porUsuario[identificador].ultimoAcceso || r.timestamp > porUsuario[identificador].ultimoAcceso.timestamp) {
+                    porUsuario[identificador].ultimoAcceso = r;
                 }
             });
 
             let html = `<div style="display: flex; flex-direction: column; gap: 12px;">`;
 
             Object.values(porUsuario).forEach(u => {
+                // ✅ Mostrar nombre en grande, correo pequeño debajo
+                const nombreMostrar = u.nombre !== u.email ? u.nombre : '';
+                
                 html += `
                     <div style="background: var(--surface); padding: 16px; border-radius: 12px; box-shadow: var(--clay-shadow-sm); border-left: 4px solid var(--primary);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: 15px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${u.email}</div>
-                                <div style="font-size: 12px; color: var(--text-soft); margin-top: 2px;">
+                                ${nombreMostrar ? `<div style="font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 2px;">${nombreMostrar}</div>` : ''}
+                                <div style="font-size: 12px; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${u.email}</div>
+                                <div style="font-size: 12px; color: var(--text-soft); margin-top: 4px;">
                                     Último acceso: ${u.ultimoAcceso.fecha} a las ${u.ultimoAcceso.hora}
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 8px; align-items: center;">
+                            <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                                 <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">
                                     ${u.accesos} acceso${u.accesos !== 1 ? 's' : ''}
                                 </span>
