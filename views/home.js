@@ -104,7 +104,7 @@ const Home = {
         const infoServicio = this.buscarServicioPorTipo(tipoDia, numeroServicio.trim(), userLineaId);
         
         if (!infoServicio) {
-            App.showToast(` No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
+            App.showToast(`❌ No se encontró el servicio "${numeroServicio}" para tipo de día "${tipoDia}"`);
             return;
         }
 
@@ -131,13 +131,12 @@ const Home = {
         }
     },
 
-    // ✅ FUNCIÓN CORREGIDA: Destruye el panel de seguimiento y limpia todo
     cancelarTiempoExtra() {
         if (typeof CicloTracking !== 'undefined') {
             console.log('🧹 [Home] Destruyendo panel de seguimiento de tiempo extra...');
-            CicloTracking.destroy();  // ✅ Elimina el panel visual del DOM
-            localStorage.removeItem(CicloTracking.STORAGE_KEY);  // ✅ Limpia estado guardado
-            CicloTracking.servicioData = null;  // ✅ Limpia el servicio cacheado
+            CicloTracking.destroy();
+            localStorage.removeItem(CicloTracking.STORAGE_KEY);
+            CicloTracking.servicioData = null;
             console.log('✅ [Home] Panel de seguimiento eliminado correctamente');
         }
 
@@ -153,6 +152,79 @@ const Home = {
         } else {
             window.location.reload();
         }
+    },
+
+    // ✅ NUEVA FUNCIÓN: Mostrar ayuda del botón de tiempo extra
+    mostrarAyudaTiempoExtra() {
+        App.showModal(`
+            <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 420px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid var(--bg-soft);">
+                    <div style="background: var(--primary); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; color: var(--primary);">¿Cómo funciona?</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-soft);">Servicio de Reserva o Tiempo Extra</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; border-left: 4px solid var(--primary);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">1</span>
+                            <strong style="font-size: 13px; color: var(--text);">¿Cuándo usarlo?</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.5;">
+                            • Cuando estás de <strong>reserva</strong> y te asignan un servicio específico.<br>
+                            • Cuando vienes de <strong>tiempo extra</strong> y necesitas registrar tu servicio laboral.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #4CAF50; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">2</span>
+                            <strong style="font-size: 13px; color: var(--text);">¿Qué hacer?</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.5;">
+                            Presiona el botón e <strong>ingresa el número de servicio</strong> que te asignaron. El sistema cargará automáticamente toda la información.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; border-left: 4px solid #FF9800;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #FF9800; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">3</span>
+                            <strong style="font-size: 13px; color: var(--text);">¿Qué se carga?</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.5;">
+                            ✅ Trenes a tomar<br>
+                            ✅ Tiempo de descanso<br>
+                            ✅ Tiempos por carrera de cada tren<br>
+                            ✅ Seguimiento de carreras en tiempo real
+                        </p>
+                    </div>
+
+                    <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; border-left: 4px solid #c62828;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <span style="background: #c62828; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">4</span>
+                            <strong style="font-size: 13px; color: var(--text);">¿Cómo salir?</strong>
+                        </div>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-soft); line-height: 1.5;">
+                            Cuando termines, presiona <strong>"🔄 Regresar a horario normal"</strong> para volver a tu servicio asignado del día.
+                        </p>
+                    </div>
+                </div>
+
+                <button id="btnCerrarAyudaTE" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">
+                    ✅ Entendido
+                </button>
+            </div>
+        `);
+
+        document.getElementById('btnCerrarAyudaTE').addEventListener('click', () => document.querySelector('.modal-overlay').remove());
     },
 
     render() {
@@ -265,16 +337,25 @@ const Home = {
 
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;"> Modo de visualización</div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;"> Laboral</button>
+                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
                             <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
 
                 <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🕐 Servicio de Reserva o Tiempo Extra</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; text-align: center; flex: 1;">🕐 Servicio de Reserva o Tiempo Extra</div>
+                        <button id="btnAyudaTiempoExtra" style="background: var(--bg-soft); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-soft); flex-shrink: 0; margin-left: 8px;" title="Ver instrucciones">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </button>
+                    </div>
                     ${this.tiempoExtraActivo ? `
                         <button id="btnCancelarTiempoExtra" style="width: 100%; padding: 12px; background: #c62828; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                             🔄 Regresar a horario normal
@@ -391,7 +472,7 @@ const Home = {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
-                        <div style="font-size: 10px; color: var(--text-soft);"> Línea</div>
+                        <div style="font-size: 10px; color: var(--text-soft);">🚌 Línea</div>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text);">${linea ? linea.nombre : 'N/A'}</div>
                     </div>
                     <div style="background: var(--bg-soft); padding: 10px; border-radius: 8px;">
@@ -568,9 +649,11 @@ const Home = {
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
         const btnCancelarTiempoExtra = document.getElementById('btnCancelarTiempoExtra');
+        const btnAyudaTiempoExtra = document.getElementById('btnAyudaTiempoExtra');
 
         if (btnTiempoExtra) btnTiempoExtra.addEventListener('click', () => this.cargarTiempoExtra());
         if (btnCancelarTiempoExtra) btnCancelarTiempoExtra.addEventListener('click', () => this.cancelarTiempoExtra());
+        if (btnAyudaTiempoExtra) btnAyudaTiempoExtra.addEventListener('click', () => this.mostrarAyudaTiempoExtra());
 
         const btnAtraso = document.getElementById('btnAgregarAtrasoHome');
         if (btnAtraso) {
