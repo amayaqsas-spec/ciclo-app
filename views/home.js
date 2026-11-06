@@ -11,6 +11,7 @@ const Home = {
     toleranciaCountdownActive: false,
     toleranciaInterval: null,
     toleranciaParpadeoInterval: null,
+    descansoOculto: false, // ✅ NUEVO: Estado de ocultar descanso
 
     RESERVAS: ['Ca', 'CB', 'CC', 'MA', 'RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH',
                'ca', 'cb', 'cc', 'ma', 'ra', 'rb', 'rc', 'rd', 're', 'rf', 'rg', 'rh'],
@@ -224,6 +225,14 @@ const Home = {
         `);
 
         document.getElementById('btnCerrarAyudaTE').addEventListener('click', () => document.querySelector('.modal-overlay').remove());
+    },
+
+    // ✅ NUEVA FUNCIÓN: Toggle para ocultar/mostrar descanso
+    toggleDescanso() {
+        this.descansoOculto = !this.descansoOculto;
+        DB.set('descansoOculto', this.descansoOculto);
+        this.renderTrackingPanel();
+        App.showToast(this.descansoOculto ? '🙈 Descanso oculto' : '👁️ Descanso visible');
     },
 
     render() {
@@ -532,19 +541,44 @@ const Home = {
                             </div>
                         `;
                     } else if (bloque.tipo === 'descanso') {
+                        // ✅ Verificar si el descanso está oculto
+                        if (this.descansoOculto) {
+                            return `
+                                <div style="background: var(--bg-soft); padding: 12px; border-radius: 12px; border: 2px dashed var(--bg-soft); margin: 12px 0; text-align: center;">
+                                    <button onclick="Home.toggleDescanso()" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                        <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        Mostrar Descanso
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        
                         return `
                             <div style="background: var(--bg-soft); padding: 16px; border-radius: 12px; border: 2px solid var(--bg-soft); margin: 12px 0;">
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                                    <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                        <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
-                                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
-                                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-                                            <line x1="6" y1="1" x2="6" y2="4"/>
-                                            <line x1="10" y1="1" x2="10" y2="4"/>
-                                            <line x1="14" y1="1" x2="14" y2="4"/>
-                                        </svg>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="background: var(--accent); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                                <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                                                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                                                <line x1="6" y1="1" x2="6" y2="4"/>
+                                                <line x1="10" y1="1" x2="10" y2="4"/>
+                                                <line x1="14" y1="1" x2="14" y2="4"/>
+                                            </svg>
+                                        </div>
+                                        <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                                     </div>
-                                    <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
+                                    <!-- ✅ BOTÓN OCULTAR -->
+                                    <button onclick="Home.toggleDescanso()" style="background: var(--bg-soft); color: var(--text-soft); border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary)'; this.style.color='white'" onmouseout="this.style.background='var(--bg-soft)'; this.style.color='var(--text-soft)'" title="Ocultar sección de descanso">
+                                        <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                        Ocultar
+                                    </button>
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: space-around; background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
                                     <div style="text-align: center;"><div style="font-size: 10px; color: var(--text-soft);">Inicio</div><div style="font-size: 20px; font-weight: 800; color: var(--text);">${descansoInicio}</div></div>
@@ -567,6 +601,9 @@ const Home = {
 
     async init() {
         this.minutosAtraso = 0;
+        
+        // ✅ Cargar estado de descanso oculto
+        this.descansoOculto = DB.get('descansoOculto', false);
         
         console.log('📥 [Home] Cargando datos de Firebase...');
         await DB_FIREBASE.load('rolesSemanal');
@@ -706,7 +743,17 @@ const Home = {
         if (typeof CicloTracking !== 'undefined') {
             setTimeout(() => {
                 const container = document.getElementById('skeServicioDiaContainer');
-                if (container) CicloTracking.init();
+                if (container) {
+                    const servicioParaTracking = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
+                    
+                    if (servicioParaTracking && servicioParaTracking.servicio) {
+                        CicloTracking.servicioData = servicioParaTracking.servicio;
+                        CicloTracking.state.turnoId = `turno_${servicioParaTracking.servicio.nombre}_${this.getFechaLocal(new Date())}`;
+                        console.log('✅ [Home] Datos pasados a CicloTracking:', servicioParaTracking.servicio.nombre);
+                    }
+                    
+                    CicloTracking.init();
+                }
             }, 1000);
         }
     },
