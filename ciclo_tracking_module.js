@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Seguimiento por Carreras con Hora Teórica Proporcional y Redondeo
+// CICLO_TRACKING_MODULE.JS - Con panel de atraso en carrera activa
 // ============================================
 
 const CicloTracking = {
@@ -40,7 +40,8 @@ const CicloTracking = {
         isTracking: false,
         turnoFinalizado: false,
         direccion: 'norte_sur',
-        trenesColapsados: {}
+        trenesColapsados: {},
+        ultimaConsultaAtraso: null // ✅ NUEVO: Guarda última consulta de atraso
     },
 
     intervalId: null,
@@ -114,7 +115,7 @@ const CicloTracking = {
     reportarAtrasoEnEstacion(carreraKey, carreraNum, horaSalidaCarrera, tipoCarrera) {
         const direccion = this.getDireccionCarrera(tipoCarrera);
         
-        console.log(' [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
+        console.log('📍 [Reportar] Carrera:', carreraNum, 'Tipo:', tipoCarrera, 'Dirección:', direccion);
         
         const estaciones = this.ESTACIONES[direccion];
         
@@ -129,7 +130,7 @@ const CicloTracking = {
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
-                        ️ Los tiempos son aproximados de acuerdo a la hora de llegada del tren a la terminal.
+                        ⚠️ Los tiempos son aproximados de acuerdo a la hora de llegada del tren a la terminal.
                     </p>
                 </div>
                 
@@ -167,6 +168,7 @@ const CicloTracking = {
         const valorAtrasoDiv = document.getElementById('valorAtraso');
         const detalleCalculoDiv = document.getElementById('detalleCalculo');
         let atrasoCalculado = 0;
+        let estacionSeleccionada = '';
         
         const tren = this.servicioData.trenes[this.state.currentTrenIndex];
         const carreras = this.calcularCarreras(tren);
@@ -181,6 +183,8 @@ const CicloTracking = {
                 resultadoDiv.style.display = 'none';
                 return;
             }
+            
+            estacionSeleccionada = estaciones[estacionIdx];
             
             const horaTeoricaEstacion = this.calcularHoraTeoricaEstacion(
                 horaSalidaCarrera, 
@@ -218,13 +222,24 @@ const CicloTracking = {
             }
             
             this.state.lastDelayMin = atrasoCalculado;
+            
+            // ✅ Guardar última consulta de atraso
+            const ahora = new Date();
+            const horaConsulta = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            this.state.ultimaConsultaAtraso = {
+                estacion: estacionSeleccionada,
+                hora: horaConsulta,
+                carrera: carreraNum,
+                atraso: atrasoCalculado
+            };
+            
             this.saveState();
             this.renderTrackingPanel();
             
             modalOverlay.remove();
             
             if (atrasoCalculado > 0) {
-                App.showToast(`️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
+                App.showToast(`⚠️ Atraso actualizado: +${this.formatMinutos(atrasoCalculado)}`);
             } else {
                 App.showToast('✅ Atraso actualizado: A tiempo');
             }
@@ -291,7 +306,7 @@ const CicloTracking = {
                             <strong style="font-size: 14px; color: var(--text);">Calcula tu Atraso en Ruta</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
-                            Si quieres saber tu atraso mientras vas en ruta, debes estar en la <strong>carrera correspondiente</strong> (la que aparece activa con el botón naranja). Presiona <strong style="color: var(--primary);"> Mi atraso en la Carrera</strong> y selecciona la estación donde te encuentras.
+                            Si quieres saber tu atraso mientras vas en ruta, debes estar en la <strong>carrera correspondiente</strong> (la que aparece activa con el botón naranja). Presiona <strong style="color: var(--primary);">📍 Mi atraso en la Carrera</strong> y selecciona la estación donde te encuentras.
                         </p>
                     </div>
 
@@ -312,7 +327,7 @@ const CicloTracking = {
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <strong style="font-size: 14px; color: #FF9800;">️ Nota Importante sobre el Atraso</strong>
+                            <strong style="font-size: 14px; color: #FF9800;">⚠️ Nota Importante sobre el Atraso</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
                             El cálculo del atraso es <strong>aproximado</strong>. Los tiempos pueden variar <strong>±2 minutos</strong> (2 minutos antes o 2 minutos después) debido a condiciones del tráfico, tiempo de abordaje y otros factores. Usa este valor como referencia, no como dato exacto.
@@ -329,68 +344,38 @@ const CicloTracking = {
         document.getElementById('btnCerrarAyuda').addEventListener('click', () => modalOverlay.remove());
     },
 
-    async init() {
-        console.log('🛰️ [CicloTracking] Inicializando...');
-        
-        const container = document.getElementById('skeServicioDiaContainer');
-        if (!container) {
-            console.error(' [CicloTracking] Contenedor #skeServicioDiaContainer NO encontrado');
-            return;
-        }
-        console.log('✅ [CicloTracking] Contenedor encontrado');
-
-        const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
-        const savedState = localStorage.getItem(this.STORAGE_KEY);
-        
-        if (savedState) {
-            try {
-                const parsed = JSON.parse(savedState);
-                if (parsed.turnoFinalizado && tiempoExtraActivo) {
-                    console.log('🔄 [CicloTracking] Turno finalizado con tiempo extra. Reseteando...');
-                    localStorage.removeItem(this.STORAGE_KEY);
-                }
-            } catch (e) {
-                console.error('❌ Error al parsear estado:', e);
-            }
-        }
-
-        this.extractServiceData();
-        
-        if (!this.servicioData) {
-            console.error(' [CicloTracking] No se encontró servicio');
-            return;
-        }
-        console.log('✅ [CicloTracking] Servicio encontrado:', this.servicioData.nombre);
-
-        this.determinarDireccion();
-        this.loadState();
-        
-        if (this.state.turnoFinalizado && this.servicioData) {
-            console.log('🔄 [CicloTracking] Reseteando turno finalizado...');
-            this.state.turnoFinalizado = false;
-            this.state.lastDelayMin = 0;
-            this.state.currentTrenIndex = 0;
-            this.state.currentCarrera = 1;
-            this.state.carrerasCompletadas = {};
-            this.state.llegadasRegistradas = {};
-            this.state.expirationTime = null;
-            this.saveState();
-        }
-
-        this.checkExpiration();
-
-        if (!this.state.expirationTime) {
-            this.calculateExpiration();
-        }
-
-        this.renderTrackingPanel();
-        console.log('✅ [CicloTracking] Panel renderizado');
-
-        this.startRealTimeTracking();
-        console.log('✅ [CicloTracking] Activo');
+    getFechaLocal(fecha) {
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     },
 
-    extractServiceData() {
+    calcularSemanaActual() {
+        return typeof window.calcularSemanaActual === 'function' ? window.calcularSemanaActual() : 1;
+    },
+
+    getTipoDiaActual() {
+        const modoForzado = DB.get('modoDiaForzado', null);
+        const fechaForzada = DB.get('fechaModoForzado', null);
+        const hoyStr = this.getFechaLocal(new Date());
+
+        if (modoForzado && fechaForzada !== hoyStr) {
+            DB.remove('modoDiaForzado');
+            DB.remove('fechaModoForzado');
+        }
+
+        const modoActual = DB.get('modoDiaForzado', null);
+        if (modoActual === 'domingo') return 'Domingo/Festivos';
+        if (modoActual === 'laboral') return 'Laboral';
+
+        const dia = new Date().getDay();
+        if (dia === 0) return 'Domingo/Festivos';
+        if (dia === 6) return 'Sábado';
+        return 'Laboral';
+    },
+
+    async extractServiceData() {
         const userLineaId = DB.get('userLineaId');
         const userNumeroRol = DB.get('userNumeroRol');
         const rolesSemanal = DB.load('rolesSemanal');
@@ -408,65 +393,86 @@ const CicloTracking = {
             if (servicio && servicio.trenes && servicio.trenes.length > 0) {
                 this.servicioData = servicio;
                 this.state.turnoId = `tiempo_extra_${servicio.nombre}_${this.getFechaLocal(new Date())}`;
+                console.log('✅ [CicloTracking] Servicio de tiempo extra cargado:', servicio.nombre);
                 return;
             }
         }
 
-        if (!userNumeroRol || !rolesSemanal.length) return;
+        if (!userNumeroRol || !rolesSemanal.length) {
+            console.log('⚠️ [CicloTracking] No hay rol o número de rol configurado');
+            return;
+        }
 
         const miRol = rolesSemanal.find(r => String(r.numeroRol) === String(userNumeroRol) && r.lineaId === userLineaId);
-        if (!miRol) return;
+        if (!miRol) {
+            console.log('⚠️ [CicloTracking] No se encontró el rol del usuario');
+            return;
+        }
 
-        const FECHA_INICIO = new Date(2026, 9, 11);
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        FECHA_INICIO.setHours(0, 0, 0, 0);
-        
-        const diferenciaDias = Math.floor((hoy - FECHA_INICIO) / (1000 * 60 * 60 * 24));
-        const semanasTranscurridas = Math.floor(diferenciaDias / 7);
-        const semanaActualNum = (semanasTranscurridas % 5) + 1;
+        const semanaActualNum = this.calcularSemanaActual();
+        const tipoDiaActual = this.getTipoDiaActual();
 
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const hoy = new Date();
         const diaNombre = diasSemana[hoy.getDay()];
 
+        console.log('🔍 [CicloTracking] Buscando servicio - Semana:', semanaActualNum, 'Tipo día:', tipoDiaActual, 'Día:', diaNombre);
+
         const semanaData = miRol.semanas.find(s => s.numero === semanaActualNum);
-        if (!semanaData || !semanaData.dias || !semanaData.dias[diaNombre]) return;
+        if (!semanaData || !semanaData.dias || !semanaData.dias[diaNombre]) {
+            console.log('⚠️ [CicloTracking] No hay datos para el día', diaNombre, 'en semana', semanaActualNum);
+            return;
+        }
 
         const posicionHoy = semanaData.dias[diaNombre].posicion;
-        if (!posicionHoy) return;
+        if (!posicionHoy) {
+            console.log('⚠️ [CicloTracking] No hay posición asignada para hoy');
+            return;
+        }
+
+        console.log('📍 [CicloTracking] Posición encontrada:', posicionHoy);
 
         const normalizar = (texto) => {
             if (!texto) return '';
             return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, '').trim();
         };
 
-        const diaSemana = hoy.getDay();
-        let tipoEsperado = 'Laboral';
-        if (diaSemana === 0) tipoEsperado = 'Domingo/Festivos';
-        else if (diaSemana === 6) tipoEsperado = 'Sábado';
+        const tipoDiaConfig = semanas.find(s => {
+            const tipoNormalizado = normalizar(s.tipo);
+            const diaNormalizado = normalizar(tipoDiaActual);
+            const coincide = tipoNormalizado === diaNormalizado && s.lineaId === userLineaId;
+            if (coincide) {
+                console.log('✅ [CicloTracking] Tipo de día encontrado:', s.tipo);
+            }
+            return coincide;
+        });
+        
+        if (!tipoDiaConfig) {
+            console.log('⚠️ [CicloTracking] No se encontró configuración para tipo de día:', tipoDiaActual);
+            console.log('📋 [CicloTracking] Tipos disponibles:', semanas.map(s => s.tipo).join(', '));
+            return;
+        }
 
-        const tipoDiaConfig = semanas.find(s => 
-            normalizar(s.tipo) === normalizar(tipoEsperado) && s.lineaId === userLineaId
-        );
-        if (!tipoDiaConfig) return;
-
-        const servicio = servicios.find(s => 
-            String(s.nombre).trim() === String(posicionHoy).trim() &&
-            s.lineaId === userLineaId &&
-            s.semanaId === tipoDiaConfig.id
-        );
+        const servicio = servicios.find(s => {
+            const nombreNormalizado = String(s.nombre).trim();
+            const posicionNormalizada = String(posicionHoy).trim();
+            const coincide = nombreNormalizado === posicionNormalizada && 
+                           s.lineaId === userLineaId && 
+                           s.semanaId === tipoDiaConfig.id;
+            if (coincide) {
+                console.log('✅ [CicloTracking] Servicio encontrado:', s.nombre);
+            }
+            return coincide;
+        });
 
         if (servicio && servicio.trenes && servicio.trenes.length > 0) {
             this.servicioData = servicio;
             this.state.turnoId = `turno_${servicio.nombre}_${this.getFechaLocal(new Date())}`;
+            console.log('✅ [CicloTracking] Servicio cargado exitosamente:', servicio.nombre, '| Tipo:', tipoDiaActual);
+        } else {
+            console.log('⚠️ [CicloTracking] No se encontró servicio para posición:', posicionHoy);
+            console.log('📋 [CicloTracking] Servicios disponibles:', servicios.map(s => s.nombre).join(', '));
         }
-    },
-
-    getFechaLocal(fecha) {
-        const year = fecha.getFullYear();
-        const month = String(fecha.getMonth() + 1).padStart(2, '0');
-        const day = String(fecha.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
     },
 
     calcularCarreras(tren) {
@@ -535,11 +541,12 @@ const CicloTracking = {
                     this.state.turnoFinalizado = parsed.turnoFinalizado || false;
                     this.state.direccion = parsed.direccion || 'norte_sur';
                     this.state.trenesColapsados = parsed.trenesColapsados || {};
+                    this.state.ultimaConsultaAtraso = parsed.ultimaConsultaAtraso || null;
                     this.state.isTracking = true;
                 }
             }
         } catch (e) {
-            console.error(' Error al cargar estado:', e);
+            console.error('❌ Error al cargar estado:', e);
         }
     },
 
@@ -587,7 +594,8 @@ const CicloTracking = {
             isTracking: false,
             turnoFinalizado: false,
             direccion: 'norte_sur',
-            trenesColapsados: {}
+            trenesColapsados: {},
+            ultimaConsultaAtraso: null
         };
         localStorage.removeItem(this.STORAGE_KEY);
         this.renderTrackingPanel();
@@ -640,7 +648,7 @@ const CicloTracking = {
 
         this.saveState();
         this.renderTrackingPanel();
-        App.showToast(`️ Carrera ${carreraNum} omitida`);
+        App.showToast(`⏭️ Carrera ${carreraNum} omitida`);
     },
 
     marcarLlegadaCarrera(carreraKey, carreraNum, horaLlegadaTeorica) {
@@ -732,7 +740,7 @@ const CicloTracking = {
     },
 
     mostrarMensajeBloqueo() {
-        App.showToast('️ Debes registrar la llegada u omitir la carrera actual para continuar');
+        App.showToast('⚠️ Debes registrar la llegada u omitir la carrera actual para continuar');
     },
 
     toggleCollapse(trenIdx) {
@@ -745,6 +753,61 @@ const CicloTracking = {
         this.state.trenesColapsados[collapseKey] = !this.state.trenesColapsados[collapseKey];
         this.saveState();
         this.renderTrackingPanel();
+    },
+
+    // ✅ NUEVA FUNCIÓN: Renderizar panel de atraso
+    renderPanelAtraso() {
+        const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
+        const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin);
+        const necesitaParpadeo = this.state.lastDelayMin >= 60;
+
+        let html = `<div style="margin-top: 12px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Atraso del Servicio</h4>
+                <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'EN SEGUIMIENTO'}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-soft);">Total de atraso</div>
+                    <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">${this.formatMinutos(this.state.lastDelayMin)}</div>
+                </div>
+                <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-soft);">Margen Restante</div>
+                    <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
+                </div>
+            </div>`;
+
+        // ✅ Leyenda de última consulta
+        if (this.state.ultimaConsultaAtraso) {
+            const consulta = this.state.ultimaConsultaAtraso;
+            html += `<div style="background: rgba(155, 127, 212, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; font-size: 12px; color: var(--text-soft);">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <strong style="color: var(--primary);">Último atraso consultado:</strong>
+                </div>
+                <div style="margin-left: 20px;">
+                    <div>📍 Estación: <strong style="color: var(--text);">${consulta.estacion}</strong></div>
+                    <div>🕐 Hora: <strong style="color: var(--text);">${consulta.hora}</strong></div>
+                    <div>🎯 Carrera: <strong style="color: var(--text);">${consulta.carrera}</strong></div>
+                    <div>⏱️ Atraso: <strong style="color: ${consulta.atraso > 0 ? 'var(--accent)' : '#4CAF50'};">${this.formatMinutos(consulta.atraso)}</strong></div>
+                </div>
+            </div>`;
+        } else {
+            html += `<div style="background: rgba(155, 127, 212, 0.05); border: 1px dashed var(--primary); padding: 10px; border-radius: 8px; font-size: 12px; color: var(--text-soft); text-align: center;">
+                📍 Sin consultas previas de atraso
+            </div>`;
+        }
+
+        if (necesitaParpadeo && !esUmbralAlcanzado) {
+            html += `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; margin-top: 12px;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>`;
+        }
+
+        html += `</div>`;
+
+        return html;
     },
 
     renderTrackingPanel() {
@@ -768,7 +831,7 @@ const CicloTracking = {
                 <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">✅ Servicio Finalizado</h3>
                 <div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Total de atraso</h4>
+                        <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">⏱️ Total de atraso</h4>
                         <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : '#4CAF50'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'DENTRO DEL MÁXIMO'}</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -791,7 +854,6 @@ const CicloTracking = {
         const esTiempoExtra = DB.get('tiempoExtraActivo', false);
         
         let html = `
-            <!-- ✅ ESTILO DE ANIMACIÓN PARA EL BOTÓN DE AYUDA -->
             <style>
                 @keyframes ske-pulse-help {
                     0%, 100% {
@@ -869,7 +931,7 @@ const CicloTracking = {
                         html += `<div class="ct-carrera-card" style="margin-bottom: 10px; padding: 12px; background: ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#E0E0E0' : 'var(--surface)'}; border-radius: 10px; border: 2px solid ${esOmitida ? '#9E9E9E' : estaCompletada ? 'var(--primary)' : esCarreraFutura ? '#BDBDBD' : 'var(--bg-soft)'}; opacity: ${esCarreraFutura ? '0.6' : '1'};">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div style="flex: 1;">
-                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? ' ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
+                                    <div style="font-size: 14px; font-weight: 700; color: ${estaCompletada ? 'white' : esCarreraFutura ? '#757575' : 'var(--text)'};">${esOmitida ? '⏭️ ' : estaCompletada ? '✓ ' : esCarreraFutura ? '🔒 ' : '⏳ '}Carrera ${carrera.numero} - ${carrera.tipo}</div>
                                     <div style="font-size: 11px; color: ${estaCompletada ? 'rgba(255,255,255,0.8)' : esCarreraFutura ? '#9E9E9E' : 'var(--text-soft)'};">${carrera.direccion}</div>
                                     <div style="font-size: 10px; color: ${estaCompletada ? 'rgba(255,255,255,0.6)' : esCarreraFutura ? '#BDBDBD' : 'var(--text-light)'}; margin-top: 2px;">Salida: ${carrera.horaSalida}</div>
                                 </div>
@@ -881,21 +943,24 @@ const CicloTracking = {
 
                         if (esCarreraActual && !estaCompletada) {
                             html += `<div style="display: flex; gap: 8px; margin-top: 8px;">
-                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;"> Marcar Llegada</button>
+                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Marcar Llegada</button>
                                 <button onclick="if(confirm('¿Omitir registro de esta carrera?')) CicloTracking.omitirCarrera('${carreraKey}', ${carrera.numero})" style="flex: 1; padding: 10px; background: #757575; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">⏭️ Omitir</button>
                             </div>
                             <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Mi atraso en la Carrera</button>`;
+                            
+                            // ✅ Panel de atraso aparece aquí, debajo de la carrera activa
+                            html += this.renderPanelAtraso();
                         }
 
                         if (esCarreraFutura && !estaCompletada) {
-                            html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;"> Completa la carrera actual primero</div>`;
+                            html += `<div onclick="CicloTracking.mostrarMensajeBloqueo()" style="width: 100%; margin-top: 8px; padding: 10px; background: #BDBDBD; color: #616161; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: not-allowed; text-align: center;">🔒 Completa la carrera actual primero</div>`;
                         }
 
                         if (llegadaInfo) {
                             html += `<div style="margin-top: 8px; padding: 8px; background: ${esOmitida ? 'rgba(158,158,158,0.2)' : llegadaInfo.atraso > 0 ? 'rgba(255,152,0,0.2)' : 'rgba(76,175,80,0.2)'}; border-radius: 6px; border-left: 3px solid ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div style="flex: 1;">
-                                        <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
+                                        <div style="font-size: 12px; font-weight: 700; color: ${esOmitida ? '#9E9E9E' : llegadaInfo.atraso > 0 ? '#FF9800' : '#4CAF50'};">${esOmitida ? '⏭️ Omitida' : llegadaInfo.atraso > 0 ? `⚠️ +${this.formatMinutos(llegadaInfo.atraso)} atraso` : '✓ A tiempo'}</div>
                                         <div style="font-size: 10px; color: var(--text-soft); margin-top: 2px;">${esOmitida ? 'Sin registro de hora' : `Registrada: ${llegadaInfo.horaReal} (Teórica: ${carrera.horaLlegada})`}</div>
                                     </div>
                                     ${esTrenActivo ? `<button onclick="CicloTracking.resetCarrera('${carreraKey}')" style="background: rgba(255,255,255,0.3); border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: white;">↺</button>` : ''}
@@ -909,7 +974,7 @@ const CicloTracking = {
                 } else if (esTrenFuturo) {
                     html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">🔒 Pendiente - Completa el tren actual primero</div>`;
                 } else {
-                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;"> Pendiente</div>`;
+                    html += `<div style="text-align: center; padding: 10px; color: var(--text-soft); font-size: 12px;">⏳ Pendiente</div>`;
                 }
             } else {
                 html += `<div style="text-align: center; padding: 12px; background: var(--surface); border-radius: 8px; color: var(--text-soft); font-size: 12px;">
@@ -919,37 +984,15 @@ const CicloTracking = {
             html += `</div>`;
         });
 
-        const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
-        const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin);
-        const necesitaParpadeo = this.state.lastDelayMin >= 60;
-
-        html += `<div style="margin-top: 16px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h4 style="margin: 0; font-size: 14px; color: var(--text); font-weight: 700;">️ Atraso del Servicio</h4>
-                <span style="background: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">${esUmbralAlcanzado ? 'UMBRAL ALCANZADO' : 'EN SEGUIMIENTO'}</span>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 11px; color: var(--text-soft);">Total de atraso</div>
-                    <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">${this.formatMinutos(this.state.lastDelayMin)}</div>
-                </div>
-                <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 11px; color: var(--text-soft);">Margen Restante</div>
-                    <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
-                </div>
-            </div>
-            ${necesitaParpadeo && !esUmbralAlcanzado ? `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>` : ''}
-        </div>`;
-
         panel.innerHTML = html;
         container.parentNode.insertBefore(panel, container.nextSibling);
 
-        // ✅ Asignar evento al botón de ayuda
         const btnAyuda = document.getElementById('btnAyudaTracking');
         if (btnAyuda) {
             btnAyuda.addEventListener('click', () => this.mostrarAyuda());
         }
 
+        const necesitaParpadeo = this.state.lastDelayMin >= 60;
         if (necesitaParpadeo) this.startBlinking();
         else this.stopBlinking();
     },
@@ -957,6 +1000,71 @@ const CicloTracking = {
     startRealTimeTracking() {
         if (this.intervalId) clearInterval(this.intervalId);
         this.intervalId = setInterval(() => { this.checkExpiration(); }, 30000);
+    },
+
+    async init() {
+        console.log('🛰️ [CicloTracking] Inicializando...');
+        
+        const container = document.getElementById('skeServicioDiaContainer');
+        if (!container) {
+            console.error('❌ [CicloTracking] Contenedor #skeServicioDiaContainer NO encontrado');
+            return;
+        }
+        console.log('✅ [CicloTracking] Contenedor encontrado');
+
+        const tiempoExtraActivo = DB.get('tiempoExtraActivo', false);
+        const savedState = localStorage.getItem(this.STORAGE_KEY);
+        
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                if (parsed.turnoFinalizado && tiempoExtraActivo) {
+                    console.log('🔄 [CicloTracking] Turno finalizado con tiempo extra. Reseteando...');
+                    localStorage.removeItem(this.STORAGE_KEY);
+                }
+            } catch (e) {
+                console.error('❌ Error al parsear estado:', e);
+            }
+        }
+
+        if (!this.servicioData) {
+            console.log('⚠️ [CicloTracking] No hay servicioData, intentando extraer...');
+            await this.extractServiceData();
+        }
+        
+        if (!this.servicioData) {
+            console.error('❌ [CicloTracking] No se encontró servicio');
+            return;
+        }
+        console.log('✅ [CicloTracking] Servicio encontrado:', this.servicioData.nombre);
+
+        this.determinarDireccion();
+        this.loadState();
+        
+        if (this.state.turnoFinalizado && this.servicioData) {
+            console.log('🔄 [CicloTracking] Reseteando turno finalizado...');
+            this.state.turnoFinalizado = false;
+            this.state.lastDelayMin = 0;
+            this.state.currentTrenIndex = 0;
+            this.state.currentCarrera = 1;
+            this.state.carrerasCompletadas = {};
+            this.state.llegadasRegistradas = {};
+            this.state.expirationTime = null;
+            this.state.ultimaConsultaAtraso = null;
+            this.saveState();
+        }
+
+        this.checkExpiration();
+
+        if (!this.state.expirationTime) {
+            this.calculateExpiration();
+        }
+
+        this.renderTrackingPanel();
+        console.log('✅ [CicloTracking] Panel renderizado');
+
+        this.startRealTimeTracking();
+        console.log('✅ [CicloTracking] Activo');
     },
 
     destroy() {
