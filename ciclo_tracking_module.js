@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Con contador regresivo rojo sincronizado con total de atraso
+// CICLO_TRACKING_MODULE.JS - Con contador en formato HH:MM:SS
 // ============================================
 
 const CicloTracking = {
@@ -60,10 +60,16 @@ const CicloTracking = {
         return `0:${String(mins).padStart(2, '0')}`;
     },
 
+    // ✅ MODIFICADO: Ahora muestra HH:MM:SS cuando hay horas
     formatSegundos(segundos) {
         const totalSeg = Math.max(0, Math.floor(segundos));
-        const mins = Math.floor(totalSeg / 60);
+        const horas = Math.floor(totalSeg / 3600);
+        const mins = Math.floor((totalSeg % 3600) / 60);
         const secs = totalSeg % 60;
+        
+        if (horas > 0) {
+            return `${horas}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     },
 
@@ -747,13 +753,11 @@ const CicloTracking = {
         }
     },
 
-    // ✅ CONTADOR REGRESIVO SINCRONIZADO: Margen baja, Atraso sube
+    // ✅ CONTADOR REGRESIVO SINCRONIZADO CON FORMATO HH:MM:SS
     startCountdown() {
         this.stopCountdown();
         
-        // Atraso base en segundos (lo que ya se registró)
         const atrasoBaseSegundos = this.state.lastDelayMin * 60;
-        // Margen restante en segundos
         const margenRestanteSegundos = Math.max(0, (this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin) * 60);
         
         let segundosTranscurridos = 0;
@@ -765,7 +769,6 @@ const CicloTracking = {
             const margenActual = Math.max(0, margenRestanteSegundos - segundosTranscurridos);
             const atrasoActual = atrasoBaseSegundos + segundosTranscurridos;
             
-            // ✅ Actualizar Margen Restante (siempre rojo, parpadea a 15 min)
             if (margenElement) {
                 margenElement.textContent = this.formatSegundos(margenActual);
                 margenElement.style.color = '#c62828';
@@ -777,7 +780,6 @@ const CicloTracking = {
                 }
             }
             
-            // ✅ Actualizar Total de Atraso (siempre rojo cuando hay parpadeo)
             if (atrasoElement) {
                 atrasoElement.textContent = this.formatSegundos(atrasoActual);
                 atrasoElement.style.color = '#c62828';
