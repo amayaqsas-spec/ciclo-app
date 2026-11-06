@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Con panel de atraso en carrera activa
+// CICLO_TRACKING_MODULE.JS - Con contador regresivo y nombres actualizados
 // ============================================
 
 const CicloTracking = {
@@ -41,11 +41,12 @@ const CicloTracking = {
         turnoFinalizado: false,
         direccion: 'norte_sur',
         trenesColapsados: {},
-        ultimaConsultaAtraso: null // ✅ NUEVO: Guarda última consulta de atraso
+        ultimaConsultaAtraso: null
     },
 
     intervalId: null,
     blinkInterval: null,
+    countdownInterval: null, // ✅ NUEVO: Intervalo para contador regresivo
     servicioData: null,
 
     formatMinutos(minutos) {
@@ -56,6 +57,14 @@ const CicloTracking = {
             return `${horas}:${String(mins).padStart(2, '0')}`;
         }
         return `0:${String(mins).padStart(2, '0')}`;
+    },
+
+    // ✅ NUEVA FUNCIÓN: Formatear segundos a MM:SS
+    formatSegundos(segundos) {
+        const totalSeg = Math.max(0, Math.floor(segundos));
+        const mins = Math.floor(totalSeg / 60);
+        const secs = totalSeg % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     },
 
     horaAMinutos(horaStr) {
@@ -126,7 +135,7 @@ const CicloTracking = {
         
         const modalHTML = `
             <div style="background: var(--surface); padding: 24px; border-radius: 16px; max-width: 90%; width: 400px; max-height: 90vh; overflow-y: auto;">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Mi atraso en la Carrera ${carreraNum} (${tipoCarrera})</h3>
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary);">📍 Conocer atraso en Estación - Carrera ${carreraNum} (${tipoCarrera})</h3>
                 
                 <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid #FF9800; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                     <p style="margin: 0; font-size: 12px; color: #FF9800; font-weight: 600;">
@@ -223,7 +232,6 @@ const CicloTracking = {
             
             this.state.lastDelayMin = atrasoCalculado;
             
-            // ✅ Guardar última consulta de atraso
             const ahora = new Date();
             const horaConsulta = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
             this.state.ultimaConsultaAtraso = {
@@ -283,10 +291,10 @@ const CicloTracking = {
                     <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #4CAF50;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                             <span style="background: #4CAF50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">2</span>
-                            <strong style="font-size: 14px; color: var(--text);">Marca tu Llegada</strong>
+                            <strong style="font-size: 14px; color: var(--text);">Llegada a Terminal</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
-                            Cuando llegues a la terminal al finalizar una carrera, presiona el botón <strong style="color: #FF9800;">📍 Marcar Llegada</strong>. Esto registrará la hora real y calculará si llegaste a tiempo o con atraso.
+                            Cuando llegues a la terminal al finalizar una carrera, presiona el botón <strong style="color: #FF9800;">📍 Llegada a terminal</strong>. Esto registrará la hora real y calculará si llegaste a tiempo o con atraso.
                         </p>
                     </div>
 
@@ -303,10 +311,10 @@ const CicloTracking = {
                     <div style="background: var(--bg-soft); padding: 14px; border-radius: 10px; border-left: 4px solid #FF9800;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                             <span style="background: #FF9800; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">4</span>
-                            <strong style="font-size: 14px; color: var(--text);">Calcula tu Atraso en Ruta</strong>
+                            <strong style="font-size: 14px; color: var(--text);">Conocer Atraso en Estación</strong>
                         </div>
                         <p style="margin: 0; font-size: 13px; color: var(--text-soft); line-height: 1.5;">
-                            Si quieres saber tu atraso mientras vas en ruta, debes estar en la <strong>carrera correspondiente</strong> (la que aparece activa con el botón naranja). Presiona <strong style="color: var(--primary);">📍 Mi atraso en la Carrera</strong> y selecciona la estación donde te encuentras.
+                            Si quieres saber tu atraso mientras vas en ruta, debes estar en la <strong>carrera correspondiente</strong> (la que aparece activa con el botón naranja). Presiona <strong style="color: var(--primary);">📍 Conocer atraso en Estacion</strong> y selecciona la estación donde te encuentras.
                         </p>
                     </div>
 
@@ -739,6 +747,48 @@ const CicloTracking = {
         }
     },
 
+    // ✅ NUEVA FUNCIÓN: Iniciar contador regresivo del margen restante
+    startCountdown() {
+        this.stopCountdown();
+        
+        const margenRestanteSegundos = Math.max(0, (this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin) * 60);
+        let segundosRestantes = margenRestanteSegundos;
+        
+        const actualizarDisplay = () => {
+            const margenElement = document.getElementById('ct-margen-restante');
+            if (margenElement) {
+                margenElement.textContent = this.formatSegundos(segundosRestantes);
+                
+                // Cambiar color según el tiempo restante
+                if (segundosRestantes <= 300) {
+                    margenElement.style.color = '#c62828';
+                } else if (segundosRestantes <= 600) {
+                    margenElement.style.color = '#FF9800';
+                } else {
+                    margenElement.style.color = 'var(--primary)';
+                }
+            }
+            
+            if (segundosRestantes <= 0) {
+                this.stopCountdown();
+                return;
+            }
+            
+            segundosRestantes--;
+        };
+        
+        actualizarDisplay();
+        this.countdownInterval = setInterval(actualizarDisplay, 1000);
+    },
+
+    // ✅ NUEVA FUNCIÓN: Detener contador regresivo
+    stopCountdown() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+    },
+
     mostrarMensajeBloqueo() {
         App.showToast('⚠️ Debes registrar la llegada u omitir la carrera actual para continuar');
     },
@@ -755,11 +805,10 @@ const CicloTracking = {
         this.renderTrackingPanel();
     },
 
-    // ✅ NUEVA FUNCIÓN: Renderizar panel de atraso
     renderPanelAtraso() {
         const esUmbralAlcanzado = this.state.lastDelayMin >= this.RECOVERY_THRESHOLD_MIN;
         const margenRestante = Math.max(0, this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin);
-        const necesitaParpadeo = this.state.lastDelayMin >= 60;
+        const necesitaParpadeo = this.state.lastDelayMin >= 50;
 
         let html = `<div style="margin-top: 12px; padding: 16px; background: var(--bg-soft); border-radius: 12px; border-left: 4px solid ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--primary)'};">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -777,7 +826,6 @@ const CicloTracking = {
                 </div>
             </div>`;
 
-        // ✅ Leyenda de última consulta
         if (this.state.ultimaConsultaAtraso) {
             const consulta = this.state.ultimaConsultaAtraso;
             html += `<div style="background: rgba(155, 127, 212, 0.1); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; font-size: 12px; color: var(--text-soft);">
@@ -802,7 +850,7 @@ const CicloTracking = {
         }
 
         if (necesitaParpadeo && !esUmbralAlcanzado) {
-            html += `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; margin-top: 12px;">⚠️ Atraso de 1 hora o más - Se aproxima la pérdida de una vuelta</div>`;
+            html += `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; margin-top: 12px;">⚠️ Atraso de 50 min o más - Se aproxima la pérdida de una vuelta</div>`;
         }
 
         html += `</div>`;
@@ -943,12 +991,11 @@ const CicloTracking = {
 
                         if (esCarreraActual && !estaCompletada) {
                             html += `<div style="display: flex; gap: 8px; margin-top: 8px;">
-                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Marcar Llegada</button>
+                                <button onclick="CicloTracking.marcarLlegadaCarrera('${carreraKey}', ${carrera.numero}, '${carrera.horaLlegada}')" style="flex: 2; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Llegada a terminal</button>
                                 <button onclick="if(confirm('¿Omitir registro de esta carrera?')) CicloTracking.omitirCarrera('${carreraKey}', ${carrera.numero})" style="flex: 1; padding: 10px; background: #757575; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">⏭️ Omitir</button>
                             </div>
-                            <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Mi atraso en la Carrera</button>`;
+                            <button onclick="CicloTracking.reportarAtrasoEnEstacion('${carreraKey}', ${carrera.numero}, '${carrera.horaSalida}', '${carrera.tipo}')" style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">📍 Conocer atraso en Estacion</button>`;
                             
-                            // ✅ Panel de atraso aparece aquí, debajo de la carrera activa
                             html += this.renderPanelAtraso();
                         }
 
@@ -992,9 +1039,14 @@ const CicloTracking = {
             btnAyuda.addEventListener('click', () => this.mostrarAyuda());
         }
 
-        const necesitaParpadeo = this.state.lastDelayMin >= 60;
-        if (necesitaParpadeo) this.startBlinking();
-        else this.stopBlinking();
+        const necesitaParpadeo = this.state.lastDelayMin >= 50;
+        if (necesitaParpadeo) {
+            this.startBlinking();
+            this.startCountdown(); // ✅ Iniciar contador regresivo
+        } else {
+            this.stopBlinking();
+            this.stopCountdown(); // ✅ Detener contador regresivo
+        }
     },
 
     startRealTimeTracking() {
@@ -1070,6 +1122,7 @@ const CicloTracking = {
     destroy() {
         if (this.intervalId) { clearInterval(this.intervalId); this.intervalId = null; }
         this.stopBlinking();
+        this.stopCountdown(); // ✅ Detener contador al destruir
         const panel = document.getElementById('ct-tracking-panel');
         if (panel) panel.remove();
     }
