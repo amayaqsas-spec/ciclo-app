@@ -1,5 +1,5 @@
 // ============================================
-// CICLO_TRACKING_MODULE.JS - Con contador regresivo y nombres actualizados
+// CICLO_TRACKING_MODULE.JS - Con contador regresivo rojo sincronizado con total de atraso
 // ============================================
 
 const CicloTracking = {
@@ -46,7 +46,8 @@ const CicloTracking = {
 
     intervalId: null,
     blinkInterval: null,
-    countdownInterval: null, // ✅ NUEVO: Intervalo para contador regresivo
+    countdownInterval: null,
+    countdownBlinkInterval: null,
     servicioData: null,
 
     formatMinutos(minutos) {
@@ -59,7 +60,6 @@ const CicloTracking = {
         return `0:${String(mins).padStart(2, '0')}`;
     },
 
-    // ✅ NUEVA FUNCIÓN: Formatear segundos a MM:SS
     formatSegundos(segundos) {
         const totalSeg = Math.max(0, Math.floor(segundos));
         const mins = Math.floor(totalSeg / 60);
@@ -722,7 +722,7 @@ const CicloTracking = {
                 } else {
                     atrasoElement.style.color = 'var(--text)';
                     atrasoElement.style.textShadow = 'none';
-                    margenElement.style.color = 'var(--primary)';
+                    margenElement.style.color = '#c62828';
                     margenElement.style.textShadow = 'none';
                 }
                 visible = !visible;
@@ -741,52 +741,115 @@ const CicloTracking = {
                 atrasoElement.style.textShadow = 'none';
             }
             if (margenElement) {
-                margenElement.style.color = 'var(--primary)';
+                margenElement.style.color = '#c62828';
                 margenElement.style.textShadow = 'none';
             }
         }
     },
 
-    // ✅ NUEVA FUNCIÓN: Iniciar contador regresivo del margen restante
+    // ✅ CONTADOR REGRESIVO SINCRONIZADO: Margen baja, Atraso sube
     startCountdown() {
         this.stopCountdown();
         
+        // Atraso base en segundos (lo que ya se registró)
+        const atrasoBaseSegundos = this.state.lastDelayMin * 60;
+        // Margen restante en segundos
         const margenRestanteSegundos = Math.max(0, (this.RECOVERY_THRESHOLD_MIN - this.state.lastDelayMin) * 60);
-        let segundosRestantes = margenRestanteSegundos;
+        
+        let segundosTranscurridos = 0;
         
         const actualizarDisplay = () => {
             const margenElement = document.getElementById('ct-margen-restante');
+            const atrasoElement = document.getElementById('ct-atraso-total');
+            
+            const margenActual = Math.max(0, margenRestanteSegundos - segundosTranscurridos);
+            const atrasoActual = atrasoBaseSegundos + segundosTranscurridos;
+            
+            // ✅ Actualizar Margen Restante (siempre rojo, parpadea a 15 min)
             if (margenElement) {
-                margenElement.textContent = this.formatSegundos(segundosRestantes);
+                margenElement.textContent = this.formatSegundos(margenActual);
+                margenElement.style.color = '#c62828';
                 
-                // Cambiar color según el tiempo restante
-                if (segundosRestantes <= 300) {
-                    margenElement.style.color = '#c62828';
-                } else if (segundosRestantes <= 600) {
-                    margenElement.style.color = '#FF9800';
+                if (margenActual <= 900) {
+                    this.startCountdownBlink();
                 } else {
-                    margenElement.style.color = 'var(--primary)';
+                    this.stopCountdownBlink();
                 }
             }
             
-            if (segundosRestantes <= 0) {
+            // ✅ Actualizar Total de Atraso (siempre rojo cuando hay parpadeo)
+            if (atrasoElement) {
+                atrasoElement.textContent = this.formatSegundos(atrasoActual);
+                atrasoElement.style.color = '#c62828';
+            }
+            
+            segundosTranscurridos++;
+            
+            if (margenActual <= 0) {
                 this.stopCountdown();
                 return;
             }
-            
-            segundosRestantes--;
         };
         
         actualizarDisplay();
         this.countdownInterval = setInterval(actualizarDisplay, 1000);
     },
 
-    // ✅ NUEVA FUNCIÓN: Detener contador regresivo
+    startCountdownBlink() {
+        if (this.countdownBlinkInterval) return;
+        
+        let visible = true;
+        this.countdownBlinkInterval = setInterval(() => {
+            const margenElement = document.getElementById('ct-margen-restante');
+            const atrasoElement = document.getElementById('ct-atraso-total');
+            
+            if (margenElement) {
+                if (visible) {
+                    margenElement.style.color = '#c62828';
+                    margenElement.style.textShadow = '0 0 10px rgba(198, 40, 40, 0.5)';
+                } else {
+                    margenElement.style.color = '#c62828';
+                    margenElement.style.textShadow = 'none';
+                }
+            }
+            
+            if (atrasoElement) {
+                if (visible) {
+                    atrasoElement.style.color = '#c62828';
+                    atrasoElement.style.textShadow = '0 0 10px rgba(198, 40, 40, 0.5)';
+                } else {
+                    atrasoElement.style.color = '#c62828';
+                    atrasoElement.style.textShadow = 'none';
+                }
+            }
+            
+            visible = !visible;
+        }, 500);
+    },
+
+    stopCountdownBlink() {
+        if (this.countdownBlinkInterval) {
+            clearInterval(this.countdownBlinkInterval);
+            this.countdownBlinkInterval = null;
+            const margenElement = document.getElementById('ct-margen-restante');
+            const atrasoElement = document.getElementById('ct-atraso-total');
+            if (margenElement) {
+                margenElement.style.color = '#c62828';
+                margenElement.style.textShadow = 'none';
+            }
+            if (atrasoElement) {
+                atrasoElement.style.color = '#c62828';
+                atrasoElement.style.textShadow = 'none';
+            }
+        }
+    },
+
     stopCountdown() {
         if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
             this.countdownInterval = null;
         }
+        this.stopCountdownBlink();
     },
 
     mostrarMensajeBloqueo() {
@@ -818,11 +881,11 @@ const CicloTracking = {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 11px; color: var(--text-soft);">Total de atraso</div>
-                    <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: ${esUmbralAlcanzado ? 'var(--accent)' : 'var(--text)'};">${this.formatMinutos(this.state.lastDelayMin)}</div>
+                    <div id="ct-atraso-total" style="font-size: 22px; font-weight: 800; color: #c62828;">${this.formatMinutos(this.state.lastDelayMin)}</div>
                 </div>
                 <div style="background: var(--surface); padding: 10px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 11px; color: var(--text-soft);">Margen Restante</div>
-                    <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: var(--primary);">${this.formatMinutos(margenRestante)}</div>
+                    <div id="ct-margen-restante" style="font-size: 22px; font-weight: 800; color: #c62828;">${this.formatMinutos(margenRestante)}</div>
                 </div>
             </div>`;
 
@@ -850,7 +913,7 @@ const CicloTracking = {
         }
 
         if (necesitaParpadeo && !esUmbralAlcanzado) {
-            html += `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; margin-top: 12px;">⚠️ Atraso de 50 min o más - Se aproxima la pérdida de una vuelta</div>`;
+            html += `<div style="background: rgba(198, 40, 40, 0.1); border: 1px solid #c62828; color: #c62828; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; margin-top: 12px;">Hay más de 50 min de atraso</div>`;
         }
 
         html += `</div>`;
@@ -1042,10 +1105,10 @@ const CicloTracking = {
         const necesitaParpadeo = this.state.lastDelayMin >= 50;
         if (necesitaParpadeo) {
             this.startBlinking();
-            this.startCountdown(); // ✅ Iniciar contador regresivo
+            this.startCountdown();
         } else {
             this.stopBlinking();
-            this.stopCountdown(); // ✅ Detener contador regresivo
+            this.stopCountdown();
         }
     },
 
@@ -1122,7 +1185,8 @@ const CicloTracking = {
     destroy() {
         if (this.intervalId) { clearInterval(this.intervalId); this.intervalId = null; }
         this.stopBlinking();
-        this.stopCountdown(); // ✅ Detener contador al destruir
+        this.stopCountdown();
+        this.stopCountdownBlink();
         const panel = document.getElementById('ct-tracking-panel');
         if (panel) panel.remove();
     }
