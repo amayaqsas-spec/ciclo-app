@@ -1,5 +1,5 @@
 // ============================================
-// HOME.JS - Dashboard con Configuración Centralizada del Ciclo
+// HOME.JS - Dashboard con 3 Modos: Laboral, Sábado, Domingo/Festivo
 // ============================================
 
 const Home = {
@@ -40,6 +40,7 @@ const Home = {
 
         const modoActual = DB.get('modoDiaForzado', null);
         if (modoActual === 'domingo') return 'Domingo/Festivos';
+        if (modoActual === 'sabado') return 'Sábado';
         if (modoActual === 'laboral') return 'Laboral';
 
         const dia = new Date().getDay();
@@ -227,12 +228,10 @@ const Home = {
         document.getElementById('btnCerrarAyudaTE').addEventListener('click', () => document.querySelector('.modal-overlay').remove());
     },
 
-    // ✅ FUNCIÓN PARA TOGGLE DE DESCANSO - Expuesta globalmente
     toggleDescanso() {
         this.descansoOculto = !this.descansoOculto;
         DB.set('descansoOculto', this.descansoOculto);
         
-        // Re-renderizar la vista
         const container = document.getElementById('skeServicioDiaContainer');
         if (container) {
             const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
@@ -242,7 +241,6 @@ const Home = {
                 const tolerancia = servicioAMostrar?.servicio?.tolerancia || '';
                 container.innerHTML = this.renderServicioDia(servicioAMostrar, tipoDiaActual, 'N/A', horaEntrada, tolerancia);
                 
-                // Reiniciar reloj si hay servicio
                 if (servicioAMostrar.servicio) {
                     this.iniciarReloj(servicioAMostrar.servicio);
                 }
@@ -327,7 +325,8 @@ const Home = {
         const mostrarBotonesModo = userNumeroRol && rolesSemanal.length > 0 && posicionHoy !== 'N/A' && !esReservaHoy;
         const modoForzado = DB.get('modoDiaForzado', null);
 
-        const laboralActivo = modoForzado === null || modoForzado === 'laboral';
+        const laboralActivo = modoForzado === 'laboral';
+        const sabadoActivo = modoForzado === 'sabado';
         const domingoActivo = modoForzado === 'domingo';
 
         const servicioAMostrar = this.tiempoExtraActivo ? this.servicioTiempoExtra : this.infoServicio;
@@ -383,9 +382,10 @@ const Home = {
                 ${mostrarBotonesModo ? `
                     <div style="margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 12px; box-shadow: var(--clay-shadow-sm);">
                         <div style="font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 10px; text-transform: uppercase; text-align: center;">🔄 Modo de visualización</div>
-                        <div style="display: flex; gap: 8px;">
-                            <button id="btnModoLaboral" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">📅 Laboral</button>
-                            <button id="btnModoDomingo" style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 14px;">🌙 Domingo/Festivo</button>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <button id="btnModoLaboral" style="padding: 12px; border-radius: 8px; border: 2px solid ${laboralActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${laboralActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${laboralActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 13px;">📅 Laboral</button>
+                            <button id="btnModoSabado" style="padding: 12px; border-radius: 8px; border: 2px solid ${sabadoActivo ? 'var(--primary)' : 'var(--bg-soft)'}; background: ${sabadoActivo ? 'var(--primary)' : 'var(--surface)'}; color: ${sabadoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 13px;">🌟 Sábado</button>
+                            <button id="btnModoDomingo" style="padding: 12px; border-radius: 8px; border: 2px solid ${domingoActivo ? 'var(--accent)' : 'var(--bg-soft)'}; background: ${domingoActivo ? 'var(--accent)' : 'var(--surface)'}; color: ${domingoActivo ? 'white' : 'var(--text)'}; font-weight: 700; cursor: pointer; font-size: 13px;">🌙 Domingo/Festivo</button>
                         </div>
                     </div>
                 ` : ''}
@@ -497,7 +497,6 @@ const Home = {
             }
         }
 
-        // ✅ Si hay descanso y está oculto, mostrar botón para mostrarlo
         const tieneDescanso = bloques.some(b => b.tipo === 'descanso');
         
         let htmlBloques = bloques.map(bloque => {
@@ -526,7 +525,6 @@ const Home = {
                     </div>
                 `;
             } else if (bloque.tipo === 'descanso') {
-                // ✅ Si el descanso está oculto, no renderizar nada aquí
                 if (this.descansoOculto) {
                     return '';
                 }
@@ -546,7 +544,6 @@ const Home = {
                                 </div>
                                 <span style="font-size: 15px; font-weight: 700; color: var(--text);">Tiempo de Descanso</span>
                             </div>
-                            <!-- ✅ BOTÓN OCULTAR EN LA PARTE SUPERIOR DERECHA -->
                             <button onclick="Home.toggleDescanso()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Ocultar módulo de descanso">
                                 <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
                                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
@@ -571,7 +568,6 @@ const Home = {
             return '';
         }).join('');
 
-        // ✅ Si hay descanso y está oculto, agregar botón para mostrarlo
         if (tieneDescanso && this.descansoOculto) {
             htmlBloques += `
                 <div style="background: var(--bg-soft); padding: 12px; border-radius: 12px; border: 2px dashed var(--primary); margin: 12px 0; text-align: center;">
@@ -630,7 +626,6 @@ const Home = {
     async init() {
         this.minutosAtraso = 0;
         
-        // ✅ Cargar estado de descanso oculto
         this.descansoOculto = DB.get('descansoOculto', false);
         
         console.log('📥 [Home] Cargando datos de Firebase...');
@@ -729,11 +724,13 @@ const Home = {
         }
 
         const btnModoLaboral = document.getElementById('btnModoLaboral');
+        const btnModoSabado = document.getElementById('btnModoSabado');
         const btnModoDomingo = document.getElementById('btnModoDomingo');
         const hoyStr = this.getFechaLocal(new Date());
         const recargarHome = () => setTimeout(() => window.location.reload(), 300);
 
         if (btnModoLaboral) btnModoLaboral.addEventListener('click', () => { DB.set('modoDiaForzado', 'laboral'); DB.set('fechaModoForzado', hoyStr); App.showToast('📅 Modo: Laboral'); recargarHome(); });
+        if (btnModoSabado) btnModoSabado.addEventListener('click', () => { DB.set('modoDiaForzado', 'sabado'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌟 Modo: Sábado'); recargarHome(); });
         if (btnModoDomingo) btnModoDomingo.addEventListener('click', () => { DB.set('modoDiaForzado', 'domingo'); DB.set('fechaModoForzado', hoyStr); App.showToast('🌙 Modo: Domingo/Festivo'); recargarHome(); });
 
         const btnTiempoExtra = document.getElementById('btnTiempoExtra');
@@ -941,7 +938,6 @@ const Home = {
     }
 };
 
-// ✅ EXPOSICIÓN GLOBAL para que los onclick inline funcionen
 window.Home = Home;
 
 export default Home;
