@@ -134,7 +134,12 @@ const ServiciosBusqueda = {
 
             const linea = lineas.find(l => l.id === lineaId);
             const terminal = terminales.find(t => t.id === terminalId);
-            const semana = semanas.find(s => s.tipo === tipoDia);
+            
+            // ✅ CORRECCIÓN: Buscar la semana filtrando TAMBIÉN por lineaId
+            const semana = semanas.find(s => s.tipo === tipoDia && s.lineaId === lineaId);
+
+            console.log('🔍 [Búsqueda] Parámetros:', { lineaId, terminalId, tipoDia, numeroServicio });
+            console.log('🔍 [Búsqueda] Semana encontrada:', semana);
 
             const servicio = servicios.find(s => 
                 s.lineaId === lineaId && 
@@ -142,6 +147,8 @@ const ServiciosBusqueda = {
                 s.semanaId === semana?.id && 
                 String(s.nombre).trim() === numeroServicio
             );
+
+            console.log('🔍 [Búsqueda] Servicio encontrado:', servicio);
 
             if (servicio) {
                 resultadoDiv.innerHTML = this.renderResultado(servicio, linea, terminal, semana);
@@ -152,6 +159,7 @@ const ServiciosBusqueda = {
                         <div class="ske-servicios-empty-icono"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
                         <h3>Servicio no encontrado</h3>
                         <p>No existe el servicio <strong>"${numeroServicio}"</strong> para la configuración seleccionada.</p>
+                        <p style="font-size: 12px; color: var(--text-soft); margin-top: 8px;">Verifica que el servicio esté registrado con el Tipo de Día y Línea correctos.</p>
                     </div>
                 `;
             }
@@ -178,7 +186,6 @@ const ServiciosBusqueda = {
                     <span>${haceGarage ? 'Sí hace Garage' : 'No hace Garage'}</span>
                 </div>
 
-                <!-- ✅ NUEVO: HORA DE ENTRADA Y TOLERANCIA -->
                 ${servicio.horaEntrada ? `
                     <div style="background: var(--bg-soft); padding: 12px; border-radius: 10px; margin-bottom: 16px; display: flex; justify-content: space-around; align-items: center; border: 1px solid var(--border);">
                         <div style="text-align: center;">
@@ -192,7 +199,6 @@ const ServiciosBusqueda = {
                         </div>
                     </div>
                 ` : ''}
-                <!-- ✅ FIN NUEVO BLOQUE -->
 
                 ${trenes.length > 0 ? `
                     <div class="ske-servicios-trenes">
